@@ -1,3 +1,5 @@
-NEWSREAL V20.5.1
+NEWSREAL V20.5.2
 Service templates: FPT / VNPT / Viettel
 Showroom: real public package examples; Trial/client: same structure, no showroom sample posts.
+
+V20.5.2: Rich provider-specific service layouts; 3+ image cards per category; FPT/VNPT/Viettel layouts intentionally distinct.
