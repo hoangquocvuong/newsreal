@@ -113,7 +113,7 @@ window.NR_ESTATE_CORE={
 window.NR_DEMO_TITLE_LABELS={
  'mau-1':'BĐS Mẫu 1','mau-2':'BĐS Mẫu 2','mau-3':'BĐS Mẫu 3','mau-4':'BĐS Mẫu 4','mau-5':'BĐS Mẫu 5',
  'tin-tuc-1':'Tin tức Mẫu 1','tin-tuc-2':'Tin tức Mẫu 2','tin-tuc-3':'Tin tức Mẫu 3','tin-tuc-4':'Tin tức Mẫu 4',
- 'dich-vu-1':'Dịch vụ FPT','dich-vu-2':'Dịch vụ VNPT','dich-vu-3':'Dịch vụ Viettel'
+ 'dich-vu-1':'FPT','dich-vu-2':'VNPT','dich-vu-3':'Viettel','dich-vu-4':'Camera Store'
 };
 window.nrApplyDemoTitle=function(){
  const key=String(window.NR_DEMO_THEME||''),base=window.NR_DEMO_TITLE_LABELS[key];
@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  const serviceNum=/^dich-vu-(\d+)$/.exec(demo)?.[1]||'';
  const newsNames={'1':'Tin tức Mẫu 1 · Tạp chí hiện đại','2':'Tin tức Mẫu 2 · Báo điện tử','3':'Tin tức Mẫu 3 · Magazine hiện đại','4':'Tin tức Mẫu 4 · Minimal SEO'};
  const estateNames={'mau-1':'Mẫu 1 · Tin tức & BĐS','mau-2':'Mẫu 2 · BĐS hiện đại','mau-3':'Mẫu 3 · BĐS Luxury','mau-4':'Mẫu 4 · BĐS Minimal','mau-5':'Mẫu 5 · BĐS Urban'};
- const serviceNames={'1':'Dịch vụ Mẫu 1 · FPT Telecom','2':'Dịch vụ Mẫu 2 · VNPT','3':'Dịch vụ Mẫu 3 · Viettel'};
+ const serviceNames={'1':'FPT','2':'VNPT','3':'Viettel','4':'Camera Store'};
  const demoLabel=newsNum?newsNames[newsNum]:(serviceNum?(serviceNames[serviceNum]||`Dịch vụ Mẫu ${serviceNum}`):(estateNames[demo]||'Mẫu bất động sản'));
  const isNewsDemo=!!newsNum;
  const isServiceDemo=!!serviceNum;
@@ -346,9 +346,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 const TEMPLATE_CATALOG_DEFAULTS=[
  {template_key:'mau-1',name:'Mẫu 1 · Tin tức & BĐS',category:'bat-dong-san',preset:'newsreal',price:1499000,renewal_price:1999000,is_active:1,sort_order:1,image_url:'/assets/demo/mau-1-preview.png',demo_url:'/demo/bat-dong-san/mau-1/',badge:'NHIỀU NỘI DUNG',description:'Phong cách cổng thông tin bất động sản, phù hợp website có nhiều tin tức, chuyên mục và bài đăng.',features:'Trang chủ nhiều chuyên mục\nTin tức + bất động sản\nPhù hợp SEO nội dung',accent:'blue'},
- {template_key:'dich-vu-1',name:'Dịch vụ Mẫu 1 · FPT Telecom',category:'dich-vu',preset:'service_fpt_1',price:1499000,renewal_price:1999000,is_active:1,sort_order:1,image_url:'/assets/demo/dich-vu-1-preview.svg',demo_url:'/demo/dich-vu/mau-1/',badge:'FPT',description:'Mẫu website đại lý FPT Telecom với gói Internet, FPT Play, Camera AI và combo dịch vụ.',features:'Internet FPT\nFPT Play\nCamera AI\nCombo & CTA tư vấn',accent:'blue'},
- {template_key:'dich-vu-2',name:'Dịch vụ Mẫu 2 · VNPT',category:'dich-vu',preset:'service_vnpt_2',price:1499000,renewal_price:1999000,is_active:1,sort_order:2,image_url:'/assets/demo/dich-vu-2-preview.svg',demo_url:'/demo/dich-vu/mau-2/',badge:'VNPT',description:'Mẫu website dịch vụ VNPT với Home Internet, MyTV, Home Cam và combo gia đình.',features:'Home Internet\nMyTV\nHome Cam\nCombo gia đình',accent:'blue'},
- {template_key:'dich-vu-3',name:'Dịch vụ Mẫu 3 · Viettel',category:'dich-vu',preset:'service_viettel_3',price:1499000,renewal_price:1999000,is_active:1,sort_order:3,image_url:'/assets/demo/dich-vu-3-preview.svg',demo_url:'/demo/dich-vu/mau-3/',badge:'VIETTEL',description:'Mẫu website Viettel Telecom với Internet Wi-Fi 6, TV360, Camera và combo trọn gói.',features:'Internet Viettel\nTV360\nCamera Cloud\nCombo trọn gói',accent:'red'},
+ {template_key:'dich-vu-1',name:'FPT',category:'dich-vu',preset:'service_fpt_1',price:1499000,renewal_price:1999000,is_active:1,sort_order:1,image_url:'/assets/demo/dich-vu-1-preview.png',demo_url:'/demo/dich-vu/mau-1/',badge:'FPT',description:'Website dịch vụ FPT với Internet, FPT Play, Camera AI, combo và luồng tư vấn.',features:'Internet FPT\nFPT Play\nCamera AI\nCombo & CTA tư vấn',accent:'orange'},
+ {template_key:'dich-vu-2',name:'VNPT',category:'dich-vu',preset:'service_vnpt_2',price:1499000,renewal_price:1999000,is_active:1,sort_order:2,image_url:'/assets/demo/dich-vu-2-preview.png',demo_url:'/demo/dich-vu/mau-2/',badge:'VNPT',description:'Website VNPT Home với Home Internet, MyTV, Home Cam và combo gia đình.',features:'Home Internet\nMyTV\nHome Cam\nCombo gia đình',accent:'blue'},
+ {template_key:'dich-vu-3',name:'Viettel',category:'dich-vu',preset:'service_viettel_3',price:1499000,renewal_price:1999000,is_active:1,sort_order:3,image_url:'/assets/demo/dich-vu-3-preview.png',demo_url:'/demo/dich-vu/mau-3/',badge:'VIETTEL',description:'Website Viettel với Internet Wi-Fi 6, TV360, Camera và combo trọn gói.',features:'Internet Viettel\nTV360\nCamera Cloud\nCombo trọn gói',accent:'red'},
+ {template_key:'dich-vu-4',name:'Camera Store',category:'dich-vu',preset:'service_camera_store_4',price:1499000,renewal_price:1999000,is_active:1,sort_order:4,image_url:'/assets/demo/dich-vu-4-preview.png',demo_url:'/demo/dich-vu/mau-4/',badge:'CAMERA',description:'Website trưng bày và tư vấn camera đa thương hiệu với sản phẩm, giá, thông số, khuyến mãi và form lead.',features:'Camera trong nhà\nCamera ngoài trời\nCamera AI quay quét\nCamera IP / bộ giám sát',accent:'green'},
  {template_key:'tin-tuc-1',name:'Tin tức Mẫu 1 · Tạp chí hiện đại',category:'tin-tuc',preset:'news_portal_1',price:1499000,renewal_price:1999000,is_active:1,sort_order:1,image_url:'/assets/demo/tin-tuc-1-preview-v2.png',demo_url:'/demo/tin-tuc/mau-1/',badge:'MỚI',description:'Giao diện tin tức hiện đại, tập trung bài nổi bật, dòng tin mới, chuyên mục và nội dung đọc nhiều.',features:'Trang chủ kiểu tạp chí\nTin nổi bật + đọc nhiều\nChuyên mục tự động theo bài viết\nTối ưu nội dung & mobile',accent:'red'},
  {template_key:'mau-2',name:'Mẫu 2 · BĐS hiện đại',category:'bat-dong-san',preset:'estate_green',price:1799000,renewal_price:2299000,is_active:1,sort_order:2,image_url:'/assets/demo/mau-2-preview.png',demo_url:'/demo/bat-dong-san/mau-2/',badge:'ĐỀ XUẤT',description:'Phong cách portal bất động sản hiện đại, hero tìm kiếm lớn và tập trung mạnh vào chuyển đổi khách hàng.',features:'Bộ lọc tìm kiếm nổi bật\nCard bất động sản hiện đại\nTối ưu trải nghiệm mobile',accent:'green'}
 ];
@@ -383,6 +384,8 @@ async function ensureMarketCatalog(env){
     accent=CASE WHEN coalesce(accent,'')='' THEN ? ELSE accent END
     WHERE template_key=?`).bind(d.image_url,d.demo_url,d.badge,d.description,d.features,d.accent,d.template_key).run();
   }
+  const serviceRefresh=[['dich-vu-1','FPT','/assets/demo/dich-vu-1-preview.png'],['dich-vu-2','VNPT','/assets/demo/dich-vu-2-preview.png'],['dich-vu-3','Viettel','/assets/demo/dich-vu-3-preview.png'],['dich-vu-4','Camera Store','/assets/demo/dich-vu-4-preview.png']];
+  for(const [k,n,img] of serviceRefresh){try{await env.DB.prepare(`UPDATE template_catalog SET name=?,image_url=?,updated_at=CURRENT_TIMESTAMP WHERE template_key=?`).bind(n,img,k).run()}catch(e){}}
  }catch(e){}
 }
 async function ensureNewsPreviewAsset(env){

@@ -7,7 +7,13 @@ const required=[
   ['site service binding','data-structure-key="internet"'],
   ['backend universal contract','universal-layout-v1'],
   ['backend exact slots',"slot_contract:'exact'"],
-  ['VNPT split host','.vnpt-pack-list']
+  ['VNPT split host','.vnpt-pack-list'],
+  ['Camera Store exact section','data-structure-key=\"indoor\"'],
+  ['Camera Store preset','service_camera_store_4'],
+  ['Camera indoor 6-slot renderer',"secSlots('indoor',6)"],
+  ['Camera outdoor 6-slot renderer',"secSlots('outdoor',6)"],
+  ['Camera AI 6-slot renderer',"secSlots('ai',6)"],
+  ['Camera pro 6-slot renderer',"secSlots('pro',6)"]
 ];
 let failed=0;
 for(const [name,needle] of required){
@@ -16,7 +22,7 @@ for(const [name,needle] of required){
   console.log(`${ok?'OK':'FAIL'}  ${name}`);
   if(!ok)failed++;
 }
-for(const key of ['dich-vu-1','dich-vu-2','dich-vu-3']){
+for(const key of ['dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4']){
   const ok=api.includes(`'${key}'`);
   console.log(`${ok?'OK':'FAIL'}  profile ${key}`);
   if(!ok)failed++;

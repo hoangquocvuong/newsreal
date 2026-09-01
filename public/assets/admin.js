@@ -110,7 +110,7 @@ function collectProfileFields(){
 function parseExtraJson(v){try{return typeof v==='object'&&v?v:JSON.parse(v||'{}')}catch{return {}}}
 
 function adminTemplateOverride(){return new URLSearchParams(location.search).get('template')||''}
-function isServiceTemplate(){const override=adminTemplateOverride();if(override)return /^dich-vu-\d+$/i.test(override);return CLIENT_CATEGORY==='dich-vu'||CLIENT_PROFILE?.content_type==='service'||CLIENT_PROFILE?.id==='service'||CLIENT_PRESET==='service_fpt_1'}
+function isServiceTemplate(){const override=adminTemplateOverride();if(override)return /^dich-vu-\d+$/i.test(override);return CLIENT_CATEGORY==='dich-vu'||CLIENT_PROFILE?.content_type==='service'||CLIENT_PROFILE?.id==='service'||String(CLIENT_PRESET||'').startsWith('service_')}
 function isNewsTemplate(){
  const override=adminTemplateOverride();
  if(override)return /^tin-tuc-\d+$/i.test(override);

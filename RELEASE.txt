@@ -1,10 +1,8 @@
-NEWSREAL V20.7.0 — UNIVERSAL TEMPLATE LAYOUT CONTRACT ENGINE
+NEWSREAL V20.7.1 — CAMERA STORE + REAL SERVICE PREVIEWS
 
-1. structure_profile is now the authoritative 1:1 layout source for showroom, trial and client modes.
-2. Slot count is exact; it is no longer recalculated from computed CSS columns.
-3. Universal slot-host support handles normal grids and custom split layouts (for example VNPT 1 featured + 5 list = 6).
-4. Service FPT/VNPT/Viettel visible category sections are bound to the same contract and each render exactly 6 homepage slots.
-5. Extra real content is kept in data/archive but does not expand a contracted homepage section.
-6. Runtime contract audit reports missing sections/hosts/slot mismatches.
-7. Added npm run check:templates release smoke test.
-8. No DB schema migration required. Existing V20.6.11 trial/direct-checkout behavior is preserved.
+- Adds Dịch vụ Mẫu 4: Camera Store with 4 x 6 exact product slots.
+- Uses Universal Template Layout Contract V1: showroom/trial/client share identical structure.
+- FPT/VNPT/Viettel catalog previews switched from synthetic SVG to real interface screenshots.
+- Template 1 display name normalized to FPT.
+- Camera Store has product images, price, short description, details/promotion modal and lead form.
+- Migration: 0036_camera_store_template.sql
