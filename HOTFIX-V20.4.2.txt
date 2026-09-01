@@ -1,0 +1,13 @@
+NEWSREAL V20.4.2 — TRIAL DEMO ADMIN NAV FIX
+
+Scope: minimal hotfix on top of V20.4.1. No module splitting/refactor.
+
+Fixed:
+- Trial public demo buttons "Trang quản trị", "+ Đăng tin", "+ Đăng bài" preserve Trial context.
+- They now route to:
+  https://hoangvuongtech.com/admin?tenant=<trial-domain>&nr_trial=<token>&template=<key>[&tab=newpost]
+- Showroom fallback batdongsan2027.org.uk remains only for non-Trial demos.
+- Trial activation/session fix from V20.4.1 is preserved.
+- site.js demo cache-buster bumped to 20.4.2.
+
+No destructive D1 migration.
