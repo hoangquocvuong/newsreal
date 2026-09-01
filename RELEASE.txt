@@ -1,7 +1,12 @@
-NEWSREAL V20.4 — RENEWAL PAYOS CHECKOUT
-- Renewal payment follows the same 2-column checkout structure as initial purchase.
-- Renewal term supports 1, 2, 3 or 4 years.
-- Renewal amount remains calculated from server-side renewal pricing.
-- Right side remains payOS dynamic QR/payment information.
-- Payment status remains automatic; customer cannot self-confirm payment.
-- Paid renewal still does not extend service until domain renewal/expiry is verified.
+NEWSREAL V20.4.1 — TRIAL ACTIVATION HOTFIX
+
+Scope: minimal hotfix on V20.4. No module splitting/refactor.
+
+Fixed:
+1. /api/activation was unreachable because an unconditional "Master API không tồn tại" return sat before public activation routes.
+2. Unknown-Master fallback now applies only to master/* routes.
+3. Trial activation now creates a 30-day authenticated Admin session immediately.
+4. Activation page stores the session token before redirecting to Admin.
+5. activate.js cache-buster bumped to 20.4.1.
+
+No destructive D1 migration.

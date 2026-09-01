@@ -45,7 +45,8 @@ activateNow.onclick=async()=>{
  showOnly('activationWorking');
  try{
   const d=await activationApi('POST',{token,email:em,password:p1});
-  location.href=d.admin_url;
+  if(d.token)localStorage.setItem('nr_client_token',d.token);
+  location.replace(d.admin_url);
  }catch(err){
   activateNow.disabled=false;
   if(err.data?.code==='DOMAIN_NOT_READY'){showOnly('activationProvisioning');loadActivation();return}

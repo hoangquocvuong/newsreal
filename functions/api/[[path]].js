@@ -2770,7 +2770,10 @@ if(route==='master/overview'){
     await env.DB.prepare(`UPDATE sites SET status=? WHERE id=?`).bind(status,id).run();
     return json({ok:true});
   }
-  return json({error:'Master API không tồn tại'},404);
+  // V20.4.1 — only unknown Master routes should stop here.
+  // The old unconditional return made every public API below this point
+  // (including /api/activation) unreachable and returned "Master API không tồn tại".
+  if(route.startsWith('master/'))return json({error:'Master API không tồn tại'},404);
 
 if(route==='activation-status'&&request.method==='GET'){
   await ensureCustomerTables(env);
@@ -2840,9 +2843,13 @@ if(route==='activation'&&request.method==='POST'){
 
   // One activation contract for production + trial: customer confirms login email and creates their own password.
   const magicRaw=activationToken(),magicHash=await sha256(magicRaw),passwordHash=await sha256(newPassword);
+  // V20.4.1 — activation creates the authenticated Admin session immediately.
+  // Handover remains as a compatibility/recovery path, not a required second login.
+  const activationSession=tok();
   const ops=[
     env.DB.prepare(`UPDATE users SET email=?,password_hash=? WHERE id=?`).bind(loginEmail,passwordHash,usr.id),
     env.DB.prepare(`DELETE FROM sessions WHERE site_id=?`).bind(at.site_id),
+    env.DB.prepare(`INSERT INTO sessions(site_id,user_id,token,expires_at) VALUES(?,?,?,datetime('now','+30 days'))`).bind(at.site_id,usr.id,activationSession),
     env.DB.prepare(`UPDATE customer_profiles SET email=?,activated_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE site_id=?`).bind(loginEmail,at.site_id),
     env.DB.prepare(`UPDATE site_activation_tokens SET used_at=datetime('now') WHERE site_id=? AND used_at IS NULL`).bind(at.site_id),
     env.DB.prepare(`UPDATE handover_login_tokens SET used_at=datetime('now') WHERE site_id=? AND used_at IS NULL`).bind(at.site_id),
@@ -2858,7 +2865,7 @@ if(route==='activation'&&request.method==='POST'){
   await env.DB.batch(ops);
   if(trial){
     await trialEvent(env,{...trial,email:loginEmail},'trial_activated',{template_key:trial.template_key});
-    return json({ok:true,is_trial:true,domain:at.domain,admin_url:`/admin?tenant=${encodeURIComponent(at.domain)}&nr_trial=${encodeURIComponent(trial.trial_token)}&template=${encodeURIComponent(trial.template_key)}&handover=${encodeURIComponent(magicRaw)}`,website_url:`/trial/${encodeURIComponent(trial.trial_token)}/`});
+    return json({ok:true,is_trial:true,domain:at.domain,token:activationSession,admin_url:`/admin?tenant=${encodeURIComponent(at.domain)}&nr_trial=${encodeURIComponent(trial.trial_token)}&template=${encodeURIComponent(trial.template_key)}`,website_url:`/?template=${encodeURIComponent(trial.template_key)}&nr_trial=${encodeURIComponent(trial.trial_token)}`},200,{'Set-Cookie':`nr_session=${encodeURIComponent(activationSession)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000`});
   }
   try{await createActivationServiceDocument(env,at.site_id,loginEmail)}catch(e){console.log('activation service document:',e?.message||e)}
   return json({ok:true,domain:at.domain,admin_url:`https://${at.domain}/admin?handover=${encodeURIComponent(magicRaw)}`});
