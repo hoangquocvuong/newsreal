@@ -731,7 +731,7 @@ function templateCategoryContract(structure,editorProfile={},contentType='generi
  }
  if(type==='property'){
    const current=ep.categoriesByTransaction&&typeof ep.categoriesByTransaction==='object'?ep.categoriesByTransaction:{};
-   const sale=[],rent=[];
+   const buy=[],sale=[],rent=[];
    for(const sec of sections){
      const st=String(sec?.type||'').toLowerCase();
      if(!['property_list','property_projects','property_split'].includes(st))continue;
@@ -740,8 +740,20 @@ function templateCategoryContract(structure,editorProfile={},contentType='generi
      if(/thuê/.test(low))rent.push(title);
      else if(/bán|mua|căn hộ|chung cư|nhà phố|biệt thự|đất|kho|xưởng|mặt bằng|shophouse|dự án/.test(low))sale.push(title);
    }
+   // V20.4.3 — BĐS uses three explicit intents: Mua / Bán / Cho thuê.
+   // Buy categories mirror the template's sale taxonomy so Admin stays synchronized
+   // without forcing template authors to duplicate the same property taxonomy.
+   const buyLabel=v=>{
+     const x=String(v||'').trim();
+     if(!x)return '';
+     if(/^bán\s+/i.test(x))return x.replace(/^bán\s+/i,'Mua ');
+     if(/^mua\s*bán\s*/i.test(x))return x.replace(/^mua\s*bán\s*/i,'Mua ');
+     return 'Mua '+x.charAt(0).toLocaleLowerCase('vi')+x.slice(1);
+   };
+   buy.push(...sale.map(buyLabel).filter(Boolean));
    ep.content_type='property';ep.id=String(ep.id||'property');
    ep.categoriesByTransaction={
+     buy:nrUniqueLabels([...buy,...(Array.isArray(current.buy)?current.buy:[])]),
      sale:nrUniqueLabels([...sale,...(Array.isArray(current.sale)?current.sale:[])]),
      rent:nrUniqueLabels([...rent,...(Array.isArray(current.rent)?current.rent:[])])
    };
@@ -2578,7 +2590,7 @@ if(route==='master/template-save'&&request.method==='POST'){
   editorProfile.id=String(editorProfile.id||editorProfile.content_type).slice(0,50);
   if(editorProfile.content_type==='property'){
     editorProfile.categoriesByTransaction=editorProfile.categoriesByTransaction||{};
-    for(const k of ['sale','rent'])editorProfile.categoriesByTransaction[k]=Array.isArray(editorProfile.categoriesByTransaction[k])?editorProfile.categoriesByTransaction[k].map(x=>String(x).trim()).filter(Boolean).slice(0,60):[];
+    for(const k of ['buy','sale','rent'])editorProfile.categoriesByTransaction[k]=Array.isArray(editorProfile.categoriesByTransaction[k])?editorProfile.categoriesByTransaction[k].map(x=>String(x).trim()).filter(Boolean).slice(0,60):[];
     delete editorProfile.categories;
   }else{
     editorProfile.categories=Array.isArray(editorProfile.categories)?editorProfile.categories.map(x=>String(x).trim()).filter(Boolean).slice(0,80):[];

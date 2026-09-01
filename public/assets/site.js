@@ -31,12 +31,12 @@ function seoSlug(s=''){
  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/đ/g,'d').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,90)||'tin-bat-dong-san';
 }
 function seoPostUrl(x){
- const base=x.type==='news'?'tin-tuc':(x.transaction==='rent'?'cho-thue':(x.transaction==='sale'?'mua-ban':'bat-dong-san'));
+ const base=x.type==='news'?'tin-tuc':(x.transaction==='rent'?'cho-thue':(x.transaction==='buy'?'mua':(x.transaction==='sale'?'ban':'bat-dong-san')));
  const u=`/${base}/${seoSlug(x.title)}-p${x.id}`;
  return u+(pageTenant?`?tenant=${encodeURIComponent(pageTenant)}`:'');
 }
 function seoListingsUrl(transaction='',params={}){
- const base=transaction==='rent'?'/cho-thue/':transaction==='sale'?'/mua-ban/':'/bat-dong-san/';
+ const base=transaction==='rent'?'/cho-thue/':transaction==='buy'?'/mua/':transaction==='sale'?'/ban/':'/bat-dong-san/';
  const q=new URLSearchParams(params); if(pageTenant)q.set('tenant',pageTenant); const s=q.toString(); return base+(s?'?'+s:'');
 }
 function cleanSiteName(n=''){return String(n||'').replace(/\s*Demo\s*$/i,'').trim()||'Trang Tin';}
@@ -184,7 +184,7 @@ function renderHero(){
   slidesEl.innerHTML=`<a href="${seoPostUrl(x)}" class="hero-slide active">
     <img src="${esc(img)}" alt="${esc(x.title)}">
     <div class="hero-content"><div class="hero-copy">
-      <span class="badge">${x.type==='news'?'TIN NỔI BẬT':(x.transaction==='rent'?'CHO THUÊ':'BẤT ĐỘNG SẢN NỔI BẬT')}</span>
+      <span class="badge">${x.type==='news'?'TIN NỔI BẬT':(x.transaction==='rent'?'CHO THUÊ':(x.transaction==='buy'?'CẦN MUA':'BẤT ĐỘNG SẢN NỔI BẬT'))}</span>
       <h1>${esc(x.title)}</h1>
       <div class="meta">${esc(x.price||x.category||'')}${x.views?' · '+x.views+' lượt xem':''}</div>
     </div></div>
@@ -211,24 +211,20 @@ function renderNews(){
   newsList.innerHTML=news.slice(1,4).map(x=>`<a class="news-row" href="${seoPostUrl(x)}"><div class="thumb"><img src="${esc(getImages(x)[0]||fallbackImage())}"></div><div><small>${esc(x.category||'Tin tức')}</small><h3>${esc(x.title)}</h3><small>${x.views||0} lượt xem</small></div></a>`).join('');
 }
 function renderCategorySections(props){
-  const byType=(needle)=>props.filter(x=>(x.property_type||'').toLowerCase().includes(needle.toLowerCase()));
-  const apartments=props.filter(x=>x.transaction!=='rent' && (x.property_type||'').toLowerCase().includes('chung cư'));
-  const sale=props.filter(x=>x.transaction!=='rent' && !(x.property_type||'').toLowerCase().includes('chung cư') && !(x.property_type||'').toLowerCase().includes('đất'));
-  const rent=props.filter(x=>x.transaction==='rent');
-  const warehouse=props.filter(x=>['kho xưởng','shophouse','văn phòng','mặt bằng'].some(k=>(x.property_type||x.category||'').toLowerCase().includes(k)));
-  const land=props.filter(x=>(x.property_type||x.category||'').toLowerCase().includes('đất'));
-
-  const fill=(id,arr,msg,fallback=[])=>{
-    const el=document.getElementById(id);
-    const src=arr.length?arr:fallback;
-    const merged=[...arr,...fallback].filter((v,i,a)=>v&&a.findIndex(z=>z.id===v.id)===i);
-    el.innerHTML=merged.slice(0,6).map(card).join('')||`<div class="category-empty">${msg}</div>`;
+  // V20.4.3 — category selected in Admin is the source of truth.
+  // Never fill a named homepage category with unrelated posts just to avoid an empty block.
+  const norm=v=>String(v||'').replace(/\s+/g,' ').trim().toLocaleLowerCase('vi');
+  const exact=label=>props.filter(x=>norm(x.category)===norm(label));
+  const fill=(id,label,msg)=>{
+    const el=document.getElementById(id);if(!el)return;
+    const arr=exact(label);
+    el.innerHTML=arr.slice(0,6).map(card).join('')||`<div class="category-empty">${msg}</div>`;
   };
-  fill('apartmentCards',apartments,'Chưa có tin căn hộ chung cư.',props.filter(x=>x.transaction!=='rent'));
-  fill('saleCards',sale,'Chưa có tin nhà đất bán.',props.filter(x=>x.transaction!=='rent'));
-  fill('rentCards',rent,'Chưa có tin cho thuê.');
-  fill('warehouseCards',warehouse,'Chưa có tin kho xưởng hoặc mặt bằng.');
-  fill('landCards',land,'Chưa có tin đất nền hoặc đất dự án.');
+  fill('apartmentCards','Bán căn hộ chung cư','Chưa có tin trong chuyên mục Bán căn hộ chung cư.');
+  fill('saleCards','Bán nhà đất','Chưa có tin trong chuyên mục Bán nhà đất.');
+  fill('rentCards','Cho thuê nhà','Chưa có tin trong chuyên mục Cho thuê nhà.');
+  fill('warehouseCards','Kho xưởng & mặt bằng','Chưa có tin trong chuyên mục Kho xưởng & mặt bằng.');
+  fill('landCards','Đất nền & đất dự án','Chưa có tin trong chuyên mục Đất nền & đất dự án.');
 }
 
 
@@ -282,10 +278,10 @@ function renderEstateLuxe3(site,props){
  <section class="e3-intro"><div class="wrap">${estateCoreCategoryStrip(key)}</div></section>
  ${estateCoreSection(key,'Bất động sản nổi bật','TUYỂN CHỌN',premium,{limit:6,style:'luxe',className:'e3-section'})}
  ${estateCoreProjectStrip(key,props)}
- ${estateCoreSection(key,'Căn hộ & chung cư','PHONG CÁCH SỐNG',apartment,{limit:8,style:'compact',more:'/mua-ban/?property_type=Chung%20cư',className:'e3-soft'})}
- ${estateCoreSection(key,'Nhà phố & biệt thự','KHÔNG GIAN RIÊNG',g.house,{limit:8,style:'compact',more:'/mua-ban/?property_type=Nhà%20phố',className:'e3-section'})}
+ ${estateCoreSection(key,'Căn hộ & chung cư','PHONG CÁCH SỐNG',apartment,{limit:8,style:'compact',more:'/ban/?property_type=Chung%20cư',className:'e3-soft'})}
+ ${estateCoreSection(key,'Nhà phố & biệt thự','KHÔNG GIAN RIÊNG',g.house,{limit:8,style:'compact',more:'/ban/?property_type=Nhà%20phố',className:'e3-section'})}
  ${estateCoreSection(key,'Bất động sản cho thuê','LỰA CHỌN LINH HOẠT',rent,{limit:8,style:'compact',more:'/cho-thue/',className:'e3-soft'})}
- ${estateCoreSection(key,'Đất nền & cơ hội đầu tư','ĐẦU TƯ',land,{limit:8,style:'compact',more:'/mua-ban/?property_type=Đất',className:'e3-section'})}
+ ${estateCoreSection(key,'Đất nền & cơ hội đầu tư','ĐẦU TƯ',land,{limit:8,style:'compact',more:'/ban/?property_type=Đất',className:'e3-section'})}
  ${estateCoreServiceBand()}
  <section class="e3-news"><div class="wrap">${estateCoreNews(site,key,6)}</div></section>`;
  estateCoreBindSearch(key);
@@ -297,12 +293,12 @@ function renderEstateMinimal4(site,props){
  <section class="e4-search-wrap"><div class="wrap">${estateCoreSearchBox(props,key,'minimal')}</div></section>
  <section class="e4-cats"><div class="wrap">${estateCoreCategoryStrip(key)}</div></section>
  ${estateCoreSection(key,'Tin đăng mới nhất','MỚI CẬP NHẬT',g.newest,{limit:12,style:'minimal',className:'e4-section'})}
- ${estateCoreSection(key,'Nhà đất đang bán','MUA BÁN',g.sale,{limit:8,style:'minimal',more:'/mua-ban/',className:'e4-white'})}
+ ${estateCoreSection(key,'Nhà đất đang bán','MUA BÁN',g.sale,{limit:8,style:'minimal',more:'/ban/',className:'e4-white'})}
  ${estateCoreProjectStrip(key,props)}
- ${estateCoreSection(key,'Căn hộ được quan tâm','CĂN HỘ',g.apartment,{limit:8,style:'minimal',more:'/mua-ban/?property_type=Chung%20cư',className:'e4-section'})}
+ ${estateCoreSection(key,'Căn hộ được quan tâm','CĂN HỘ',g.apartment,{limit:8,style:'minimal',more:'/ban/?property_type=Chung%20cư',className:'e4-section'})}
  ${estateCoreSection(key,'Nhà phố & biệt thự','NHÀ Ở',g.house,{limit:8,style:'minimal',className:'e4-white'})}
  ${estateCoreSection(key,'Cho thuê nổi bật','CHO THUÊ',g.rent.length?g.rent:g.newest.slice(3),{limit:8,style:'minimal',more:'/cho-thue/',className:'e4-section'})}
- ${estateCoreSection(key,'Đất nền & dự án','ĐẦU TƯ',g.land.length?g.land:g.newest.slice(4),{limit:8,style:'minimal',more:'/mua-ban/?property_type=Đất',className:'e4-white'})}
+ ${estateCoreSection(key,'Đất nền & dự án','ĐẦU TƯ',g.land.length?g.land:g.newest.slice(4),{limit:8,style:'minimal',more:'/ban/?property_type=Đất',className:'e4-white'})}
  <section class="e4-band"><div class="wrap"><div><b>${g.sale.length}+</b><span>Tin mua bán</span></div><div><b>${g.rent.length}+</b><span>Tin cho thuê</span></div><div><b>${new Set(props.map(x=>x.province).filter(Boolean)).size}+</b><span>Khu vực</span></div><div><b>24/7</b><span>Website hoạt động</span></div></div></section>
  ${estateCoreServiceBand()}
  <section class="e4-news"><div class="wrap">${estateCoreNews(site,key,6)}</div></section>`;
@@ -323,10 +319,10 @@ function renderEstateUrban5(site,props){
  ${estateCoreSection(key,'Bất động sản nổi bật','ĐƯỢC QUAN TÂM',g.featured,{limit:8,style:'urban',className:'e5-section'})}
  ${estateCoreProjectStrip(key,props)}
  ${estateCoreSection(key,'Nhà đất mới lên','MỚI NHẤT',g.newest,{limit:8,style:'urban',className:'e5-white'})}
- ${estateCoreSection(key,'Căn hộ thành thị','CĂN HỘ',g.apartment.length?g.apartment:g.newest.slice(1),{limit:8,style:'urban',more:'/mua-ban/?property_type=Chung%20cư',className:'e5-section'})}
- <section class="e5-split"><div class="wrap"><div><div class="estate-section-head"><div><small>MUA BÁN</small><h2>Cơ hội sở hữu</h2></div><a href="${estateCoreUrl('/mua-ban/',key,true)}">Xem thêm →</a></div>${estateCoreFixedRows(g.sale,'row',6)}</div><div><div class="estate-section-head"><div><small>CHO THUÊ</small><h2>Lựa chọn linh hoạt</h2></div><a href="${estateCoreUrl('/cho-thue/',key,true)}">Xem thêm →</a></div>${estateCoreFixedRows(g.rent.length?g.rent:g.newest.slice(2),'row',6)}</div></div></section>
+ ${estateCoreSection(key,'Căn hộ thành thị','CĂN HỘ',g.apartment.length?g.apartment:g.newest.slice(1),{limit:8,style:'urban',more:'/ban/?property_type=Chung%20cư',className:'e5-section'})}
+ <section class="e5-split"><div class="wrap"><div><div class="estate-section-head"><div><small>BÁN</small><h2>Cơ hội sở hữu</h2></div><a href="${estateCoreUrl('/ban/',key,true)}">Xem thêm →</a></div>${estateCoreFixedRows(g.sale,'row',6)}</div><div><div class="estate-section-head"><div><small>CHO THUÊ</small><h2>Lựa chọn linh hoạt</h2></div><a href="${estateCoreUrl('/cho-thue/',key,true)}">Xem thêm →</a></div>${estateCoreFixedRows(g.rent.length?g.rent:g.newest.slice(2),'row',6)}</div></div></section>
  ${estateCoreSection(key,'Nhà phố & biệt thự','KHÔNG GIAN SỐNG',g.house,{limit:8,style:'urban',className:'e5-section'})}
- ${estateCoreSection(key,'Đất nền & dự án','ĐẦU TƯ',g.land.length?g.land:g.newest.slice(4),{limit:8,style:'urban',more:'/mua-ban/?property_type=Đất',className:'e5-white'})}
+ ${estateCoreSection(key,'Đất nền & dự án','ĐẦU TƯ',g.land.length?g.land:g.newest.slice(4),{limit:8,style:'urban',more:'/ban/?property_type=Đất',className:'e5-white'})}
  ${estateCoreServiceBand()}
  <section class="e5-news"><div class="wrap">${estateCoreNews(site,key,6)}</div></section>`;
  estateCoreBindSearch(key);
@@ -1143,7 +1139,8 @@ function estateCoreApplyShell(site,key,{compact=false}={}){
  if(nav)nav.innerHTML=[
    ['Trang chủ','#'],
    ['Bất động sản','/bat-dong-san/'],
-   ['Nhà đất bán','/mua-ban/'],
+   ['Mua','/mua/'],
+   ['Bán','/ban/'],
    ['Cho thuê','/cho-thue/'],
    ['Chuyên mục','/#categories'],
    ['Tin tức','/#news']
@@ -1166,7 +1163,7 @@ function estateCoreCard(x,style='standard'){
  return `<article class="estate-core-card estate-card-${style}">
   <a class="estate-core-media" href="${seoPostUrl(x)}"><img src="${esc(img)}" alt="${esc(x.title)}">${x.featured?'<span class="estate-core-featured">Nổi bật</span>':''}<button class="estate-core-fav" onclick="toggleTheme2Fav(event,${x.id})" aria-label="Lưu tin">${favState(x.id)?'♥':'♡'}</button></a>
   <div class="estate-core-body">
-   <div class="estate-core-meta"><span>${x.transaction==='rent'?'CHO THUÊ':'MUA BÁN'}</span><span>${esc(x.property_type||'Bất động sản')}</span></div>
+   <div class="estate-core-meta"><span>${x.transaction==='rent'?'CHO THUÊ':(x.transaction==='buy'?'MUA':'BÁN')}</span><span>${esc(x.property_type||'Bất động sản')}</span></div>
    <h3><a href="${seoPostUrl(x)}">${esc(x.title)}</a></h3>
    <div class="estate-core-loc">⌖ ${esc(loc)}</div>
    ${facts?`<div class="estate-core-facts">${facts}</div>`:''}
@@ -1178,7 +1175,7 @@ function estateCoreSearchBox(props,key,style='default'){
  const provinces=[...new Set(props.map(x=>x.province).filter(Boolean))];
  const uid=`ecs-${key}`;
  return `<form class="estate-core-search estate-search-${style}" id="${uid}">
-  <label><small>Giao dịch</small><select name="transaction"><option value="sale">Mua bán</option><option value="rent">Cho thuê</option><option value="">Tất cả</option></select></label>
+  <label><small>Giao dịch</small><select name="transaction"><option value="buy">Mua</option><option value="sale">Bán</option><option value="rent">Cho thuê</option><option value="">Tất cả</option></select></label>
   <label><small>Loại BĐS</small><select name="property_type"><option value="">Tất cả loại</option><option>Nhà phố</option><option>Chung cư</option><option>Biệt thự</option><option>Đất</option><option>Shophouse</option></select></label>
   <label><small>Khu vực</small><select name="province"><option value="">Tất cả</option>${provinces.map(x=>`<option>${esc(x)}</option>`).join('')}</select></label>
   <label><small>Từ khóa</small><input name="q" placeholder="Dự án, khu vực..."></label>
@@ -1191,7 +1188,7 @@ function estateCoreBindSearch(key){
    e.preventDefault();const fd=new FormData(form),q=new URLSearchParams();
    const tr=String(fd.get('transaction')||''),type=String(fd.get('property_type')||''),pv=String(fd.get('province')||''),kw=String(fd.get('q')||'');
    if(type)q.set('property_type',type);if(pv)q.set('province',pv);if(kw)q.set('q',kw);
-   const path=tr==='rent'?'/cho-thue/':tr==='sale'?'/mua-ban/':'/bat-dong-san/';
+   const path=tr==='rent'?'/cho-thue/':tr==='buy'?'/mua/':tr==='sale'?'/ban/':'/bat-dong-san/';
    location.href=estateCoreUrl(path,key,window.NR_DEMO_THEME===key)+(q.toString()?'?'+q.toString():'');
  };
 }
@@ -1200,7 +1197,8 @@ function estateCoreGroups(props){
  const featured=[...props].sort((a,b)=>(Number(b.featured||0)-Number(a.featured||0))||((b.views||0)-(a.views||0)));
  return {
    newest,featured,
-   sale:newest.filter(x=>x.transaction!=='rent'),
+   buy:newest.filter(x=>x.transaction==='buy'),
+   sale:newest.filter(x=>x.transaction==='sale'),
    rent:newest.filter(x=>x.transaction==='rent'),
    apartment:newest.filter(x=>/chung cư|căn hộ/i.test(String(x.property_type||x.title||''))),
    house:newest.filter(x=>/nhà|biệt thự|shophouse/i.test(String(x.property_type||x.title||''))),
@@ -1209,7 +1207,7 @@ function estateCoreGroups(props){
 }
 function estateCoreCategoryStrip(key){
  const isDemo=window.NR_DEMO_THEME===key;
- const data=[['⌂','Nhà phố','/mua-ban/?property_type=Nhà%20phố'],['▦','Căn hộ','/mua-ban/?property_type=Chung%20cư'],['◇','Đất nền','/mua-ban/?property_type=Đất'],['♜','Biệt thự','/mua-ban/?property_type=Biệt%20thự'],['⌁','Cho thuê','/cho-thue/']];
+ const data=[['⌂','Nhà phố','/ban/?property_type=Nhà%20phố'],['▦','Căn hộ','/ban/?property_type=Chung%20cư'],['◇','Đất nền','/ban/?property_type=Đất'],['♜','Biệt thự','/ban/?property_type=Biệt%20thự'],['⌁','Cho thuê','/cho-thue/']];
  return `<span id="categories" class="nr-route-anchor" aria-hidden="true"></span><div class="estate-core-categories" id="estate-categories">${data.map(([i,l,u])=>`<a href="${estateCoreUrl(u,key,isDemo)}"><span>${i}</span><b>${l}</b></a>`).join('')}</div>`;
 }
 function estateCoreNews(site,key,count=4){
@@ -1283,7 +1281,7 @@ function renderTheme2Home(site,props){
         </div>
         <div class="t2-search">
           <div class="t2-search-field">
-            <span class="t2-search-icon">⌂</span><label>Loại giao dịch<select id="t2Transaction"><option value="sale">Mua bán</option><option value="rent">Cho thuê</option><option value="">Tất cả</option></select></label>
+            <span class="t2-search-icon">⌂</span><label>Loại giao dịch<select id="t2Transaction"><option value="buy">Mua</option><option value="sale">Bán</option><option value="rent">Cho thuê</option><option value="">Tất cả</option></select></label>
           </div>
           <div class="t2-search-field">
             <span class="t2-search-icon">▦</span><label>Loại bất động sản<select id="t2Type"><option value="">Tất cả loại BĐS</option><option>Nhà phố</option><option>Chung cư</option><option>Đất</option><option>Biệt thự</option><option>Shophouse</option><option>Kho xưởng</option></select></label>
@@ -1330,9 +1328,9 @@ function renderTheme2Home(site,props){
       <div class="wrap">
         <div class="t2-section-head"><h2>Khám phá theo <em>nhu cầu</em></h2><a href="${estateCoreUrl('/bat-dong-san/','mau-2',window.NR_DEMO_THEME==='mau-2')}">Tất cả tin →</a></div>
         <div class="t2-quick-grid">
-          <a href="${estateCoreUrl('/mua-ban/?property_type=Nhà%20phố','mau-2',window.NR_DEMO_THEME==='mau-2')}"><span>⌂</span><b>Nhà phố</b><small>Mua bán nhà riêng</small></a>
-          <a href="${estateCoreUrl('/mua-ban/?property_type=Chung%20cư','mau-2',window.NR_DEMO_THEME==='mau-2')}"><span>▦</span><b>Căn hộ</b><small>Chung cư, duplex</small></a>
-          <a href="${estateCoreUrl('/mua-ban/?property_type=Biệt%20thự','mau-2',window.NR_DEMO_THEME==='mau-2')}"><span>♜</span><b>Biệt thự</b><small>Không gian cao cấp</small></a>
+          <a href="${estateCoreUrl('/ban/?property_type=Nhà%20phố','mau-2',window.NR_DEMO_THEME==='mau-2')}"><span>⌂</span><b>Nhà phố</b><small>Mua bán nhà riêng</small></a>
+          <a href="${estateCoreUrl('/ban/?property_type=Chung%20cư','mau-2',window.NR_DEMO_THEME==='mau-2')}"><span>▦</span><b>Căn hộ</b><small>Chung cư, duplex</small></a>
+          <a href="${estateCoreUrl('/ban/?property_type=Biệt%20thự','mau-2',window.NR_DEMO_THEME==='mau-2')}"><span>♜</span><b>Biệt thự</b><small>Không gian cao cấp</small></a>
           <a href="${estateCoreUrl('/listings?property_type=Đất','mau-2',window.NR_DEMO_THEME==='mau-2')}"><span>◇</span><b>Đất nền</b><small>Đất ở & dự án</small></a>
           <a href="${estateCoreUrl('/cho-thue/','mau-2',window.NR_DEMO_THEME==='mau-2')}"><span>⌁</span><b>Cho thuê</b><small>Nhà, căn hộ, mặt bằng</small></a>
         </div>
@@ -1342,7 +1340,7 @@ function renderTheme2Home(site,props){
 
     <section class="t2-market-section">
       <div class="wrap">
-        <div class="t2-section-head"><h2>Mua bán <em>nổi bật</em></h2><a href="${estateCoreUrl('/mua-ban/','mau-2',window.NR_DEMO_THEME==='mau-2')}">Xem tất cả →</a></div>
+        <div class="t2-section-head"><h2>Bán <em>nổi bật</em></h2><a href="${estateCoreUrl('/ban/','mau-2',window.NR_DEMO_THEME==='mau-2')}">Xem tất cả →</a></div>
         <div id="t2SaleGrid" class="t2-card-grid t2-card-grid-3"></div>
       </div>
     </section>
@@ -1409,7 +1407,7 @@ function renderTheme2Home(site,props){
     if(tp)q.set('property_type',tp);
     if(pv)q.set('province',pv);
     if(pr)q.set('price_range',pr);
-    const base=tr==='rent'?'/cho-thue/':tr==='sale'?'/mua-ban/':'/bat-dong-san/';
+    const base=tr==='rent'?'/cho-thue/':tr==='buy'?'/mua/':tr==='sale'?'/ban/':'/bat-dong-san/';
     location.href=nrDemoUrl(base)+(q.toString()?'?'+q.toString():'');
   };
 

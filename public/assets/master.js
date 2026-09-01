@@ -703,6 +703,12 @@ const expenseDate=document.getElementById('expenseDate');if(expenseDate&&!expens
 
 
 
+const TM_DEFAULT_BUY_CATEGORIES=[
+ 'Mua căn hộ chung cư','Mua nhà riêng','Mua nhà mặt phố','Mua biệt thự, nhà liền kề',
+ 'Mua shophouse, nhà phố thương mại','Mua đất nền, đất dự án','Mua đất thổ cư, đất ở',
+ 'Mua trang trại, khu nghỉ dưỡng','Mua kho, nhà xưởng','Mua văn phòng','Mua khách sạn',
+ 'Mua mặt bằng kinh doanh','Bất động sản cần mua khác'
+];
 const TM_DEFAULT_SALE_CATEGORIES=[
  'Bán căn hộ chung cư','Bán nhà riêng','Bán nhà mặt phố','Bán biệt thự, nhà liền kề',
  'Bán shophouse, nhà phố thương mại','Bán đất nền, đất dự án','Bán đất thổ cư, đất ở',
@@ -721,6 +727,7 @@ function tmProfile(t){
  const ct=p.content_type||(t?.category==='tin-tuc'?'news':'property');
  if(ct==='property'){
   p.categoriesByTransaction=p.categoriesByTransaction||{};
+  p.categoriesByTransaction.buy=Array.isArray(p.categoriesByTransaction.buy)&&p.categoriesByTransaction.buy.length?p.categoriesByTransaction.buy:TM_DEFAULT_BUY_CATEGORIES;
   p.categoriesByTransaction.sale=Array.isArray(p.categoriesByTransaction.sale)&&p.categoriesByTransaction.sale.length?p.categoriesByTransaction.sale:TM_DEFAULT_SALE_CATEGORIES;
   p.categoriesByTransaction.rent=Array.isArray(p.categoriesByTransaction.rent)&&p.categoriesByTransaction.rent.length?p.categoriesByTransaction.rent:TM_DEFAULT_RENT_CATEGORIES;
  }else if(ct==='news'){
@@ -883,6 +890,7 @@ function tmOpenEditor(t=null){
  set('teContentType',ep.content_type||'property');
  set('teContentLabel',ep.contentLabel||(ep.content_type==='news'?'Nội dung bài viết':'Mô tả chi tiết bất động sản'));
  set('teCategories',(ep.categories||[]).join('\n'));
+ set('teBuyCategories',(ep.categoriesByTransaction?.buy||TM_DEFAULT_BUY_CATEGORIES).join('\n'));
  set('teSaleCategories',(ep.categoriesByTransaction?.sale||TM_DEFAULT_SALE_CATEGORIES).join('\n'));
  set('teRentCategories',(ep.categoriesByTransaction?.rent||TM_DEFAULT_RENT_CATEGORIES).join('\n'));
  tmToggleProfileFields();
@@ -964,6 +972,7 @@ templateEditorForm?.addEventListener('submit',async e=>{
    custom_fields:oldProfile.custom_fields||[]
  };
  if(contentType==='property')editorProfile.categoriesByTransaction={
+   buy:tmLines(g('teBuyCategories').value),
    sale:tmLines(g('teSaleCategories').value),
    rent:tmLines(g('teRentCategories').value)
  };

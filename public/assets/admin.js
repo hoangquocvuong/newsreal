@@ -51,6 +51,7 @@ const BUILTIN_CONTENT_PROFILES={
  property:{
   id:'property',label:'Bất động sản',content_type:'property',
   categoriesByTransaction:{
+   buy:["Mua căn hộ / chung cư","Mua nhà riêng","Mua nhà mặt phố","Mua biệt thự / liền kề","Mua shophouse / nhà phố thương mại","Mua đất nền / đất dự án","Mua đất thổ cư","Mua đất nông nghiệp / trang trại","Mua văn phòng","Mua mặt bằng kinh doanh","Mua kho / nhà xưởng","Mua bất động sản công nghiệp","Mua khách sạn / resort / nghỉ dưỡng","Mua officetel / căn hộ dịch vụ","Bất động sản cần mua khác"],
    sale:["Bán căn hộ / chung cư","Bán nhà riêng","Bán nhà mặt phố","Bán biệt thự / liền kề","Bán shophouse / nhà phố thương mại","Bán đất nền / đất dự án","Bán đất thổ cư","Bán đất nông nghiệp / trang trại","Bán văn phòng","Bán mặt bằng kinh doanh","Bán kho / nhà xưởng","Bán bất động sản công nghiệp","Bán khách sạn / resort / nghỉ dưỡng","Bán officetel / căn hộ dịch vụ","Bất động sản bán khác"],
    rent:["Cho thuê căn hộ / chung cư","Cho thuê nhà riêng","Cho thuê nhà mặt phố","Cho thuê biệt thự / liền kề","Cho thuê shophouse / nhà phố thương mại","Cho thuê đất nền / đất dự án","Cho thuê đất thổ cư","Cho thuê đất nông nghiệp / trang trại","Cho thuê văn phòng","Cho thuê mặt bằng kinh doanh","Cho thuê kho / nhà xưởng","Cho thuê bất động sản công nghiệp","Cho thuê khách sạn / resort / nghỉ dưỡng","Cho thuê officetel / căn hộ dịch vụ","Bất động sản cho thuê khác"]
   },
@@ -477,7 +478,7 @@ function fillCategoryOptions(keep=''){
   // property profiles may still carry that object and previously produced an
   // empty dropdown for News Trial sites.
   if(isNewsTemplate()||profile.content_type==='news')list=Array.isArray(profile.categories)?profile.categories:[];
-  else if(profile.categoriesByTransaction)list=profile.categoriesByTransaction[transaction.value]||profile.categoriesByTransaction.sale||[];
+  else if(profile.categoriesByTransaction)list=profile.categoriesByTransaction[transaction.value]||[];
   else list=Array.isArray(profile.categories)?profile.categories:[];
   list=[...new Set(list.map(x=>String(x||'').trim()).filter(Boolean))];
   postCategory.innerHTML='<option value="">Chọn chuyên mục</option>'+list.map(x=>`<option value="${x}">${x}</option>`).join('');

@@ -17,12 +17,12 @@ function seoSlug(s=''){
  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/đ/g,'d').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,90)||'tin-bat-dong-san';
 }
 function seoPostUrl(x){
- const base=x.type==='news'?'tin-tuc':(x.transaction==='rent'?'cho-thue':(x.transaction==='sale'?'mua-ban':'bat-dong-san'));
+ const base=x.type==='news'?'tin-tuc':(x.transaction==='rent'?'cho-thue':(x.transaction==='buy'?'mua':(x.transaction==='sale'?'ban':'bat-dong-san')));
  const u=`/${base}/${seoSlug(x.title)}-p${x.id}`;
  return u+(pageTenant?`?tenant=${encodeURIComponent(pageTenant)}`:'');
 }
 function seoListingsUrl(transaction='',params={}){
- const base=transaction==='rent'?'/cho-thue/':transaction==='sale'?'/mua-ban/':'/bat-dong-san/';
+ const base=transaction==='rent'?'/cho-thue/':transaction==='buy'?'/mua/':transaction==='sale'?'/ban/':'/bat-dong-san/';
  const q=new URLSearchParams(params); if(pageTenant)q.set('tenant',pageTenant); const s=q.toString(); return base+(s?'?'+s:'');
 }
 const pageTenant=new URLSearchParams(location.search).get('tenant')||'';function tenantApiUrl(path){return path+(pageTenant?(path.includes('?')?'&':'?')+'tenant='+encodeURIComponent(pageTenant):'')}
@@ -42,7 +42,7 @@ function propertyCard(x){
  const location=[x.ward,x.district,x.province].filter(Boolean).join(', ')||x.address||'Chưa cập nhật';
  return `<article class="listing-card rich-listing-card">
    <a class="listing-img" href="${seoPostUrl(x)}">${x.image?`<img src="${esc(x.image)}" alt="${esc(x.title)}">`:''}
-     <span class="badge">${x.transaction==='rent'?'Cho thuê':'Mua bán'}${x.verified?' · ✓ Xác minh':''}</span>
+     <span class="badge">${x.transaction==='rent'?'Cho thuê':(x.transaction==='buy'?'Mua':'Bán')}${x.verified?' · ✓ Xác minh':''}</span>
    </a>
    <div class="listing-body">
      <div class="listing-headline"><div class="eyebrow">${esc(x.property_type||x.category||'Bất động sản')}</div><button class="fav" onclick="toggleFav(event,${x.id})">${liked?'♥':'♡'}</button></div>

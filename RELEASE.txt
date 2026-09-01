@@ -1,4 +1,4 @@
-NEWSREAL V20.4.2 — DEMO MẪU 1 LAYOUT PARITY HOTFIX
+NEWSREAL V20.4.3 — DEMO MẪU 1 LAYOUT PARITY HOTFIX
 
 Scope: BĐS Mẫu 1 showroom demo layout only.
 
@@ -8,3 +8,9 @@ Fix:
 - Makes showroom demo order match activated Trial website: Hero/Search -> Tin đăng mới nhất -> Tìm nhanh theo nhu cầu -> category sections.
 - No Trial/payment/renewal/admin refactor.
 - No database migration.
+
+
+V20.4.3 fixes:
+- BĐS transaction is now explicit Mua / Bán / Cho thuê (buy/sale/rent), with /mua/, /ban/, /cho-thue/ routes and legacy /mua-ban/ compatibility redirect.
+- Mẫu 1 homepage category blocks bind strictly to the category selected in Admin; unrelated listings are no longer used as fallback content.
+- Property editor category contract now includes categoriesByTransaction.buy and keeps Admin/frontend taxonomy synchronized.

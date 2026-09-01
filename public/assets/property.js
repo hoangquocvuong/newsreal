@@ -17,12 +17,12 @@ function seoSlug(s=''){
  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/đ/g,'d').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,90)||'tin-bat-dong-san';
 }
 function seoPostUrl(x){
- const base=x.type==='news'?'tin-tuc':(x.transaction==='rent'?'cho-thue':(x.transaction==='sale'?'mua-ban':'bat-dong-san'));
+ const base=x.type==='news'?'tin-tuc':(x.transaction==='rent'?'cho-thue':(x.transaction==='buy'?'mua':(x.transaction==='sale'?'ban':'bat-dong-san')));
  const u=`/${base}/${seoSlug(x.title)}-p${x.id}`;
  return u+(pageTenant?`?tenant=${encodeURIComponent(pageTenant)}`:'');
 }
 function seoListingsUrl(transaction='',params={}){
- const base=transaction==='rent'?'/cho-thue/':transaction==='sale'?'/mua-ban/':'/bat-dong-san/';
+ const base=transaction==='rent'?'/cho-thue/':transaction==='buy'?'/mua/':transaction==='sale'?'/ban/':'/bat-dong-san/';
  const q=new URLSearchParams(params); if(pageTenant)q.set('tenant',pageTenant); const s=q.toString(); return base+(s?'?'+s:'');
 }
 function fillPublicFooter(site={}){
@@ -98,7 +98,7 @@ function propertyDiscovery(x){
  if(x.district)links.push(['📍 Cùng '+x.district,qs({district:x.district})]);
  else if(x.province)links.push(['📍 Cùng '+x.province,qs({province:x.province})]);
  if(x.property_type)links.push(['🏠 '+x.property_type,qs({property_type:x.property_type})]);
- links.push(['🏷 Nhà đất bán',qs({transaction:'sale'})]);
+ links.push(['🔎 Cần mua',qs({transaction:'buy'})]);links.push(['🏷 Nhà đất bán',qs({transaction:'sale'})]);
  links.push(['🔑 Nhà cho thuê',qs({transaction:'rent'})]);
  if(x.province)links.push(['🗺 BĐS '+x.province,qs({province:x.province})]);
  links.push(['♥ Tin đã lưu','/favorites']);

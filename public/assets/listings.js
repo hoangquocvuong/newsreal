@@ -17,12 +17,12 @@ function seoSlug(s=''){
  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/đ/g,'d').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,90)||'tin-bat-dong-san';
 }
 function seoPostUrl(x){
- const base=x.type==='news'?'tin-tuc':(x.transaction==='rent'?'cho-thue':(x.transaction==='sale'?'mua-ban':'bat-dong-san'));
+ const base=x.type==='news'?'tin-tuc':(x.transaction==='rent'?'cho-thue':(x.transaction==='buy'?'mua':(x.transaction==='sale'?'ban':'bat-dong-san')));
  const u=`/${base}/${seoSlug(x.title)}-p${x.id}`;
  return u+(pageTenant?`?tenant=${encodeURIComponent(pageTenant)}`:'');
 }
 function seoListingsUrl(transaction='',params={}){
- const base=transaction==='rent'?'/cho-thue/':transaction==='sale'?'/mua-ban/':'/bat-dong-san/';
+ const base=transaction==='rent'?'/cho-thue/':transaction==='buy'?'/mua/':transaction==='sale'?'/ban/':'/bat-dong-san/';
  const q=new URLSearchParams(params); if(pageTenant)q.set('tenant',pageTenant); const s=q.toString(); return base+(s?'?'+s:'');
 }
 function cleanSiteName(n=''){return String(n||'').replace(/\s*Demo\s*$/i,'').trim()||'Trang Tin';}
@@ -42,7 +42,7 @@ function propertyCard(x){
  const location=[x.ward,x.district,x.province].filter(Boolean).join(', ')||x.address||'Chưa cập nhật';
  return `<article class="listing-card rich-listing-card">
    <a class="listing-img" href="${seoPostUrl(x)}">${x.image?`<img src="${esc(x.image)}" alt="${esc(x.title)}">`:''}
-     <span class="listing-image-tags"><span class="listing-image-tag transaction">${x.transaction==='rent'?'CHO THUÊ':'MUA BÁN'}</span>${x.verified?'<span class="listing-image-tag verified">✓ XÁC MINH</span>':''}${x.featured?'<span class="listing-image-tag featured">NỔI BẬT</span>':''}</span>
+     <span class="listing-image-tags"><span class="listing-image-tag transaction">${x.transaction==='rent'?'CHO THUÊ':(x.transaction==='buy'?'MUA':'BÁN')}</span>${x.verified?'<span class="listing-image-tag verified">✓ XÁC MINH</span>':''}${x.featured?'<span class="listing-image-tag featured">NỔI BẬT</span>':''}</span>
    </a>
    <div class="listing-body">
      <div class="listing-headline"><div class="eyebrow">${esc(x.property_type||x.category||'Bất động sản')}</div><button class="fav" onclick="toggleFav(event,${x.id})">${liked?'♥':'♡'}</button></div>
@@ -121,7 +121,7 @@ function updatePriceOptions(transaction='',selected=''){
 }
 
 let all=[];
-(async()=>{const d=await fetch(tenantApiUrl('/api/site')).then(r=>r.json());document.body.classList.toggle('theme-estate-green',d.site?.preset==='estate_green');brandName.textContent=cleanSiteName(d.site.name);fillPublicFooter(d.site);if(window.footerListBrand)footerListBrand.textContent=cleanSiteName(d.site.name);topContact.textContent='Hotline: '+(d.site.phone||'—');all=(d.posts||[]).filter(x=>x.type==='property');const p=new URLSearchParams(location.search);const pathTx=location.pathname.startsWith('/cho-thue')?'rent':location.pathname.startsWith('/mua-ban')?'sale':'';fq.value=p.get('q')||'';ftransaction.value=p.get('transaction')||pathTx;ftype.value=p.get('property_type')||'';fprovince.value=p.get('province')||'';fdistrict.value=p.get('district')||'';fbed.value=p.get('bedrooms')||'';updatePriceOptions(ftransaction.value,p.get('price_range')||'');render()})();
+(async()=>{const d=await fetch(tenantApiUrl('/api/site')).then(r=>r.json());document.body.classList.toggle('theme-estate-green',d.site?.preset==='estate_green');brandName.textContent=cleanSiteName(d.site.name);fillPublicFooter(d.site);if(window.footerListBrand)footerListBrand.textContent=cleanSiteName(d.site.name);topContact.textContent='Hotline: '+(d.site.phone||'—');all=(d.posts||[]).filter(x=>x.type==='property');const p=new URLSearchParams(location.search);const pathTx=location.pathname.startsWith('/cho-thue')?'rent':location.pathname.startsWith('/mua')?'buy':location.pathname.startsWith('/ban')?'sale':'';fq.value=p.get('q')||'';ftransaction.value=p.get('transaction')||pathTx;ftype.value=p.get('property_type')||'';fprovince.value=p.get('province')||'';fdistrict.value=p.get('district')||'';fbed.value=p.get('bedrooms')||'';updatePriceOptions(ftransaction.value,p.get('price_range')||'');render()})();
 function render(){
  let a=[...all],q=normFilter(fq.value);
  if(q)a=a.filter(x=>normFilter([x.title,x.address,x.province,x.district,x.ward,x.property_type].join(' ')).includes(q));
