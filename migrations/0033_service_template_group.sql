@@ -1,0 +1,3 @@
+-- V20.5.0 — first Service template group. Runtime ensureTemplateCatalog backfills full profiles safely.
+INSERT OR IGNORE INTO template_catalog(template_key,name,category,preset,price,renewal_price,is_active,sort_order,image_url,demo_url,badge,description,features,accent)
+VALUES('dich-vu-1','Dịch vụ Mẫu 1 · Internet, Truyền hình & Camera','dich-vu','service_fpt_1',1499000,1999000,1,1,'/assets/demo/dich-vu-1-preview.svg','/demo/dich-vu/mau-1/','DỊCH VỤ','Landing website dịch vụ viễn thông với bảng gói cước, Internet, truyền hình, camera và CTA đăng ký rõ ràng.','Gói Internet\nTruyền hình\nCamera\nCTA tư vấn & đăng ký','blue');

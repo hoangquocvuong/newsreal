@@ -49,7 +49,7 @@ function htmlNoCache(body,status=200){
 }
 
 function themedHtml(html,preset){
- const cls=preset==='newsreal'?'theme-estate-default':preset==='estate_green'?'theme-estate-green':preset==='estate_luxe_3'?'theme-estate-luxe':preset==='estate_minimal_4'?'theme-estate-minimal':preset==='estate_urban_5'?'theme-estate-urban':preset==='news_portal_1'?'theme-news-portal':'';
+ const cls=preset==='newsreal'?'theme-estate-default':preset==='estate_green'?'theme-estate-green':preset==='estate_luxe_3'?'theme-estate-luxe':preset==='estate_minimal_4'?'theme-estate-minimal':preset==='estate_urban_5'?'theme-estate-urban':preset==='news_portal_1'?'theme-news-portal':preset==='service_fpt_1'?'theme-service-fpt':'';
  return cls?html.replace('<body>',`<body class="${cls}">`):html;
 }
 
@@ -68,11 +68,14 @@ function demoThemeFromPath(path){
  if(estate)return estate[1].toLowerCase();
  const news=path.match(/^\/demo\/tin-tuc\/mau-([1-4])(?:\/|$)/i);
  if(news)return 'tin-tuc-'+news[1];
+ const service=path.match(/^\/demo\/dich-vu\/mau-([1-9]\d*)(?:\/|$)/i);
+ if(service)return 'dich-vu-'+service[1];
  return '';
 }
 function demoPrefixForPath(path,demo){
  if(!demo||demo==='marketplace'||demo==='legacy-center')return '';
  if(/^tin-tuc-[1-4]$/.test(demo))return '/demo/tin-tuc/mau-'+demo.split('-').pop();
+ if(/^dich-vu-\d+$/.test(demo))return '/demo/dich-vu/mau-'+demo.split('-').pop();
  if(/^mau-[1-5]$/.test(demo))return '/demo/bat-dong-san/'+demo;
  return '';
 }
@@ -85,12 +88,12 @@ function stripDemoPath(path,demo){
 }
 function demoInject(html,demo,trialCtx=null){
  if(!demo||demo==='center')return html;
- html=html.replace(/\/assets\/style\.css\?v=\d+/g,'/assets/style.css?v=20.4.6').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.4.6');
- const preset=demo==='mau-1'?'newsreal':demo==='mau-2'?'estate_green':demo==='mau-3'?'estate_luxe_3':demo==='mau-4'?'estate_minimal_4':demo==='mau-5'?'estate_urban_5':demo==='tin-tuc-1'?'news_portal_1':demo==='tin-tuc-2'?'news_paper_2':demo==='tin-tuc-3'?'news_magazine_3':demo==='tin-tuc-4'?'news_minimal_4':'';
+ html=html.replace(/\/assets\/style\.css\?v=\d+/g,'/assets/style.css?v=20.5.0').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.5.0');
+ const preset=demo==='mau-1'?'newsreal':demo==='mau-2'?'estate_green':demo==='mau-3'?'estate_luxe_3':demo==='mau-4'?'estate_minimal_4':demo==='mau-5'?'estate_urban_5':demo==='tin-tuc-1'?'news_portal_1':demo==='tin-tuc-2'?'news_paper_2':demo==='tin-tuc-3'?'news_magazine_3':demo==='tin-tuc-4'?'news_minimal_4':demo==='dich-vu-1'?'service_fpt_1':'';
  let out=themedHtml(html,preset);
  const currentPath=typeof rawPath!=='undefined'?rawPath:'';
  const prefix=demoPrefixForPath(currentPath,demo);
- const boot=`<meta name="robots" content="noindex,follow"><meta name="newsreal-demo-build" content="20.4.6"><script>window.NR_DEMO_THEME=${JSON.stringify(demo)};window.NR_DEMO_PREFIX=${JSON.stringify(prefix)};window.NR_TRIAL_TOKEN=${JSON.stringify(trialCtx?.trial_token||'')};window.NR_TRIAL_TENANT=${JSON.stringify(trialCtx?.domain||'')};window.NR_DEMO_TENANT=window.NR_TRIAL_TENANT||'batdongsan2027.org.uk';
+ const boot=`<meta name="robots" content="noindex,follow"><meta name="newsreal-demo-build" content="20.5.0"><script>window.NR_DEMO_THEME=${JSON.stringify(demo)};window.NR_DEMO_PREFIX=${JSON.stringify(prefix)};window.NR_TRIAL_TOKEN=${JSON.stringify(trialCtx?.trial_token||'')};window.NR_TRIAL_TENANT=${JSON.stringify(trialCtx?.domain||'')};window.NR_DEMO_TENANT=window.NR_TRIAL_TENANT||'batdongsan2027.org.uk';
 window.nrTrialUrl=function(raw){
  if(!window.NR_TRIAL_TOKEN||!raw||typeof raw!=='string'||raw==='#'||/^mailto:|^tel:|^javascript:/i.test(raw))return raw;
  try{const x=new URL(raw,location.origin);if(x.origin!==location.origin)return raw;if(x.pathname.startsWith('/api/')||x.pathname.startsWith('/assets/')||x.pathname.startsWith('/admin')||x.pathname.startsWith('/control-center'))return raw;x.searchParams.set('nr_trial',window.NR_TRIAL_TOKEN);return x.pathname+x.search+x.hash}catch(e){return raw}
@@ -321,24 +324,27 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 </script>`;
  const newsNum=/^tin-tuc-([1-4])$/.exec(demo)?.[1]||'';
+ const serviceNum=/^dich-vu-(\d+)$/.exec(demo)?.[1]||'';
  const newsNames={'1':'Tin tức Mẫu 1 · Tạp chí hiện đại','2':'Tin tức Mẫu 2 · Báo điện tử','3':'Tin tức Mẫu 3 · Magazine hiện đại','4':'Tin tức Mẫu 4 · Minimal SEO'};
  const estateNames={'mau-1':'Mẫu 1 · Tin tức & BĐS','mau-2':'Mẫu 2 · BĐS hiện đại','mau-3':'Mẫu 3 · BĐS Luxury','mau-4':'Mẫu 4 · BĐS Minimal','mau-5':'Mẫu 5 · BĐS Urban'};
- const demoLabel=newsNum?newsNames[newsNum]:(estateNames[demo]||'Mẫu bất động sản');
+ const demoLabel=newsNum?newsNames[newsNum]:(serviceNum?`Dịch vụ Mẫu ${serviceNum} · Internet & Camera`:(estateNames[demo]||'Mẫu bất động sản'));
  const isNewsDemo=!!newsNum;
+ const isServiceDemo=!!serviceNum;
  // V16.9 — Demo browser title must follow the selected template, never the
  // underlying BĐS tenant used as the shared showroom data source.
  const relativeDemoPath=prefix&&currentPath.startsWith(prefix)?(currentPath.slice(prefix.length)||'/'):currentPath;
  const isDemoArticle=/\.html$/i.test(relativeDemoPath)||/\-p\d+\/?$/i.test(relativeDemoPath);
  if(!isDemoArticle){
-   const tabTitle=isNewsDemo?`Tin tức Mẫu ${newsNum} · Demo | HoangVuongTech`:`BĐS ${demo==='mau-1'?'Mẫu 1':demo==='mau-2'?'Mẫu 2':demo==='mau-3'?'Mẫu 3':demo==='mau-4'?'Mẫu 4':'Mẫu 5'} · Demo | HoangVuongTech`;
+   const tabTitle=isNewsDemo?`Tin tức Mẫu ${newsNum} · Demo | HoangVuongTech`:isServiceDemo?`Dịch vụ Mẫu ${serviceNum} · Demo | HoangVuongTech`:`BĐS ${demo==='mau-1'?'Mẫu 1':demo==='mau-2'?'Mẫu 2':demo==='mau-3'?'Mẫu 3':demo==='mau-4'?'Mẫu 4':'Mẫu 5'} · Demo | HoangVuongTech`;
    out=out.replace(/<title>[\s\S]*?<\/title>/i,`<title>${tabTitle}</title>`);
  }
- const bar=`<div class="nr-demo-bar"><div class="nr-demo-inner"><b>ĐANG XEM ${isNewsDemo?'TIN TỨC · MẪU '+newsNum:'BẤT ĐỘNG SẢN · '+(demo==='mau-1'?'MẪU 1':demo==='mau-2'?'MẪU 2':demo==='mau-3'?'MẪU 3':demo==='mau-4'?'MẪU 4':'MẪU 5')}</b><span>Chọn giao diện phù hợp với bạn</span><div class="nr-demo-actions"><div class="nr-demo-devices" aria-label="Xem trên thiết bị"><button type="button" class="active" data-demo-device="desktop" title="Xem trên PC">▰ <span>PC</span></button><button type="button" data-demo-device="tablet" title="Xem trên máy tính bảng">▯ <span>Tablet</span></button><button type="button" data-demo-device="mobile" title="Xem trên điện thoại">▯ <span>Mobile</span></button></div><a href="${isNewsDemo?'/templates/tin-tuc/':'/templates/bat-dong-san/'}">Kho mẫu</a><a class="nr-demo-cta" data-demo-external="1" href="https://hoangvuongtech.com/?template=${encodeURIComponent(demo)}&name=${encodeURIComponent(demoLabel)}#dang-ky" target="_blank" rel="noopener">Chọn mẫu này</a></div></div></div>`;
+ const bar=`<div class="nr-demo-bar"><div class="nr-demo-inner"><b>ĐANG XEM ${isNewsDemo?'TIN TỨC · MẪU '+newsNum:isServiceDemo?'DỊCH VỤ · MẪU '+serviceNum:'BẤT ĐỘNG SẢN · '+(demo==='mau-1'?'MẪU 1':demo==='mau-2'?'MẪU 2':demo==='mau-3'?'MẪU 3':demo==='mau-4'?'MẪU 4':'MẪU 5')}</b><span>Chọn giao diện phù hợp với bạn</span><div class="nr-demo-actions"><div class="nr-demo-devices" aria-label="Xem trên thiết bị"><button type="button" class="active" data-demo-device="desktop" title="Xem trên PC">▰ <span>PC</span></button><button type="button" data-demo-device="tablet" title="Xem trên máy tính bảng">▯ <span>Tablet</span></button><button type="button" data-demo-device="mobile" title="Xem trên điện thoại">▯ <span>Mobile</span></button></div><a href="${isNewsDemo?'/templates/tin-tuc/':isServiceDemo?'/templates/dich-vu/':'/templates/bat-dong-san/'}">Kho mẫu</a><a class="nr-demo-cta" data-demo-external="1" href="https://hoangvuongtech.com/?template=${encodeURIComponent(demo)}&name=${encodeURIComponent(demoLabel)}#dang-ky" target="_blank" rel="noopener">Chọn mẫu này</a></div></div></div>`;
  return out.replace('</head>',boot+'</head>').replace(/<body([^>]*)>/i,`<body$1>${bar}`);
 }
 
 const TEMPLATE_CATALOG_DEFAULTS=[
  {template_key:'mau-1',name:'Mẫu 1 · Tin tức & BĐS',category:'bat-dong-san',preset:'newsreal',price:1499000,renewal_price:1999000,is_active:1,sort_order:1,image_url:'/assets/demo/mau-1-preview.png',demo_url:'/demo/bat-dong-san/mau-1/',badge:'NHIỀU NỘI DUNG',description:'Phong cách cổng thông tin bất động sản, phù hợp website có nhiều tin tức, chuyên mục và bài đăng.',features:'Trang chủ nhiều chuyên mục\nTin tức + bất động sản\nPhù hợp SEO nội dung',accent:'blue'},
+ {template_key:'dich-vu-1',name:'Dịch vụ Mẫu 1 · Internet, Truyền hình & Camera',category:'dich-vu',preset:'service_fpt_1',price:1499000,renewal_price:1999000,is_active:1,sort_order:1,image_url:'/assets/demo/dich-vu-1-preview.svg',demo_url:'/demo/dich-vu/mau-1/',badge:'DỊCH VỤ',description:'Landing website dịch vụ viễn thông với bảng gói cước, Internet, truyền hình, camera và CTA đăng ký rõ ràng.',features:'Gói Internet\nTruyền hình\nCamera\nCTA tư vấn & đăng ký',accent:'blue'},
  {template_key:'tin-tuc-1',name:'Tin tức Mẫu 1 · Tạp chí hiện đại',category:'tin-tuc',preset:'news_portal_1',price:1499000,renewal_price:1999000,is_active:1,sort_order:1,image_url:'/assets/demo/tin-tuc-1-preview-v2.png',demo_url:'/demo/tin-tuc/mau-1/',badge:'MỚI',description:'Giao diện tin tức hiện đại, tập trung bài nổi bật, dòng tin mới, chuyên mục và nội dung đọc nhiều.',features:'Trang chủ kiểu tạp chí\nTin nổi bật + đọc nhiều\nChuyên mục tự động theo bài viết\nTối ưu nội dung & mobile',accent:'red'},
  {template_key:'mau-2',name:'Mẫu 2 · BĐS hiện đại',category:'bat-dong-san',preset:'estate_green',price:1799000,renewal_price:2299000,is_active:1,sort_order:2,image_url:'/assets/demo/mau-2-preview.png',demo_url:'/demo/bat-dong-san/mau-2/',badge:'ĐỀ XUẤT',description:'Phong cách portal bất động sản hiện đại, hero tìm kiếm lớn và tập trung mạnh vào chuyển đổi khách hàng.',features:'Bộ lọc tìm kiếm nổi bật\nCard bất động sản hiện đại\nTối ưu trải nghiệm mobile',accent:'green'}
 ];
@@ -465,7 +471,7 @@ function demoCenterHtml(siteName,templates=[],category=''){
  <meta property="og:title" content="${isRoot?'Kho giao diện website':esc(catName)+' - Kho giao diện'} | HoangVuongTech">
  <meta property="og:description" content="Xem demo và chi phí trọn gói của từng mẫu website.">
  <meta property="og:url" content="https://hoangvuongtech.com/templates/${isRoot?'':esc(category)+'/'}">
- <link rel="stylesheet" href="/assets/style.css?v=20.4.6">  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+ <link rel="stylesheet" href="/assets/style.css?v=20.5.0">  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="theme-color" content="#ffffff">
 </head>
@@ -598,7 +604,8 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
     ['https://hoangvuongtech.com/','1.0'],
     ['https://hoangvuongtech.com/templates/','0.9'],
     ['https://hoangvuongtech.com/templates/bat-dong-san/','0.85'],
-    ['https://hoangvuongtech.com/templates/tin-tuc/','0.85']
+    ['https://hoangvuongtech.com/templates/tin-tuc/','0.85'],
+    ['https://hoangvuongtech.com/templates/dich-vu/','0.85']
    ];
    const xml=`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(([loc,p])=>`<url><loc>${loc}</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>${p}</priority></url>`).join('')}</urlset>`;
@@ -658,7 +665,7 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
 
  let site,trialCtx=null;
  const trialToken=String(u.searchParams.get('nr_trial')||'');
- if(marketHost&&trialToken&&(/^mau-[1-5]$/.test(demo)||/^tin-tuc-[1-4]$/.test(demo))){
+ if(marketHost&&trialToken&&(/^mau-[1-5]$/.test(demo)||/^tin-tuc-[1-4]$/.test(demo)||/^dich-vu-\d+$/.test(demo))){
    try{trialCtx=await env.DB.prepare(`SELECT wt.*,s.domain,s.name,s.preset,s.template_key FROM website_trials wt JOIN sites s ON s.id=wt.site_id WHERE wt.trial_token=? LIMIT 1`).bind(trialToken).first()}catch(e){}
    if(trialCtx&&trialCtx.status!=='pending_activation'){
      const expired=Date.parse(String(trialCtx.expires_at).replace(' ','T')+'Z')<=Date.now()||trialCtx.status==='expired';
@@ -666,7 +673,7 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
      site=await env.DB.prepare(`SELECT * FROM sites WHERE id=? AND status='active'`).bind(trialCtx.site_id).first();
    }
  }
- if(!site && marketHost && (/^mau-[1-5]$/.test(demo)||/^tin-tuc-[1-4]$/.test(demo))){
+ if(!site && marketHost && (/^mau-[1-5]$/.test(demo)||/^tin-tuc-[1-4]$/.test(demo)||/^dich-vu-\d+$/.test(demo))){
    // Every marketplace demo uses the same isolated demo tenant unless nr_trial selects a real trial tenant.
    const demoReq=new Request('https://batdongsan2027.org.uk'+path+u.search,request);
    site=await siteFor(env,demoReq);

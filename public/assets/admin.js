@@ -110,13 +110,14 @@ function collectProfileFields(){
 function parseExtraJson(v){try{return typeof v==='object'&&v?v:JSON.parse(v||'{}')}catch{return {}}}
 
 function adminTemplateOverride(){return new URLSearchParams(location.search).get('template')||''}
+function isServiceTemplate(){const override=adminTemplateOverride();if(override)return /^dich-vu-\d+$/i.test(override);return CLIENT_CATEGORY==='dich-vu'||CLIENT_PROFILE?.content_type==='service'||CLIENT_PROFILE?.id==='service'||CLIENT_PRESET==='service_fpt_1'}
 function isNewsTemplate(){
  const override=adminTemplateOverride();
  if(override)return /^tin-tuc-\d+$/i.test(override);
  return CLIENT_TEMPLATE_KEY==='tin-tuc-1'||CLIENT_PRESET==='news_portal_1'||CLIENT_CATEGORY==='tin-tuc'||CLIENT_PROFILE?.content_type==='news'||CLIENT_PROFILE?.id==='news';
 }
 function configureAdminForTemplate(){
- const news=isNewsTemplate();
+ const news=isNewsTemplate(),service=isServiceTemplate();
  document.body.classList.toggle('admin-template-news',news);
  const picker=document.getElementById('contentTypePicker');
  const notice=document.getElementById('newsTemplateNotice');
@@ -128,7 +129,11 @@ function configureAdminForTemplate(){
  if(editorLabel)editorLabel.textContent=profile.contentLabel||(news?'Nội dung bài viết':'Mô tả chi tiết');
  if(editorHelp)editorHelp.textContent=profile.contentHelp||'Soạn và định dạng nội dung.';
  renderProfileFields();
- if(news){
+ if(service){
+   postType.value='service';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
+   if(menuNew)menuNew.textContent='Thêm gói dịch vụ';if(menuPosts)menuPosts.textContent='Quản lý dịch vụ';if(overviewBtn)overviewBtn.textContent='＋ Thêm gói dịch vụ';
+   if(postTitle)postTitle.placeholder='Ví dụ: Gói Internet Home 500';
+ }else if(news){
    postType.value='news';
    postType.disabled=true;
    picker?.classList.add('hidden');
@@ -477,7 +482,7 @@ function fillCategoryOptions(keep=''){
   // Never infer a News category list from categoriesByTransaction. Older/stale
   // property profiles may still carry that object and previously produced an
   // empty dropdown for News Trial sites.
-  if(isNewsTemplate()||profile.content_type==='news')list=Array.isArray(profile.categories)?profile.categories:[];
+  if(isNewsTemplate()||isServiceTemplate()||profile.content_type==='news'||profile.content_type==='service')list=Array.isArray(profile.categories)?profile.categories:[];
   else if(profile.categoriesByTransaction)list=profile.categoriesByTransaction[transaction.value]||[];
   else list=Array.isArray(profile.categories)?profile.categories:[];
   list=[...new Set(list.map(x=>String(x||'').trim()).filter(Boolean))];
@@ -491,22 +496,22 @@ const contentTypeHint=document.getElementById('contentTypeHint');
 const editorHelp=document.getElementById('editorHelp');
 const imageSectionTitle=document.getElementById('imageSectionTitle');
 function updateContentTypeUI(){
-  if(isNewsTemplate())postType.value='news';
-  const isNews=postType.value==='news';
-  propertyOnlyEls.forEach(el=>el.classList.toggle('hidden',isNews));
-  editorTitle.textContent=editingId.value?(isNews?'Chỉnh sửa tin tức':'Chỉnh sửa tin bất động sản'):(isNews?'Đăng bài tin tức':'Đăng tin bất động sản');
-  contentTypeHint.textContent=isNews?'Tin tức: chỉ cần tiêu đề, chuyên mục, hình ảnh và nội dung bài viết.':'Bất động sản: hiển thị giá, diện tích, vị trí và thông số chi tiết.';
-  editorHelp.textContent=isNews?'Giao diện đã ẩn các trường bất động sản để bạn viết bài đơn giản và dễ nhìn hơn.':'Điền thông tin chi tiết để tin đăng hiển thị đầy đủ trên website.';
-  imageSectionTitle.textContent=isNews?'Hình ảnh bài viết':'Hình ảnh bất động sản';
+  if(isNewsTemplate())postType.value='news';if(isServiceTemplate())postType.value='service';
+  const isNews=postType.value==='news',isService=postType.value==='service',isSimple=isNews||isService;
+  propertyOnlyEls.forEach(el=>el.classList.toggle('hidden',isSimple));
+  editorTitle.textContent=editingId.value?(isService?'Chỉnh sửa gói dịch vụ':isNews?'Chỉnh sửa tin tức':'Chỉnh sửa tin bất động sản'):(isService?'Thêm gói dịch vụ':isNews?'Đăng bài tin tức':'Đăng tin bất động sản');
+  contentTypeHint.textContent=isService?'Dịch vụ: quản lý gói cước, thông số, giá, ưu đãi và nội dung tư vấn.':isNews?'Tin tức: chỉ cần tiêu đề, chuyên mục, hình ảnh và nội dung bài viết.':'Bất động sản: hiển thị giá, diện tích, vị trí và thông số chi tiết.';
+  editorHelp.textContent=isService?'Điền thông tin gói dịch vụ; các trường riêng của template sẽ hiển thị tự động.':isNews?'Giao diện đã ẩn các trường bất động sản để bạn viết bài đơn giản và dễ nhìn hơn.':'Điền thông tin chi tiết để tin đăng hiển thị đầy đủ trên website.';
+  imageSectionTitle.textContent=isService?'Hình ảnh dịch vụ':isNews?'Hình ảnh bài viết':'Hình ảnh bất động sản';
   fillCategoryOptions(postCategory.value);
 }
 postType.addEventListener('change',updateContentTypeUI);transaction.addEventListener('change',()=>fillCategoryOptions(postCategory.value));
 
 
-postForm.addEventListener('submit',async e=>{e.preventDefault();if(!validatePost())return;const normalizedContent=normalizeArticleHtml(richHtml());if(postContent)postContent.value=normalizedContent;if(nrTinyEditor)nrTinyEditor.setContent(normalizedContent);else if(richEditor)richEditor.innerHTML=normalizedContent;submitPostBtn.disabled=true;submitPostBtn.textContent='Đang xử lý...';const isNews=postType.value==='news';const b={type:postType.value,transaction:isNews?'':transaction.value,property_type:isNews?'':propertyType.value,title:postTitle.value,price:isNews?'':postPrice.value,area:isNews?'':postArea.value,unit_price:isNews?'':unitPrice.value,listing_code:listingCode.value,bedrooms:isNews?null:(+bedrooms.value||null),bathrooms:isNews?null:(+bathrooms.value||null),floors:isNews?null:(+floors.value||null),frontage:isNews?'':frontage.value,direction:isNews?'':direction.value,legal:isNews?'':legal.value,furniture:isNews?'':furniture.value,province:isNews?'':province.value,district:isNews?'':district.value,ward:isNews?'':ward.value,address:isNews?'':postAddress.value,image:postImage.value,gallery:gallery.value,contact_name:isNews?'':contactName.value,phone:isNews?'':postPhone.value,category:postCategory.value,content:postContent.value,extra_json:JSON.stringify(collectProfileFields()),featured:featured.checked?1:0,verified:verified.checked?1:0,status:postStatus.value};const id=editingId.value;try{
+postForm.addEventListener('submit',async e=>{e.preventDefault();if(!validatePost())return;const normalizedContent=normalizeArticleHtml(richHtml());if(postContent)postContent.value=normalizedContent;if(nrTinyEditor)nrTinyEditor.setContent(normalizedContent);else if(richEditor)richEditor.innerHTML=normalizedContent;submitPostBtn.disabled=true;submitPostBtn.textContent='Đang xử lý...';const isNews=postType.value==='news',isService=postType.value==='service',isSimple=isNews||isService;const b={type:postType.value,transaction:isSimple?'':transaction.value,property_type:isSimple?'':propertyType.value,title:postTitle.value,price:isSimple?'':postPrice.value,area:isSimple?'':postArea.value,unit_price:isSimple?'':unitPrice.value,listing_code:listingCode.value,bedrooms:isSimple?null:(+bedrooms.value||null),bathrooms:isSimple?null:(+bathrooms.value||null),floors:isSimple?null:(+floors.value||null),frontage:isSimple?'':frontage.value,direction:isSimple?'':direction.value,legal:isSimple?'':legal.value,furniture:isSimple?'':furniture.value,province:isSimple?'':province.value,district:isSimple?'':district.value,ward:isSimple?'':ward.value,address:isSimple?'':postAddress.value,image:postImage.value,gallery:gallery.value,contact_name:isSimple?'':contactName.value,phone:isSimple?'':postPhone.value,category:postCategory.value,content:postContent.value,extra_json:JSON.stringify(collectProfileFields()),featured:featured.checked?1:0,verified:verified.checked?1:0,status:postStatus.value};const id=editingId.value;try{
 await api('/posts'+(id?'?id='+id:''),{method:id?'PUT':'POST',body:JSON.stringify(b)});
 postMsg.textContent=b.status==='draft'?'Đã lưu bản nháp.':(id?'Đã cập nhật tin thành công.':'Đã đăng tin thành công.');
-postMsg.classList.remove('hidden');postForm.reset();setRichContent('');renderProfileFields();uploadedImages=[];renderImages();editingId.value='';editorTitle.textContent=isNewsTemplate()?'Đăng bài tin tức':'Đăng tin bất động sản';if(isNewsTemplate())postType.value='news';updateContentTypeUI();clearFieldErrors();
+postMsg.classList.remove('hidden');postForm.reset();setRichContent('');renderProfileFields();uploadedImages=[];renderImages();editingId.value='';editorTitle.textContent=isServiceTemplate()?'Thêm gói dịch vụ':isNewsTemplate()?'Đăng bài tin tức':'Đăng tin bất động sản';if(isNewsTemplate())postType.value='news';if(isServiceTemplate())postType.value='service';updateContentTypeUI();clearFieldErrors();
 }catch(err){
 formErrors.innerHTML='<b>Không thể lưu tin.</b><div>'+String(err.message||err)+'</div>';formErrors.classList.remove('hidden');formErrors.scrollIntoView({behavior:'smooth',block:'center'});
 }finally{submitPostBtn.disabled=false;updateSubmitLabel()}});
@@ -516,7 +521,7 @@ async function loadPosts(){
  const rows=newsMode?allPosts.filter(x=>x.type==='news'):allPosts;
  postTable.innerHTML=`<div style="overflow:auto"><table class="table"><thead><tr><th>Tiêu đề</th>${newsMode?'<th>Chuyên mục</th>':'<th>Loại</th><th>Giá</th>'}<th>Trạng thái</th><th>Lượt xem</th><th></th></tr></thead><tbody>${rows.map(x=>`<tr><td><b>${x.title}</b><div>${newsMode?(x.category||'Tin tức'):(x.listing_code||'')}</div></td>${newsMode?`<td>${x.category||'Tin tức'}</td>`:`<td>${x.type==='property'?'BĐS':'Tin tức'}</td><td>${x.price||''}</td>`}<td><span class="status-pill ${x.status==='published'?'status-published':'status-draft'}">${x.status==='published'?'Đã đăng':'Bản nháp'}</span></td><td>${x.views||0}</td><td><button class="smallbtn soft" onclick="editPost(${x.id})">Sửa</button> <button class="smallbtn danger" onclick="delPost(${x.id})">Xóa</button></td></tr>`).join('')}</tbody></table></div>`;
 }
-function editPost(id){const x=allPosts.find(p=>p.id===id);uploadedImages=[x.image,...String(x.gallery||'').split(',').map(v=>v.trim()).filter(Boolean)].filter(Boolean);renderImages();editingId.value=x.id;postType.value=isNewsTemplate()?'news':(x.type||'property');updateContentTypeUI();transaction.value=x.transaction||'sale';propertyType.value=x.property_type||'Nhà phố';postTitle.value=x.title||'';postPrice.value=x.price||'';postArea.value=x.area||'';unitPrice.value=x.unit_price||'';listingCode.value=x.listing_code||'';bedrooms.value=x.bedrooms||'';bathrooms.value=x.bathrooms||'';floors.value=x.floors||'';frontage.value=x.frontage||'';direction.value=x.direction||'';legal.value=x.legal||'';furniture.value=x.furniture||'';province.value=x.province||'';district.value=x.district||'';ward.value=x.ward||'';postAddress.value=x.address||'';postImage.value=x.image||'';gallery.value=x.gallery||'';contactName.value=x.contact_name||'';postPhone.value=x.phone||'';fillCategoryOptions(x.category||'');setRichContent(x.content||'');renderProfileFields(parseExtraJson(x.extra_json));featured.checked=!!x.featured;verified.checked=!!x.verified;postStatus.value=x.status||'published';editorTitle.textContent='Chỉnh sửa tin';showTab('newpost');updateSubmitLabel()}
+function editPost(id){const x=allPosts.find(p=>p.id===id);uploadedImages=[x.image,...String(x.gallery||'').split(',').map(v=>v.trim()).filter(Boolean)].filter(Boolean);renderImages();editingId.value=x.id;postType.value=isServiceTemplate()?'service':isNewsTemplate()?'news':(x.type||'property');updateContentTypeUI();transaction.value=x.transaction||'sale';propertyType.value=x.property_type||'Nhà phố';postTitle.value=x.title||'';postPrice.value=x.price||'';postArea.value=x.area||'';unitPrice.value=x.unit_price||'';listingCode.value=x.listing_code||'';bedrooms.value=x.bedrooms||'';bathrooms.value=x.bathrooms||'';floors.value=x.floors||'';frontage.value=x.frontage||'';direction.value=x.direction||'';legal.value=x.legal||'';furniture.value=x.furniture||'';province.value=x.province||'';district.value=x.district||'';ward.value=x.ward||'';postAddress.value=x.address||'';postImage.value=x.image||'';gallery.value=x.gallery||'';contactName.value=x.contact_name||'';postPhone.value=x.phone||'';fillCategoryOptions(x.category||'');setRichContent(x.content||'');renderProfileFields(parseExtraJson(x.extra_json));featured.checked=!!x.featured;verified.checked=!!x.verified;postStatus.value=x.status||'published';editorTitle.textContent='Chỉnh sửa tin';showTab('newpost');updateSubmitLabel()}
 async function delPost(id){if(confirm('Xóa tin này?')){await api('/posts?id='+id,{method:'DELETE'});loadPosts()}}
 async function loadStats(){const d=await api('/stats');stat7.textContent=d.last7;stat30.textContent=d.last30;statAll.textContent=d.all;topPosts.innerHTML=`<table class="table">${d.top.map(x=>`<tr><td>${x.title}</td><td>${x.views||0}</td></tr>`).join('')}</table>`}
 editWebsiteSettings?.addEventListener('click',()=>{

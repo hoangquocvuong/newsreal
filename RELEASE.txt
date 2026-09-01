@@ -1,7 +1,7 @@
-NEWSREAL V20.4.6
-Trial Early Conversion Contract + Trial/Showroom Template Parity
+NEWSREAL V20.5.0 — SERVICE TEMPLATE GROUP
 
-1. Trial active or expired -> Đăng ký sử dụng -> same conversion flow.
-2. Existing Trial tenant is promoted in-place; customer posts/data/credentials are preserved.
-3. Trial homepage inherits the exact template editor/layout/structure contract from template_catalog, preventing missing homepage categories compared with showroom demo.
-4. Trial remains sample-free; only the frame/taxonomy contract is shared.
+- Thêm nhóm Template Dịch vụ trong kho giao diện.
+- Thêm Dịch vụ Mẫu 1: Internet / Truyền hình / Camera, phù hợp đại lý/đơn vị triển khai dịch vụ FPT hoặc dịch vụ viễn thông tương tự.
+- Admin theo content_type=service: chuyên mục dịch vụ + trường Giá/tháng, Tốc độ/thông số, Ưu đãi, CTA.
+- Contract parity: showroom có dữ liệu mẫu đầy đủ; trial/client giữ nguyên toàn bộ view/section/taxonomy nhưng không mang bài/gói mẫu.
+- Trial routing và early conversion contract của V20.4.6 được giữ nguyên.

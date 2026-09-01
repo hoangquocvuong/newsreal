@@ -1531,7 +1531,8 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
      'tin-tuc-1':'news_portal_1',
      'tin-tuc-2':'news_paper_2',
      'tin-tuc-3':'news_magazine_3',
-     'tin-tuc-4':'news_minimal_4'
+     'tin-tuc-4':'news_minimal_4',
+     'dich-vu-1':'service_fpt_1'
    };
    const effectivePreset=DEMO_PRESETS[demoTheme]||s.preset||'newsreal';
    document.body.classList.toggle('nr-demo-performance',!!demoTheme);
@@ -1543,6 +1544,7 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
    document.body.classList.toggle('theme-news-paper',effectivePreset==='news_paper_2');
    document.body.classList.toggle('theme-news-magazine',effectivePreset==='news_magazine_3');
    document.body.classList.toggle('theme-news-minimal',effectivePreset==='news_minimal_4');
+   document.body.classList.toggle('theme-service-fpt',effectivePreset==='service_fpt_1');
    fillPublicFooter(s);
    // V17.1 — Demo tab title is owned by the selected template, never by the shared showroom tenant.
    if(window.NR_DEMO_THEME&&window.nrApplyDemoTitle){
@@ -1575,6 +1577,8 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
      try{renderNewsMagazineHome(s)}catch(e){console.error('NEWS M3',e);showError('Không tải được giao diện Tin tức Mẫu 3.')}
    }else if(effectivePreset==='news_minimal_4'){
      try{renderNewsMinimalHome(s)}catch(e){console.error('NEWS M4',e);showError('Không tải được giao diện Tin tức Mẫu 4.')}
+   }else if(effectivePreset==='service_fpt_1'){
+     try{renderServiceFpt1(s)}catch(e){console.error('SERVICE M1',e);showError('Không tải được giao diện Dịch vụ Mẫu 1.')}
    }else{
      renderTheme1Home(s,props);
    }
@@ -1600,3 +1604,29 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
    }else if(typeof heroSlides!=='undefined'&&heroSlides)heroSlides.innerHTML='<div class="empty">Không tải được dữ liệu trang chủ.</div>';
  }
 })();
+
+/* V20.5.0 — Service template contract. Showroom may use sample services; trial/client stays structurally identical and sample-free. */
+function renderServiceFpt1(site={}){
+ const root=document.querySelector('main');if(!root)return;
+ const showroom=String(window.NR_DEMO_THEME||'')==='dich-vu-1'&&!window.NR_TRIAL_TOKEN&&new URLSearchParams(location.search).get('nr_client')!=='1'&&new URLSearchParams(location.search).get('nr_samples')!=='0';
+ const real=(SITE_DATA?.posts||[]).filter(x=>x.type==='service');
+ const samples=[
+  ['Internet FPT','Gói Internet Home 300','300 Mbps','180.000đ/tháng','Wi-Fi 6, tốc độ ổn định cho gia đình'],
+  ['Internet FPT','Gói Internet Home 500','500 Mbps','230.000đ/tháng','Phù hợp gia đình nhiều thiết bị, làm việc tại nhà'],
+  ['Internet FPT','Gói Internet Giga','1 Gbps','320.000đ/tháng','Băng thông cao cho gaming, livestream và văn phòng'],
+  ['Truyền hình FPT','FPT Play cơ bản','Kho nội dung đa dạng','Từ 88.000đ/tháng','Giải trí, phim, thiếu nhi và truyền hình trực tuyến'],
+  ['Truyền hình FPT','FPT Play gia đình','Nhiều thiết bị','Từ 120.000đ/tháng','Trải nghiệm giải trí cho cả gia đình'],
+  ['Truyền hình FPT','Combo Internet + TV','Tiết kiệm hơn','Liên hệ','Một hóa đơn, Internet nhanh và truyền hình tiện lợi'],
+  ['Camera FPT','Camera trong nhà','Full HD','Từ 40.000đ/tháng','Theo dõi nhà cửa trên điện thoại, lưu trữ cloud'],
+  ['Camera FPT','Camera ngoài trời','Chống nước','Liên hệ','Quan sát cửa hàng, sân vườn và khu vực ngoài trời'],
+  ['Camera FPT','Combo Internet + Camera','Kết nối + an ninh','Liên hệ','Giải pháp đồng bộ cho gia đình và cửa hàng'],
+  ['Combo Internet + Truyền hình','Combo giải trí gia đình','Internet + FPT Play','Ưu đãi theo khu vực','Tối ưu chi phí với một gói dịch vụ đồng bộ']
+ ].map((x,i)=>({id:950000+i,type:'service',category:x[0],title:x[1],extra_json:JSON.stringify({service_speed:x[2],service_price:x[3],service_promo:x[4],service_cta:'Đăng ký tư vấn'}),content:x[4]}));
+ const posts=showroom?samples:((String(window.NR_DEMO_THEME||'')==='dich-vu-1'&&!window.NR_TRIAL_TOKEN)?[]:real);
+ const ex=x=>{try{return typeof x.extra_json==='object'?x.extra_json:JSON.parse(x.extra_json||'{}')}catch{return {}}};
+ const card=x=>{const e=ex(x);return `<article class="svc1-card"><span class="tag">${esc(x.category||'Dịch vụ')}</span><h3>${esc(x.title||'Gói dịch vụ')}</h3>${e.service_speed?`<div class="spec">${esc(e.service_speed)}</div>`:''}<p>${esc(e.service_promo||String(x.content||'').replace(/<[^>]+>/g,' ').slice(0,120)||'Thông tin chi tiết đang được cập nhật.')}</p><div class="price">${e.service_price?`Chỉ từ <strong>${esc(e.service_price)}</strong>`:'Liên hệ để nhận báo giá'}</div><a class="svc1-btn primary" href="#dang-ky">${esc(e.service_cta||'Đăng ký tư vấn')}</a></article>`};
+ const section=(id,title,cat,sub)=>{const arr=posts.filter(x=>x.category===cat).slice(0,3);return `<section class="svc1-section ${id==='tv'?'alt':''}" id="${id}"><div class="svc-wrap"><div class="svc1-head"><div><small>${esc(sub)}</small><h2>${esc(title)}</h2></div></div><div class="svc1-cards">${arr.length?arr.map(card).join(''):[0,1,2].map(()=>`<div class="svc1-empty">Chưa có gói dịch vụ trong chuyên mục này.<br>Khung giao diện vẫn được giữ nguyên.</div>`).join('')}</div></div></section>`};
+ document.body.classList.add('theme-service-fpt');
+ document.querySelector('.topbar')?.remove();document.querySelector('header.header')?.remove();document.querySelector('footer.footer')?.remove();
+ root.innerHTML=`<div class="svc1"><nav class="svc1-nav"><div class="svc-wrap"><a class="svc1-brand" href="#">NET<span>PRO</span></a><div class="svc1-links"><a href="#internet">Internet</a><a href="#tv">Truyền hình</a><a href="#camera">Camera</a><a href="#combo">Combo</a><a class="svc1-call" href="#dang-ky">Đăng ký tư vấn</a></div></div></nav><section class="svc1-hero"><div class="svc-wrap svc1-hero-grid"><div><div class="svc1-kicker">INTERNET · TRUYỀN HÌNH · CAMERA</div><h1>Kết nối mạnh hơn. Giải trí tốt hơn. An tâm mỗi ngày.</h1><p>Website dịch vụ tối ưu để giới thiệu gói cước, so sánh lựa chọn và chuyển đổi khách hàng thành đăng ký tư vấn nhanh chóng.</p><div class="svc1-hero-actions"><a class="svc1-btn primary" href="#internet">Xem gói cước</a><a class="svc1-btn" href="#dang-ky">Nhận tư vấn</a></div></div><div class="svc1-visual"><div>INTERNET<b>1 Gbps</b><small>Kết nối tốc độ cao</small></div><div>FPT PLAY<b>4K</b><small>Giải trí tại nhà</small></div><div>CAMERA<b>24/7</b><small>Quan sát thông minh</small></div><div>HỖ TRỢ<b>24h</b><small>Tư vấn & lắp đặt</small></div></div></div></section><div class="svc-wrap svc1-trust"><div><b>⚡ Lắp đặt nhanh</b><small>Hỗ trợ khảo sát khu vực</small></div><div><b>📶 Wi-Fi hiện đại</b><small>Tối ưu nhiều thiết bị</small></div><div><b>🎬 Giải trí đa dạng</b><small>Nội dung cho cả gia đình</small></div><div><b>🛡️ Camera cloud</b><small>An tâm mọi lúc mọi nơi</small></div></div>${section('internet','Các gói Internet nổi bật','Internet FPT','INTERNET FPT')}${section('tv','Truyền hình & giải trí','Truyền hình FPT','FPT PLAY')}${section('camera','Camera thông minh','Camera FPT','CAMERA FPT')}${section('combo','Combo tiết kiệm','Combo Internet + Truyền hình','COMBO DỊCH VỤ')}<section class="svc1-section alt"><div class="svc-wrap"><div class="svc1-head"><div><small>LỢI ÍCH</small><h2>Một website tập trung vào chuyển đổi</h2></div></div><div class="svc1-benefits"><div>🚀<b>Gói cước rõ ràng</b><span>Khách dễ so sánh và lựa chọn.</span></div><div>📱<b>Responsive</b><span>Tối ưu điện thoại và máy tính.</span></div><div>☎️<b>CTA nổi bật</b><span>Dẫn khách đến tư vấn nhanh.</span></div><div>🧩<b>Dễ quản trị</b><span>Tự thêm, sửa gói dịch vụ.</span></div></div></div></section><section class="svc1-section" id="dang-ky"><div class="svc-wrap"><div class="svc1-cta"><div><small>ĐĂNG KÝ TƯ VẤN</small><h2>Sẵn sàng chọn gói phù hợp?</h2><p>Liên hệ để kiểm tra hạ tầng, ưu đãi và thời gian lắp đặt tại khu vực của bạn.</p></div><a class="svc1-btn primary" href="tel:${esc(String(site.phone||'').replace(/\s/g,''))}">☎ ${esc(site.phone||'Liên hệ ngay')}</a></div></div></section><footer class="svc1-footer"><div class="svc-wrap svc1-footer-grid"><div><b class="svc1-brand">NETPRO</b><p>Internet · Truyền hình · Camera</p></div><div><b>Dịch vụ</b><a href="#internet">Internet</a><a href="#tv">Truyền hình</a><a href="#camera">Camera</a></div><div><b>Liên hệ</b><a href="tel:${esc(String(site.phone||'').replace(/\s/g,''))}">${esc(site.phone||'Hotline')}</a><a href="#dang-ky">Đăng ký tư vấn</a></div></div></footer></div>`;
+}

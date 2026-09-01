@@ -724,7 +724,7 @@ const TM_DEFAULT_NEWS_CATEGORIES=['Kinh tế','Công nghệ','Du lịch','Sức 
 function tmLines(v=''){return String(v||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean)}
 function tmProfile(t){
  let p={};try{p=typeof t?.editor_profile==='object'?t.editor_profile:JSON.parse(t?.editor_profile||'{}')}catch{}
- const ct=p.content_type||(t?.category==='tin-tuc'?'news':'property');
+ const ct=p.content_type||(t?.category==='tin-tuc'?'news':t?.category==='dich-vu'?'service':'property');
  if(ct==='property'){
   p.categoriesByTransaction=p.categoriesByTransaction||{};
   p.categoriesByTransaction.buy=Array.isArray(p.categoriesByTransaction.buy)&&p.categoriesByTransaction.buy.length?p.categoriesByTransaction.buy:TM_DEFAULT_BUY_CATEGORIES;
@@ -732,6 +732,8 @@ function tmProfile(t){
   p.categoriesByTransaction.rent=Array.isArray(p.categoriesByTransaction.rent)&&p.categoriesByTransaction.rent.length?p.categoriesByTransaction.rent:TM_DEFAULT_RENT_CATEGORIES;
  }else if(ct==='news'){
   p.categories=Array.isArray(p.categories)&&p.categories.length?p.categories:TM_DEFAULT_NEWS_CATEGORIES;
+ }else if(ct==='service'){
+  p.categories=Array.isArray(p.categories)&&p.categories.length?p.categories:['Internet FPT','Truyền hình FPT','Camera FPT','Combo Internet + Truyền hình','Combo Internet + Camera','Khuyến mãi'];
  }
  return {id:p.id||ct,content_type:ct,contentLabel:p.contentLabel||'',contentHelp:p.contentHelp||'',categories:p.categories||[],categoriesByTransaction:p.categoriesByTransaction||{},custom_fields:Array.isArray(p.custom_fields)?p.custom_fields:[]};
 }
@@ -811,6 +813,8 @@ function tmClientSimulationUrl(t){
  if(!base){
    if(t?.category==='tin-tuc'){
      const m=key.match(/(\d+)$/);base=`/demo/tin-tuc/mau-${m?m[1]:'1'}/`;
+   }else if(t?.category==='dich-vu'){
+     const m=key.match(/(\d+)$/);base=`/demo/dich-vu/mau-${m?m[1]:'1'}/`;
    }else{
      const m=key.match(/mau-(\d+)/);base=`/demo/bat-dong-san/mau-${m?m[1]:'1'}/`;
    }
