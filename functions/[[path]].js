@@ -515,6 +515,7 @@ function demoCenterHtml(siteName,templates=[],category=''){
           '<label>Số điện thoại<input name="phone" inputmode="tel" autocomplete="tel" required></label>'+
           '<label>Email<input name="email" type="email" autocomplete="email" required></label>'+
           '<label>Zalo<input name="zalo" inputmode="tel" placeholder="Không bắt buộc"></label>'+
+          '<label class="full">Tên website mong muốn *<input name="site_name" autocomplete="organization" required placeholder="Ví dụ: Internet FPT Hải Phòng"><small class="market-trial-site-help">Tên này được dùng làm căn cứ để đề xuất/gắn tên miền cho website, vì vậy hãy đặt tên phù hợp với nội dung và thương hiệu website của bạn.</small></label>'+
           '<label>Công ty / thương hiệu<input name="company" autocomplete="organization"></label>'+
           '<label class="full">Nhu cầu / ghi chú<textarea name="note" rows="2" placeholder="Bạn muốn thử website cho nhu cầu nào?"></textarea></label>'+
           '<input class="market-trial-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"><label class="full market-trial-consent"><input name="contact_consent" type="checkbox" value="1"> <span>Tôi đồng ý để HoangVuongTech liên hệ hỗ trợ và tư vấn về website sau thời gian dùng thử.</span></label>'+
@@ -533,7 +534,7 @@ function demoCenterHtml(siteName,templates=[],category=''){
          submit.disabled=true;msg.className='market-trial-msg full';msg.textContent='Đang tạo website dùng thử…';
          try{
            const rr=await fetch('/api/trial/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-             template_key:key,name:fd.get('name'),phone:fd.get('phone'),email:fd.get('email'),zalo:fd.get('zalo'),company:fd.get('company'),note:fd.get('note'),website:fd.get('website'),marketing_opt_in:fd.get('contact_consent')==='1',source_url:location.href
+             template_key:key,name:fd.get('name'),phone:fd.get('phone'),email:fd.get('email'),zalo:fd.get('zalo'),site_name:fd.get('site_name'),company:fd.get('company'),note:fd.get('note'),website:fd.get('website'),marketing_opt_in:fd.get('contact_consent')==='1',source_url:location.href
            })});
            const d=await rr.json().catch(()=>({}));
            if(!rr.ok){

@@ -16,7 +16,7 @@ async function loadActivation(){
   activationTitle.textContent=isTrial?'Kích hoạt website dùng thử':('Nhận website '+(d.site.name||''));
   activationSite.innerHTML=`<div><span>Website</span><b>${isTrial?(d.trial.template_name||d.site.name||'Website dùng thử'):(d.site.name||'')}</b></div><div><span>${isTrial?'Thời gian':'Domain'}</span><b>${isTrial?'24 giờ sau khi kích hoạt':(d.site.domain||'')}</b></div>`;
   if(window.activationEmail)activationEmail.value=d.customer?.email||'';
-  if(isTrial&&window.activationSiteNameLabel){activationSiteNameLabel.classList.remove('hidden');activationSiteName.value=d.customer?.site_name||''}
+  if(isTrial&&window.activationSiteNameLabel){activationSiteNameLabel.classList.remove('hidden');const storedSiteName=(d.customer?.site_name||'').trim();activationSiteName.value=storedSiteName;if(storedSiteName){activationSiteName.readOnly=true;window.activationSiteNameHelp?.classList.remove('hidden')}else{activationSiteName.readOnly=false;window.activationSiteNameHelp?.classList.add('hidden')}}
   const intro=document.querySelector('#activationReady>p');if(intro)intro.textContent=isTrial?'Xác nhận email đăng nhập và tự tạo mật khẩu. Thời gian dùng thử 24 giờ chỉ bắt đầu sau bước này.':'Xác nhận email đăng nhập và tự tạo mật khẩu quản trị để hoàn tất bàn giao.';
   showOnly('activationReady');
   if(retryTimer){clearTimeout(retryTimer);retryTimer=null}

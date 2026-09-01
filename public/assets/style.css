@@ -3064,3 +3064,6 @@ body.theme-service-vnpt,body.theme-service-viettel{background:#fff;color:#10233f
  .theme-service-vnpt .vnpt-pack-list .horizontal{grid-template-columns:1fr;min-height:0}
  .theme-service-vnpt .vnpt-pack-list .horizontal .tel-card-img{min-height:0;aspect-ratio:16/9}
 }
+
+/* V20.6.11 — trial website name contract */
+.market-trial-site-help{display:block;margin-top:6px;color:#667085;font-size:11px;line-height:1.45;font-weight:500}

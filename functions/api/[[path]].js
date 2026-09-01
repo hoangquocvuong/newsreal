@@ -1605,9 +1605,9 @@ if(route==='renewal/respond'&&request.method==='POST'){
 // TRIAL WEBSITE CONTRACT V1 — public lifecycle endpoints.
 if(route==='trial/create'&&request.method==='POST'){
   await ensureCustomerTables(env);await ensureTemplateCatalog(env);await ensureTrialTables(env);await ensureSiteTemplateIdentity(env);
-  const b=await body(request),name=String(b.name||'').trim(),phone=String(b.phone||'').trim(),email=String(b.email||'').trim().toLowerCase(),zalo=String(b.zalo||phone).trim();
+  const b=await body(request),name=String(b.name||'').trim(),phone=String(b.phone||'').trim(),email=String(b.email||'').trim().toLowerCase(),zalo=String(b.zalo||phone).trim(),siteName=String(b.site_name||'').trim();
   const templateKey=String(b.template_key||'').trim();
-  if(!name||!phone||!email||!templateKey)return json({error:'Vui lòng nhập họ tên, số điện thoại, email và chọn giao diện'},400);
+  if(!name||!phone||!email||!siteName||!templateKey)return json({error:'Vui lòng nhập họ tên, số điện thoại, email, tên website mong muốn và chọn giao diện'},400);
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json({error:'Email không hợp lệ'},400);
   const tpl=await env.DB.prepare(`SELECT template_key,name,category,preset,price,renewal_price,accent FROM template_catalog WHERE template_key=? AND is_active=1 LIMIT 1`).bind(templateKey).first();
   if(!tpl)return json({error:'Giao diện không tồn tại hoặc đã ngừng cung cấp'},404);
@@ -1637,12 +1637,12 @@ if(route==='trial/create'&&request.method==='POST'){
     return json({error:'Bạn đã đăng ký dùng thử giao diện này trong 7 ngày gần đây.',code:'TRIAL_RECENT_EXISTS',trial_url:`/trial/${dup.trial_token}/`,expires_at:dup.expires_at,status:st?.status},409)
   }
   const leadRun=await env.DB.prepare(`INSERT INTO sales_leads(source,status,lead_kind,care_status,template_key,template_name,price,renewal_price,customer_name,phone,email,zalo,company,trial_source_url,site_name,requested_domain,note,marketing_opt_in,last_activity_at)
-    VALUES('trial','new','trial','new',?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)`).bind(templateKey,tpl.name,Number(tpl.price||0),Number(tpl.renewal_price||0),name,phone,email,zalo,String(b.company||''),String(b.source_url||''),`${name} · Trial ${tpl.name}`,'',String(b.note||''),b.marketing_opt_in?1:0).run();
+    VALUES('trial','new','trial','new',?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)`).bind(templateKey,tpl.name,Number(tpl.price||0),Number(tpl.renewal_price||0),name,phone,email,zalo,String(b.company||''),String(b.source_url||''),siteName,'',String(b.note||''),b.marketing_opt_in?1:0).run();
   const leadId=Number(leadRun.meta.last_row_id),token=crypto.randomUUID().replace(/-/g,'')+crypto.randomUUID().replace(/-/g,'').slice(0,8);
   const tenant=`trial-${token.slice(0,16)}.trial.hoangvuongtech.local`;
   const accentMap={green:'#138a4b',orange:'#e87817',purple:'#7653d6',red:'#d74646',blue:'#1463ff',navy:'#0f2943',black:'#111827'};
   const siteRun=await env.DB.prepare(`INSERT INTO sites(name,domain,preset,template_key,accent,phone,zalo,facebook,email,status) VALUES(?,?,?,?,?,?,?,?,?,'active')`)
-    .bind(`${name} · Trial`,tenant,tpl.preset,templateKey,accentMap[String(tpl.accent||'blue')]||'#1463ff',phone,zalo,'',email).run();
+    .bind(`${siteName} · Trial`,tenant,tpl.preset,templateKey,accentMap[String(tpl.accent||'blue')]||'#1463ff',phone,zalo,'',email).run();
   const siteId=Number(siteRun.meta.last_row_id);
   // V17.9 — Trial activation parity: never issue a temporary password. The visitor owns the credential from first activation.
   const placeholder=await sha256(activationToken());
