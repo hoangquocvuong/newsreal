@@ -1,11 +1,8 @@
-NEWSREAL V20.6.7 — TELECOM PACKAGE DETAIL + MEDIA/FRAME FIX
+NEWSREAL V20.6.8 — VNPT Balanced Square Portal
 
-- Viettel Internet horizontal cards now show the full package artwork (object-fit contain) instead of cropping the image into a narrow strip.
-- FPT showroom packages always receive bundled provider/category fallback media, so no card can render as an empty grey image slot when remote media fails.
-- VNPT hero/service board is clipped inside its rounded 1240px frame across desktop/tablet/mobile; blue panel can no longer overflow the outer shell.
-- Showroom price contract hardened: every FPT/VNPT/Viettel package always renders a concrete numeric demo price; Liên hệ/Theo gói/Theo nhu cầu values are normalized only in showroom.
-- Each package card is now clickable via image/title/"Xem chi tiết & khuyến mãi" and opens a package-detail overlay with image, category, speed/spec, price, description, benefits, promotion/conditions and direct consultation CTA.
-- Clicking "Đăng ký tư vấn gói này" from the detail overlay carries the selected package/category into the existing lead form.
-- Trial/client data remains untouched: real tenant prices/content are not overwritten, and showroom sample data is still not copied into client sites.
-- Bundled telecom fallback artwork converted to compact WebP for reliable rendering and lean deployment.
-- No DB migration.
+- Rebalanced VNPT hero to remove dead space and keep the blue service board visually dense.
+- VNPT hero/service frames are square (no border-radius), matching a more telecom/portal visual language.
+- Reworked Home Internet block into two balanced columns; featured card uses its image to fill height instead of leaving blank body space.
+- Right-side VNPT package cards now display the full artwork with object-fit: contain, similar to the Viettel full-media fix.
+- VNPT horizontal cards keep title, short description, price, detail link and registration CTA visible.
+- Existing V20.6.7 package-detail, showroom price, lead, trial/showroom contracts remain unchanged.

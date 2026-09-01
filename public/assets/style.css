@@ -2989,3 +2989,78 @@ body.theme-service-vnpt,body.theme-service-viettel{background:#fff;color:#10233f
  .viettel-net-list .horizontal{display:block}.viettel-net-list .horizontal .tel-card-img{min-height:0;aspect-ratio:16/9}.viettel-net-list .horizontal .tel-card-img img{object-fit:contain}
  .svc-detail-modal{padding:8px}.svc-detail-panel{border-radius:16px}.svc-detail-copy{padding:24px 20px}.svc-detail-copy h2{font-size:28px}.svc-detail-actions{align-items:stretch;flex-direction:column}.svc-detail-actions .tel-btn,.svc-detail-actions .tel-link{width:100%;justify-content:center;text-align:center}
 }
+
+/* V20.6.8 — VNPT balanced square portal layout */
+.theme-service-vnpt .vnpt-pro-hero{padding:28px 0;background:linear-gradient(180deg,#f5fbff 0,#edf8ff 100%)}
+.theme-service-vnpt .vnpt-pro-hero>.tel-wrap{
+  width:min(1240px,calc(100% - 48px));max-width:1240px;margin:0 auto;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:470px;
+  border-radius:0!important;box-shadow:0 18px 55px rgba(0,91,170,.08);border:1px solid #cfe7f5;
+}
+.theme-service-vnpt .vnpt-main{padding:54px 56px;justify-content:center;background:linear-gradient(135deg,#f9fdff 0,#e9f7ff 100%)}
+.theme-service-vnpt .vnpt-main h1{font-size:52px;max-width:560px;margin-bottom:18px}
+.theme-service-vnpt .vnpt-main>p{max-width:540px;margin-bottom:0}
+.theme-service-vnpt .vnpt-service-board{
+  border-radius:0!important;padding:34px;gap:0;
+  grid-template-columns:1.12fr .88fr;grid-template-rows:1fr 1fr;
+  background:linear-gradient(135deg,#0066ad 0%,#008ed1 58%,#13a4d9 100%);
+}
+.theme-service-vnpt .vnpt-service-board>div{
+  border-radius:0!important;min-height:0;padding:28px;
+  border:0;border-right:1px solid rgba(255,255,255,.24);border-bottom:1px solid rgba(255,255,255,.24);
+  background:rgba(255,255,255,.045);justify-content:center;position:relative;
+}
+.theme-service-vnpt .vnpt-service-board>div:nth-child(2){border-right:0}
+.theme-service-vnpt .vnpt-service-board>div:nth-child(3){border-right:0;border-bottom:0}
+.theme-service-vnpt .vnpt-service-board .big{grid-row:1 / span 2;min-height:0;border-bottom:0;justify-content:center}
+.theme-service-vnpt .vnpt-service-board .big:after{content:'XGSPON  •  Wi‑Fi Mesh  •  Phủ sóng đa phòng';display:block;margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.22);font-size:12px;font-weight:700;letter-spacing:.02em;color:rgba(255,255,255,.88)}
+.theme-service-vnpt .vnpt-service-board>div:nth-child(2):after{content:'Ứng dụng • Smart TV • Nội dung theo yêu cầu';display:block;margin-top:12px;font-size:11px;color:rgba(255,255,255,.86)}
+.theme-service-vnpt .vnpt-service-board>div:nth-child(3):after{content:'Theo dõi từ xa • Lưu trữ Cloud • Cảnh báo';display:block;margin-top:12px;font-size:11px;color:rgba(255,255,255,.86)}
+.theme-service-vnpt .vnpt-service-board b{font-size:30px;margin:8px 0 4px}
+
+/* Internet package block: dense two-column layout without dead space. */
+.theme-service-vnpt .vnpt-packages{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:stretch}
+.theme-service-vnpt .vnpt-feature-pack{min-width:0;display:flex}
+.theme-service-vnpt .vnpt-feature-pack>.tel-card{height:auto;min-height:100%;width:100%;border-radius:0!important}
+.theme-service-vnpt .vnpt-feature-pack .tel-card-img{aspect-ratio:auto;min-height:360px;flex:1;background:#fff}
+.theme-service-vnpt .vnpt-feature-pack .tel-card-img img{object-fit:contain;object-position:center;background:#fff;padding:8px}
+.theme-service-vnpt .vnpt-feature-pack .tel-card-body{flex:0 0 auto;min-height:240px;padding:22px}
+.theme-service-vnpt .vnpt-pack-list{display:grid;grid-template-rows:repeat(5,minmax(0,1fr));gap:10px;min-width:0}
+.theme-service-vnpt .vnpt-pack-list .horizontal{
+  display:grid;grid-template-columns:minmax(210px,42%) minmax(0,1fr);
+  min-height:142px;border-radius:0!important;overflow:hidden;
+}
+.theme-service-vnpt .vnpt-pack-list .horizontal .tel-card-img{height:100%;min-height:142px;aspect-ratio:auto;background:#fff}
+.theme-service-vnpt .vnpt-pack-list .horizontal .tel-card-img img{object-fit:contain;object-position:center;background:#fff;padding:5px}
+.theme-service-vnpt .vnpt-pack-list .horizontal .tel-card-body{padding:13px 15px;min-width:0}
+.theme-service-vnpt .vnpt-pack-list .horizontal h3{font-size:16px;margin:5px 0 3px}
+.theme-service-vnpt .vnpt-pack-list .horizontal .tel-speed{font-size:16px}
+.theme-service-vnpt .vnpt-pack-list .horizontal .tel-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:5px 0;font-size:11px}
+.theme-service-vnpt .vnpt-pack-list .horizontal .tel-detail-link{margin:0 0 5px;font-size:10px}
+.theme-service-vnpt .vnpt-pack-list .horizontal .tel-card-bottom{padding-top:3px}
+.theme-service-vnpt .vnpt-pack-list .horizontal .tel-price strong{font-size:14px}
+.theme-service-vnpt .vnpt-pack-list .horizontal .tel-cta{padding:8px 10px;font-size:11px;border-radius:4px}
+
+/* VNPT visual language: square service frames instead of rounded SaaS cards. */
+.theme-service-vnpt .tel-card,.theme-service-vnpt .tel-card-img,.theme-service-vnpt .tel-empty,
+.theme-service-vnpt .vnpt-mytv .tel-card,.theme-service-vnpt .tel-advice article{border-radius:0!important}
+.theme-service-vnpt .tel-card:hover{transform:none;box-shadow:0 10px 28px rgba(0,91,170,.10)}
+.theme-service-vnpt .tel-btn,.theme-service-vnpt .tel-cta,.theme-service-vnpt .tel-submit{border-radius:4px}
+
+@media(max-width:980px){
+ .theme-service-vnpt .vnpt-pro-hero>.tel-wrap{width:min(100% - 28px,760px);grid-template-columns:1fr;min-height:auto}
+ .theme-service-vnpt .vnpt-main{padding:44px 32px}.theme-service-vnpt .vnpt-service-board{padding:24px;min-height:360px}
+ .theme-service-vnpt .vnpt-packages{grid-template-columns:1fr}
+ .theme-service-vnpt .vnpt-feature-pack .tel-card-img{min-height:300px}
+ .theme-service-vnpt .vnpt-feature-pack .tel-card-body{min-height:0}
+}
+@media(max-width:680px){
+ .theme-service-vnpt .vnpt-pro-hero{padding:14px 0}.theme-service-vnpt .vnpt-pro-hero>.tel-wrap{width:calc(100% - 20px)}
+ .theme-service-vnpt .vnpt-main{padding:34px 22px}.theme-service-vnpt .vnpt-main h1{font-size:38px}
+ .theme-service-vnpt .vnpt-service-board{grid-template-columns:1fr;padding:0;min-height:0}
+ .theme-service-vnpt .vnpt-service-board .big{grid-row:auto}.theme-service-vnpt .vnpt-service-board>div{border-right:0!important;border-bottom:1px solid rgba(255,255,255,.22)!important;min-height:150px}
+ .theme-service-vnpt .vnpt-service-board>div:last-child{border-bottom:0!important}
+ .theme-service-vnpt .vnpt-pack-list{grid-template-rows:none}
+ .theme-service-vnpt .vnpt-pack-list .horizontal{grid-template-columns:1fr;min-height:0}
+ .theme-service-vnpt .vnpt-pack-list .horizontal .tel-card-img{min-height:0;aspect-ratio:16/9}
+}
