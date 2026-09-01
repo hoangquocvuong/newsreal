@@ -2940,3 +2940,52 @@ body.theme-service-vnpt,body.theme-service-viettel{background:#fff;color:#10233f
 .tel-card-img img{display:block;width:100%;height:100%;object-fit:cover}
 @media(max-width:980px){.theme-service-vnpt .vnpt-pro-hero>.tel-wrap{width:min(100% - 28px,760px);grid-template-columns:1fr;border-radius:22px}.theme-service-vnpt .vnpt-main{padding:48px 32px}.theme-service-vnpt .vnpt-service-board{padding:32px}}
 @media(max-width:680px){.theme-service-vnpt .vnpt-pro-hero{padding-top:14px}.theme-service-vnpt .vnpt-pro-hero>.tel-wrap{width:calc(100% - 20px);border-radius:18px}.theme-service-vnpt .vnpt-main{padding:38px 22px}.theme-service-vnpt .vnpt-service-board{padding:22px}}
+
+/* V20.6.6 — service showroom recovery + explicit demo prices */
+.tel-demo-price-note{margin:14px auto 0;padding:10px 14px;border:1px solid rgba(15,23,42,.10);border-radius:12px;background:#fffdf7;color:#64748b;font-size:12px;line-height:1.5}
+.tel-card-img{background:#f1f5f9;overflow:hidden}
+.tel-card-img img{display:block;width:100%;height:100%;object-fit:cover}
+
+/* V20.6.7 — telecom package detail + image/brand frame fixes */
+.tel-card-img{border:0;padding:0;width:100%;cursor:pointer;text-align:left}
+.tel-title-link,.tel-detail-link{border:0;background:none;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.tel-title-link{width:100%}.tel-title-link h3{transition:color .18s}.tel-title-link:hover h3{color:var(--tel-accent,#0b72d9)}
+.tel-detail-link{margin:2px 0 10px;font-size:12px;font-weight:900;color:#2563eb}
+.theme-service-fpt .tel-detail-link{color:#f36f21}.theme-service-vnpt .tel-detail-link{color:#0072bc}.theme-service-viettel .tel-detail-link{color:#d71920}
+
+/* FPT showroom must never expose a blank media slot. */
+.theme-service-fpt .tel-card-img{background:#fff7ef;min-height:180px}
+.theme-service-fpt .tel-card-img img{object-fit:cover;background:#fff7ef}
+
+/* Viettel horizontal package rows: show the whole artwork instead of cutting it into a narrow crop. */
+.viettel-net-list .horizontal{display:grid;grid-template-columns:minmax(240px,34%) 1fr;min-height:190px}
+.viettel-net-list .horizontal .tel-card-img{height:100%;min-height:190px;background:#fff}
+.viettel-net-list .horizontal .tel-card-img img{object-fit:contain;object-position:center;background:#fff;padding:6px}
+.viettel-net-list .horizontal .tel-card-body{padding:18px 20px}
+
+/* VNPT hero frame: blue panel stays fully inside the rounded shell on every width. */
+.theme-service-vnpt .vnpt-pro-hero{overflow:hidden}
+.theme-service-vnpt .vnpt-pro-hero>.tel-wrap{position:relative;isolation:isolate;overflow:hidden;border:1px solid #d9edf8;background:#fff}
+.theme-service-vnpt .vnpt-main,.theme-service-vnpt .vnpt-service-board{min-width:0;max-width:100%;box-sizing:border-box}
+.theme-service-vnpt .vnpt-service-board{overflow:hidden;border-radius:0 28px 28px 0}
+.theme-service-vnpt .vnpt-service-board>div{max-width:100%;box-sizing:border-box}
+
+/* Package detail overlay */
+.svc-detail-modal{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;padding:24px}
+.svc-detail-modal.open{display:flex}.svc-detail-backdrop{position:absolute;inset:0;background:rgba(7,18,32,.72);backdrop-filter:blur(4px)}
+.svc-detail-panel{position:relative;z-index:1;width:min(1040px,100%);max-height:min(860px,calc(100vh - 48px));overflow:auto;background:#fff;border-radius:22px;box-shadow:0 30px 100px rgba(0,0,0,.28)}
+.svc-detail-close{position:absolute;right:14px;top:12px;z-index:2;width:42px;height:42px;border:0;border-radius:50%;background:#fff;box-shadow:0 4px 20px #0002;font-size:28px;line-height:1;cursor:pointer}
+.svc-detail-grid{display:grid;grid-template-columns:1fr 1fr;min-height:580px}.svc-detail-media{background:#f4f7fa;min-height:460px}.svc-detail-media img{display:block;width:100%;height:100%;object-fit:contain;background:#f7f9fb}
+.svc-detail-copy{padding:48px 44px;display:flex;flex-direction:column}.svc-detail-copy h2{font-size:36px;line-height:1.08;margin:10px 0 18px;letter-spacing:-.035em}.svc-detail-price{display:flex;flex-direction:column;margin-bottom:18px}.svc-detail-price small{color:#738196}.svc-detail-price strong{font-size:28px;margin-top:3px}.svc-detail-summary{font-size:15px;line-height:1.7;color:#536276}
+.svc-detail-benefits{display:grid;gap:8px;margin:14px 0 18px}.svc-detail-benefits span{padding:10px 12px;background:#f6f8fb;border-radius:9px;font-size:14px}.svc-detail-promo{padding:16px;border:1px solid #e3e8ef;border-radius:12px;background:#fbfcfe}.svc-detail-promo b{display:block;margin-bottom:7px}.svc-detail-promo p{margin:0;color:#5d6b7f;line-height:1.6;font-size:13px}.svc-detail-actions{display:flex;gap:16px;align-items:center;margin-top:auto;padding-top:22px}.svc-modal-open{overflow:hidden}
+.theme-service-fpt .svc-detail-price strong{color:#f36f21}.theme-service-vnpt .svc-detail-price strong{color:#0072bc}.theme-service-viettel .svc-detail-price strong{color:#d71920}
+
+@media(max-width:980px){
+ .theme-service-vnpt .vnpt-service-board{border-radius:0 0 22px 22px}
+ .viettel-net-list .horizontal{grid-template-columns:220px 1fr}
+ .svc-detail-grid{grid-template-columns:1fr}.svc-detail-media{min-height:300px;max-height:380px}.svc-detail-copy{padding:30px}.svc-detail-panel{max-height:calc(100vh - 24px)}
+}
+@media(max-width:680px){
+ .viettel-net-list .horizontal{display:block}.viettel-net-list .horizontal .tel-card-img{min-height:0;aspect-ratio:16/9}.viettel-net-list .horizontal .tel-card-img img{object-fit:contain}
+ .svc-detail-modal{padding:8px}.svc-detail-panel{border-radius:16px}.svc-detail-copy{padding:24px 20px}.svc-detail-copy h2{font-size:28px}.svc-detail-actions{align-items:stretch;flex-direction:column}.svc-detail-actions .tel-btn,.svc-detail-actions .tel-link{width:100%;justify-content:center;text-align:center}
+}

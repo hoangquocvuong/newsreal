@@ -1,7 +1,11 @@
-NEWSREAL V20.6.5 — TELECOM DEMO MEDIA + VNPT FRAME FIX
+NEWSREAL V20.6.7 — TELECOM PACKAGE DETAIL + MEDIA/FRAME FIX
 
-- Fix VNPT hero/service blue board so it remains fully contained inside the template viewport on desktop/tablet/mobile.
-- Showroom package pricing for all FPT/VNPT/Viettel service samples now displays “Liên hệ theo khu vực”; real tenant content remains editable and untouched.
-- Every showroom package card now has a guaranteed image. Existing official-provider media is preserved where available; missing/broken remote media falls back to bundled provider-branded demo artwork by category (Internet/TV/Camera/Combo).
-- Trial/client contract unchanged: same template architecture, no showroom sample content copied into tenant data.
+- Viettel Internet horizontal cards now show the full package artwork (object-fit contain) instead of cropping the image into a narrow strip.
+- FPT showroom packages always receive bundled provider/category fallback media, so no card can render as an empty grey image slot when remote media fails.
+- VNPT hero/service board is clipped inside its rounded 1240px frame across desktop/tablet/mobile; blue panel can no longer overflow the outer shell.
+- Showroom price contract hardened: every FPT/VNPT/Viettel package always renders a concrete numeric demo price; Liên hệ/Theo gói/Theo nhu cầu values are normalized only in showroom.
+- Each package card is now clickable via image/title/"Xem chi tiết & khuyến mãi" and opens a package-detail overlay with image, category, speed/spec, price, description, benefits, promotion/conditions and direct consultation CTA.
+- Clicking "Đăng ký tư vấn gói này" from the detail overlay carries the selected package/category into the existing lead form.
+- Trial/client data remains untouched: real tenant prices/content are not overwritten, and showroom sample data is still not copied into client sites.
+- Bundled telecom fallback artwork converted to compact WebP for reliable rendering and lean deployment.
 - No DB migration.
