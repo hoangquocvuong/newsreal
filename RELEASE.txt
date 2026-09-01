@@ -1,1 +1,7 @@
-NEWSREAL V20.6.4 — Telecom Rich Package Descriptions + VNPT Harmony + Official Media Coverage
+NEWSREAL V20.6.5 — TELECOM DEMO MEDIA + VNPT FRAME FIX
+
+- Fix VNPT hero/service blue board so it remains fully contained inside the template viewport on desktop/tablet/mobile.
+- Showroom package pricing for all FPT/VNPT/Viettel service samples now displays “Liên hệ theo khu vực”; real tenant content remains editable and untouched.
+- Every showroom package card now has a guaranteed image. Existing official-provider media is preserved where available; missing/broken remote media falls back to bundled provider-branded demo artwork by category (Internet/TV/Camera/Combo).
+- Trial/client contract unchanged: same template architecture, no showroom sample content copied into tenant data.
+- No DB migration.

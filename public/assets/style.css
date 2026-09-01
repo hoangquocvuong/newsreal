@@ -2929,3 +2929,14 @@ body.theme-service-vnpt,body.theme-service-viettel{background:#fff;color:#10233f
 .theme-service-vnpt .vnpt-quick{background:#fff}
 .theme-service-vnpt .vnpt-quick div{align-items:center;justify-content:center}
 @media(max-width:980px){.theme-service-vnpt .vnpt-main h1{font-size:46px}.theme-service-vnpt .vnpt-pro-hero>.tel-wrap{min-height:auto}}
+
+/* V20.6.5 — VNPT contained hero + guaranteed telecom demo media */
+.theme-service-vnpt .vnpt-pro-hero{padding:26px 0 0;background:linear-gradient(180deg,#f7fcff 0,#eaf7ff 100%)}
+.theme-service-vnpt .vnpt-pro-hero>.tel-wrap{width:min(1240px,calc(100% - 48px));max-width:1240px;margin:0 auto;grid-template-columns:1.04fr .96fr;min-height:520px;border-radius:28px;overflow:hidden;box-shadow:0 22px 70px rgba(0,90,150,.10)}
+.theme-service-vnpt .vnpt-main{min-width:0;padding:64px 56px;background:linear-gradient(135deg,#f7fcff,#eaf7ff)}
+.theme-service-vnpt .vnpt-service-board{min-width:0;padding:48px;gap:14px;background:linear-gradient(145deg,#0068ad 0%,#008ed3 62%,#18a7dd 100%)}
+.theme-service-vnpt .vnpt-service-board>div{min-width:0;overflow:hidden}
+.theme-service-vnpt .vnpt-service-board b{overflow-wrap:anywhere}
+.tel-card-img img{display:block;width:100%;height:100%;object-fit:cover}
+@media(max-width:980px){.theme-service-vnpt .vnpt-pro-hero>.tel-wrap{width:min(100% - 28px,760px);grid-template-columns:1fr;border-radius:22px}.theme-service-vnpt .vnpt-main{padding:48px 32px}.theme-service-vnpt .vnpt-service-board{padding:32px}}
+@media(max-width:680px){.theme-service-vnpt .vnpt-pro-hero{padding-top:14px}.theme-service-vnpt .vnpt-pro-hero>.tel-wrap{width:calc(100% - 20px);border-radius:18px}.theme-service-vnpt .vnpt-main{padding:38px 22px}.theme-service-vnpt .vnpt-service-board{padding:22px}}
