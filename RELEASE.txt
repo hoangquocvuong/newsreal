@@ -1,0 +1,7 @@
+NEWSREAL V20.4 — RENEWAL PAYOS CHECKOUT
+- Renewal payment follows the same 2-column checkout structure as initial purchase.
+- Renewal term supports 1, 2, 3 or 4 years.
+- Renewal amount remains calculated from server-side renewal pricing.
+- Right side remains payOS dynamic QR/payment information.
+- Payment status remains automatic; customer cannot self-confirm payment.
+- Paid renewal still does not extend service until domain renewal/expiry is verified.

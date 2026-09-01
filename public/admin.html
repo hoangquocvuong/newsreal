@@ -1,0 +1,118 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Quản trị website</title><script>document.documentElement.classList.add('nr-admin-auth-boot')</script><style>.nr-admin-auth-boot #loginPanel,.nr-admin-auth-boot #dashboard{visibility:hidden!important}.nr-admin-auth-boot body{cursor:progress}</style><link rel="stylesheet" href="/assets/style.css?v=20.1.0">  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="theme-color" content="#ffffff">
+</head><body class="admin-bg">
+<div class="admin-shell"><div class="admin-top admin-top-pro"><div><a class="brand" href="/">NEWSREAL</a><span class="admin-badge">TRANG QUẢN TRỊ</span></div><div class="admin-top-actions"><a id="viewSiteLink" class="admin-link" href="/" target="_blank">↗ Xem website</a><button class="admin-link danger-link" onclick="logout()">Đăng xuất</button></div></div>
+<div id="loginPanel" class="panel auth-panel" style="max-width:600px;margin:50px auto">
+<h1>Đăng nhập quản trị</h1>
+<p class="auth-sub">Đăng nhập bằng email quản trị đã đăng ký khi bàn giao website.</p>
+<form id="loginForm" class="form" onsubmit="return false">
+<label>Email<input id="email" type="email" autocomplete="email" required></label>
+<label>Mật khẩu<input id="password" type="password" autocomplete="current-password" required></label>
+<div class="auth-row"><button class="btn">Đăng nhập</button><button id="showForgotPassword" class="auth-link-btn" type="button">Quên mật khẩu?</button></div>
+</form>
+<div id="loginMsg" class="error hidden"></div>
+<div id="forgotPasswordBox" class="forgot-box hidden">
+  <div class="forgot-head"><div><span class="eyebrow">KHÔI PHỤC TÀI KHOẢN</span><h2>Quên mật khẩu?</h2></div></div>
+  <p>Nhập email quản trị. NEWSREAL sẽ gửi một liên kết đặt lại mật khẩu có hiệu lực trong 30 phút.</p>
+  <form id="forgotPasswordForm" class="form" onsubmit="return false">
+    <label>Email quản trị<input id="forgotEmail" type="email" autocomplete="email" required placeholder="email@example.com"></label>
+    <div class="auth-row"><button class="btn primary" type="submit">Gửi link đặt lại mật khẩu</button><button id="backToLogin" class="auth-link-btn" type="button">← Quay lại đăng nhập</button></div>
+  </form>
+  <div id="forgotMsg" class="success hidden"></div>
+</div>
+</div>
+<div id="dashboard" class="hidden"><div class="admin-grid"><aside class="panel menu admin-sidebar"><div class="sidebar-title"><b>Quản trị website</b><small>Nội dung & vận hành</small></div>
+<button class="menu-btn active" data-tab="overview"><span>▦</span>Tổng quan</button>
+<button id="menuNewPost" class="menu-btn" data-tab="newpost"><span>＋</span><span id="menuNewPostText">Đăng nội dung mới</span></button>
+<button id="menuPosts" class="menu-btn" data-tab="posts"><span>▤</span><span id="menuPostsText">Quản lý nội dung</span></button>
+<button class="menu-btn" data-tab="stats"><span>↗</span>Thống kê</button>
+<button class="menu-btn" data-tab="service"><span>◷</span>Dịch vụ & gia hạn</button>
+<button class="menu-btn" data-tab="support"><span>☎</span>Hỗ trợ</button>
+<div class="menu-divider"></div>
+<button class="menu-btn" data-tab="settings"><span>⚙</span>Cài đặt website</button>
+<button class="menu-btn" data-tab="password"><span>⌁</span>Đổi mật khẩu</button>
+</aside><section class="panel admin-content">
+<div id="tab-overview" class="tab">
+<div class="admin-page-head"><div><span class="eyebrow">TỔNG QUAN</span><h1 id="welcome">Website</h1><p>Quản lý nội dung, theo dõi hiệu quả và cập nhật website của bạn.</p></div><button class="btn primary" onclick="showTab('newpost')">＋ Đăng nội dung mới</button></div>
+<div class="kpis admin-kpis"><div class="kpi"><small>TỔNG NỘI DUNG</small><b id="kpiPosts">0</b><span>Tin đã đăng</span></div><div class="kpi"><small>HIỆU QUẢ</small><b id="kpiViews">0</b><span>Lượt xem</span></div><div class="kpi"><small>HÔM NAY</small><b id="kpiToday">0</b><span>Lượt xem hôm nay</span></div></div>
+</div>
+<div id="tab-newpost" class="tab hidden"><div class="admin-page-head compact"><div><span class="eyebrow">NỘI DUNG</span><h1 id="editorTitle">Đăng tin bất động sản</h1><p id="editorHelp">Điền thông tin chi tiết để tin đăng hiển thị đầy đủ trên website.</p></div></div><div id="formErrors" class="form-errors hidden"></div><form id="postForm" class="form" novalidate onsubmit="return false"><input id="editingId" type="hidden">
+<div id="contentTypePicker" class="content-type-picker"><label>Loại nội dung<select id="postType"><option value="property">Bất động sản</option><option value="news">Tin tức</option></select></label><div id="contentTypeHint" class="type-hint">Bất động sản: hiển thị giá, diện tích, vị trí và thông số chi tiết.</div></div><div class="three property-only"><label>Hình thức<select id="transaction"><option value="sale">Mua bán</option><option value="rent">Cho thuê</option></select></label><label>Loại BĐS<select id="propertyType"><option value="Chung cư">Căn hộ / Chung cư</option><option value="Nhà riêng">Nhà riêng</option><option value="Nhà phố">Nhà mặt phố</option><option value="Biệt thự">Biệt thự / Liền kề</option><option value="Shophouse">Shophouse / Nhà phố thương mại</option><option value="Đất">Đất nền / Đất dự án</option><option value="Đất thổ cư">Đất thổ cư</option><option value="Trang trại">Đất nông nghiệp / Trang trại</option><option value="Văn phòng">Văn phòng</option><option value="Mặt bằng kinh doanh">Mặt bằng kinh doanh</option><option value="Kho xưởng">Kho / Nhà xưởng</option><option value="Bất động sản công nghiệp">Bất động sản công nghiệp</option><option value="Khách sạn / Resort">Khách sạn / Resort / Nghỉ dưỡng</option><option value="Officetel">Officetel / Căn hộ dịch vụ</option><option value="Khác">Bất động sản khác</option></select></label></div>
+<div id="newsTemplateNotice" class="template-form-notice hidden"><b>Website tin tức</b><span>Form đăng bài đã được tối giản theo giao diện Tin tức: chuyên mục, tiêu đề, ảnh đại diện và nội dung.</span></div><div class="form-section-title">Thông tin chính</div><label>Tiêu đề <span class="req">*</span><input id="postTitle" required placeholder="Ví dụ: Bán nhà 4 tầng trung tâm Lê Chân"></label>
+<div class="property-only four"><label>Giá <span class="req">*</span><input id="postPrice" required placeholder="6,8 tỷ"></label><label>Diện tích <span class="req">*</span><input id="postArea" required placeholder="82 m²"></label><label>Đơn giá<input id="unitPrice" placeholder="82 triệu/m²"></label><label>Mã tin<input id="listingCode" readonly placeholder="Tự động tạo khi đăng"></label></div>
+<div class="property-only four"><label>Phòng ngủ<input id="bedrooms" type="number"></label><label>Phòng tắm<input id="bathrooms" type="number"></label><label>Số tầng<input id="floors" type="number"></label><label>Mặt tiền<input id="frontage" placeholder="4,5 m"></label></div>
+<div class="property-only three"><label>Hướng nhà<input id="direction" placeholder="Đông Nam"></label><label>Pháp lý<input id="legal" placeholder="Sổ đỏ"></label><label>Nội thất<input id="furniture" placeholder="Đầy đủ"></label></div>
+<div class="property-only three"><label>Tỉnh/Thành phố <span class="req">*</span><input id="province" required placeholder="Hải Phòng"></label><label>Quận/Huyện <span class="req">*</span><input id="district" required placeholder="Lê Chân"></label><label>Phường/Xã<input id="ward" placeholder="Dư Hàng"></label></div>
+<div class="property-only"><label>Địa chỉ chi tiết <span class="req">*</span><input id="postAddress" required></label></div>
+<div class="form-section-title">Hình ảnh</div><div class="image-upload-box">
+<h3 id="imageSectionTitle">Hình ảnh bài viết</h3>
+<p class="muted">Tải ảnh trực tiếp từ máy tính/điện thoại hoặc dán URL ảnh. Có thể chọn nhiều ảnh cùng lúc.</p>
+<div class="two"><label>Ảnh đại diện (URL)<input id="postImage" placeholder="https://..."></label><label>Ảnh bổ sung (URL)<input id="gallery" placeholder="URL1, URL2, URL3"></label></div>
+<label class="upload-drop" for="imageFiles"><b>📷 Chọn ảnh từ máy tính</b><span>JPG, PNG, WEBP · chọn nhiều ảnh</span><input id="imageFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden></label>
+<div id="uploadStatus" class="muted"></div><div id="imagePreview" class="image-preview-grid"></div>
+</div>
+<div class="property-only two"><label>Tên người liên hệ <span class="req">*</span><input id="contactName" required></label><label>Số điện thoại <span class="req">*</span><input id="postPhone" required></label></div>
+<div class="form-section-title">Nội dung & xuất bản</div>
+<label>Chuyên mục
+<select id="postCategory"><option value="">Chọn chuyên mục</option></select>
+<small class="field-help">Chuyên mục được chuẩn bị sẵn theo loại nội dung để bạn chỉ cần chọn.</small>
+</label>
+<div id="profileFieldsHost" class="profile-fields-host"></div>
+<div class="rich-editor-field">
+ <div class="rich-editor-label"><b id="contentEditorLabel">Nội dung bài viết</b><span class="req">*</span><small id="contentEditorHelp">Soạn nội dung đầy đủ, có thể định dạng và chèn ảnh trực tiếp.</small></div>
+ <div class="rich-editor-shell">
+  <div id="richToolbar" class="rich-toolbar" role="toolbar" aria-label="Thanh công cụ soạn thảo">
+   <select id="richFormat" title="Kiểu đoạn"><option value="p">Đoạn văn</option><option value="h2">Tiêu đề H2</option><option value="h3">Tiêu đề H3</option><option value="blockquote">Trích dẫn</option></select>
+   <button type="button" data-cmd="bold" title="In đậm"><b>B</b></button>
+   <button type="button" data-cmd="italic" title="In nghiêng"><i>I</i></button>
+   <button type="button" data-cmd="underline" title="Gạch chân"><u>U</u></button>
+   <button type="button" data-cmd="strikeThrough" title="Gạch ngang"><s>S</s></button>
+   <span class="rich-sep"></span>
+   <button type="button" data-cmd="insertUnorderedList" title="Danh sách chấm">• Danh sách</button>
+   <button type="button" data-cmd="insertOrderedList" title="Danh sách số">1. Danh sách</button>
+   <span class="rich-sep"></span>
+   <button type="button" data-cmd="justifyLeft" title="Căn trái">≡←</button>
+   <button type="button" data-cmd="justifyCenter" title="Căn giữa">≡</button>
+   <button type="button" data-cmd="justifyRight" title="Căn phải">→≡</button>
+   <button type="button" id="richLink" title="Chèn liên kết">🔗 Link</button>
+   <button type="button" id="richImage" title="Chèn ảnh">🖼 Ảnh</button>
+   <button type="button" data-cmd="undo" title="Hoàn tác">↶</button>
+   <button type="button" data-cmd="redo" title="Làm lại">↷</button>
+   <button type="button" data-cmd="removeFormat" title="Xóa định dạng">Tx</button>
+  </div>
+  <div id="richEditor" class="rich-editor nr-editor-fallback" contenteditable="true" data-placeholder="Bắt đầu viết nội dung tại đây..."></div>
+  <textarea id="postContent" class="rich-source" required></textarea>
+  <input id="richImageFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+  <div id="richStatus" class="rich-status"></div>
+ </div>
+</div>
+<div class="three"><label><input id="featured" type="checkbox"> Tin nổi bật</label><label><input id="verified" type="checkbox"> Tin đã xác minh</label><label>Trạng thái<select id="status"><option value="published">Đăng ngay</option><option value="draft">Bản nháp</option></select></label></div>
+<button id="submitPostBtn" type="submit" class="btn">Đăng tin</button></form><div id="postMsg" class="success hidden"></div></div>
+<div id="tab-posts" class="tab hidden"><span class="eyebrow">TIN ĐĂNG</span><h1>Quản lý nội dung</h1><p class="admin-subtext">Sửa, xem hoặc xóa các nội dung đã đăng trên website.</p><div id="postTable"></div></div>
+<div id="tab-stats" class="tab hidden"><span class="eyebrow">THỐNG KÊ</span><h1>Hiệu quả website</h1><p class="admin-subtext">Theo dõi lượt xem và những nội dung được quan tâm.</p><div class="kpis"><div class="kpi"><b id="stat7">0</b><span>7 ngày</span></div><div class="kpi"><b id="stat30">0</b><span>30 ngày</span></div><div class="kpi"><b id="statAll">0</b><span>Tổng lượt xem</span></div></div><div id="topPosts"></div></div>
+<div id="tab-service" class="tab hidden"><span class="eyebrow">DỊCH VỤ</span><h1>Gói dịch vụ & gia hạn</h1><p class="admin-subtext">Theo dõi đầy đủ thời hạn website, tên miền, thanh toán và chương trình ưu đãi của bạn.</p><div id="servicePanel"><div class="muted">Đang tải thông tin dịch vụ...</div></div></div>
+<div id="tab-support" class="tab hidden"><span class="eyebrow">HỖ TRỢ KHÁCH HÀNG</span><h1>Liên hệ hỗ trợ</h1><p class="admin-subtext">Khi cần hỗ trợ website, đăng tin hoặc gia hạn dịch vụ, bạn có thể liên hệ trực tiếp qua các kênh dưới đây.</p>
+<div class="client-support-card">
+  <div class="support-owner"><div class="support-avatar">HV</div><div><small>NEWSREAL · HOÀNG VƯƠNG</small><h2>Hỗ trợ khách hàng</h2><p>Ưu tiên liên hệ Zalo hoặc điện thoại để được xử lý nhanh.</p></div></div>
+  <div class="support-grid">
+    <a class="support-item" href="tel:0389986287"><span>Điện thoại</span><strong>0389986287</strong><small>Chạm để gọi ngay</small></a>
+    <a class="support-item" href="https://zalo.me/0389986287" target="_blank" rel="noopener"><span>Zalo</span><strong>0389986287</strong><small>Mở Zalo hỗ trợ ↗</small></a>
+    <a class="support-item" href="mailto:hoangquocvuong.hp89@gmail.com"><span>Email</span><strong>hoangquocvuong.hp89@gmail.com</strong><small>Gửi email hỗ trợ</small></a>
+    <a class="support-item" href="https://www.facebook.com/groups/batdongsanhaiphong2021" target="_blank" rel="noopener"><span>Nhóm Facebook</span><strong>Bất động sản Hải Phòng</strong><small>Mở nhóm cộng đồng ↗</small></a>
+  </div>
+  <div class="support-note"><b>Lưu ý</b><span>Khi liên hệ, vui lòng gửi kèm tên website/domain và nội dung cần hỗ trợ để NEWSREAL xử lý nhanh hơn.</span></div>
+</div>
+</div>
+<div id="tab-settings" class="tab hidden"><span class="eyebrow">CÀI ĐẶT</span><h1>Thông tin website</h1><p class="admin-subtext">Thông tin đã được thiết lập khi bàn giao website. Chỉ cần chỉnh sửa khi bạn muốn thay đổi thông tin hiển thị công khai.</p>
+<div class="settings-toolbar"><div><b>Thông tin liên hệ website</b><small>Được đồng bộ sẵn từ lúc kích hoạt.</small></div><button id="editWebsiteSettings" class="btn secondary" type="button">✎ Chỉnh sửa</button></div>
+<form id="settingsForm" class="form settings-readonly" onsubmit="return false">
+<label>Tên website<input id="setName" disabled></label>
+<div class="two"><label>Điện thoại<input id="setPhone" disabled></label><label>Zalo<input id="setZalo" disabled></label></div>
+<label>Email liên hệ công khai<input id="setEmail" type="email" placeholder="contact@example.com" disabled><small class="field-help">Email hiển thị cho khách truy cập; không thay đổi email đăng nhập.</small></label>
+<label>Facebook<input id="setFacebook" placeholder="https://facebook.com/..." disabled></label>
+<div id="settingsEditActions" class="settings-edit-actions hidden"><button class="btn" type="submit">Lưu thay đổi</button><button id="cancelWebsiteSettings" class="btn secondary" type="button">Hủy</button></div>
+</form></div>
+<div id="tab-password" class="tab hidden"><span class="eyebrow">BẢO MẬT</span><h1>Đổi mật khẩu</h1><p class="admin-subtext">Nên sử dụng mật khẩu mạnh và không chia sẻ tài khoản quản trị.</p><form id="passwordForm" class="form" onsubmit="return false"><label>Mật khẩu hiện tại<input id="oldPassword" type="password" required></label><label>Mật khẩu mới<input id="newPassword" type="password" minlength="8" required></label><button class="btn">Đổi mật khẩu</button></form></div>
+</section></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script><script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script><script src="/assets/admin.js?v=20.1.0"></script></body></html>

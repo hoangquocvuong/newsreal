@@ -1,0 +1,44 @@
+name = "newsreal"
+compatibility_date = "2026-08-01"
+pages_build_output_dir = "public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "newsreal-db"
+database_id = "5012a3b1-4408-4bda-bed3-a1a0a4556cd0"
+
+[vars]
+MASTER_KEY = "change-me-before-production"
+CF_ACCOUNT_ID = "75df2d74fe83ec8e50b688a86eace580"
+CF_PAGES_PROJECT = "newsreal"
+
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "newsreal-images"
+
+# Optional/recommended secret for automatic DNS: CF_DNS_TOKEN (Zone:DNS Edit + Zone:Zone Read)
+
+# V8.8.11 secrets (set in Cloudflare dashboard, do NOT commit values): RESEND_API_KEY, CRON_SECRET
+# Optional vars: MAIL_FROM = "NEWSREAL <renewal@yourdomain.com>", PUBLIC_APP_URL = "https://newsreal.pages.dev"
+
+# V19.8 payment checkout:
+# Vars: PAYMENT_BANK_BIN, PAYMENT_BANK_NAME, PAYMENT_ACCOUNT_NAME, PAYMENT_ACCOUNT_NUMBER, PUBLIC_APP_URL
+# Secret: PAYMENT_WEBHOOK_SECRET
+# Webhook URL: https://hoangvuongtech.com/api/payment-webhook
+# Authorization accepted: X-Webhook-Secret, Bearer <secret>, Apikey <secret>
+
+# V20.0.1.1 VietQR callback:
+# PAYMENT_QR_URL = single VietinBank QR image used for all payments
+# Secret: VIETQR_WEBHOOK_TOKEN
+# Callback URL:
+# https://hoangvuongtech.com/api/vietqr-callback?token=<VIETQR_WEBHOOK_TOKEN>
+# Parser supports VietQR-style fields: amount, transType, content, transactionid, referencenumber, orderId.
+
+# V20.2 payOS automatic payment (set as Cloudflare Secrets; NEVER commit values):
+# PAYOS_CLIENT_ID
+# PAYOS_API_KEY
+# PAYOS_CHECKSUM_KEY
+# Webhook URL configured in payOS channel:
+# https://hoangvuongtech.com/api/payos-webhook
+# PAYMENT_QR_URL remains only as MB static-QR fallback when payOS Secrets are absent.

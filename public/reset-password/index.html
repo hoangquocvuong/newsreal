@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="vi"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Đặt lại mật khẩu | NEWSREAL</title>
+<link rel="stylesheet" href="/assets/style.css?v=1788143160">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="theme-color" content="#ffffff">
+</head><body class="admin-bg">
+<div class="reset-shell">
+  <div class="reset-brand"><span class="reset-home">⌂</span><b>NEWSREAL</b><small>Khôi phục tài khoản</small></div>
+  <section class="panel reset-card">
+    <span class="eyebrow">BẢO MẬT TÀI KHOẢN</span>
+    <h1>Đặt lại mật khẩu</h1>
+    <p>Nhập mật khẩu mới cho tài khoản quản trị website. Liên kết này chỉ dùng được một lần.</p>
+    <form id="resetForm" class="form" onsubmit="return false">
+      <label>Mật khẩu mới<input id="newPasswordReset" type="password" minlength="8" autocomplete="new-password" required placeholder="Tối thiểu 8 ký tự"></label>
+      <label>Nhập lại mật khẩu<input id="confirmPasswordReset" type="password" minlength="8" autocomplete="new-password" required></label>
+      <button class="btn primary" type="submit">Đặt lại mật khẩu</button>
+    </form>
+    <div id="resetMsg" class="hidden"></div>
+    <a class="reset-login-link" href="/admin">← Quay lại đăng nhập</a>
+  </section>
+</div>
+<script>
+const qp=new URLSearchParams(location.search),token=qp.get('token')||'',tenant=qp.get('tenant')||'';
+const form=document.getElementById('resetForm'),msg=document.getElementById('resetMsg');
+form.addEventListener('submit',async e=>{
+ e.preventDefault();
+ const p=document.getElementById('newPasswordReset').value;
+ const c=document.getElementById('confirmPasswordReset').value;
+ if(p.length<8){msg.className='error';msg.textContent='Mật khẩu phải có ít nhất 8 ký tự.';return}
+ if(p!==c){msg.className='error';msg.textContent='Hai mật khẩu chưa trùng nhau.';return}
+ const b=e.submitter;b.disabled=true;b.textContent='Đang cập nhật...';
+ try{
+   const r=await fetch('/api/reset-password'+(tenant?'?tenant='+encodeURIComponent(tenant):''),{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,password:p})});
+   const d=await r.json().catch(()=>({}));
+   if(!r.ok)throw new Error(d.error||'Không đặt lại được mật khẩu');
+   localStorage.removeItem('nr_client_token');
+   form.classList.add('hidden');msg.className='success';msg.innerHTML='✓ '+(d.message||'Đặt lại mật khẩu thành công.')+'<br><a href="'+(d.admin_url||('/admin'+(tenant?'?tenant='+encodeURIComponent(tenant):'')))+'">Đăng nhập bằng mật khẩu mới →</a>';
+ }catch(err){msg.className='error';msg.textContent=err.message}
+ finally{b.disabled=false;b.textContent='Đặt lại mật khẩu'}
+});
+if(!token){form.classList.add('hidden');msg.className='error';msg.textContent='Liên kết đặt lại mật khẩu không hợp lệ.'}
+</script>
+</body></html>

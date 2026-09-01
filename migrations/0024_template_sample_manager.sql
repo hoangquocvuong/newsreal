@@ -1,0 +1,2 @@
+ALTER TABLE template_catalog ADD COLUMN sample_enabled INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE template_catalog ADD COLUMN sample_count INTEGER NOT NULL DEFAULT 12;

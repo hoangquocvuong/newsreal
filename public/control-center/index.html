@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>NewsReal — Quản trị tổng</title><link href="/assets/style.css?v=20.1.0" rel="stylesheet"/><link href="/assets/master.css?v=20.1.0" rel="stylesheet"/> <link href="/favicons/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<meta content="#ffffff" name="msapplication-TileColor"/>
+<meta content="#ffffff" name="theme-color"/>
+</head><body class="master-page">
+<div class="login-wrap" id="masterLogin"><div class="login-card"><span class="eyebrow">NEWSREAL CONTROL</span><h1>Quản trị tổng hệ thống</h1><p>Chỉ dành cho chủ hệ thống. Khách hàng sử dụng trang /admin riêng của website.</p>
+<form class="form" id="masterLoginForm"><label>Khóa quản trị tổng<input autocomplete="current-password" id="masterKey" required="" type="password"/></label><button class="btn primary">Đăng nhập Master</button></form><div class="msg hidden" id="masterLoginMsg"></div></div></div>
+<div class="hidden" id="masterDashboard"><header class="header"><div class="wrap"><a class="logo" href="/control-center/"><span>NEWSREAL</span> <b>CONTROL</b></a><div class="actions"><a class="btn soft" href="/">Xem website</a><button class="btn" onclick="masterLogout()">Đăng xuất</button></div></div></header>
+<main class="section master-main"><div class="wrap">
+<div class="master-head"><div><small class="section-kicker">MASTER OPERATIONS</small><h1>Trung tâm vận hành khách hàng</h1><p>Mở trang này và xử lý lần lượt từ đơn hàng → thanh toán → tạo website → domain/SSL → kích hoạt → gia hạn.</p></div><div class="master-head-actions"><button class="btn soft" id="masterRefreshAll" type="button">↻ Làm mới toàn bộ</button></div></div>
+<div class="registrar-status" id="registrarStatus">Domain vận hành bán tự động: Master chỉ mua/gia hạn domain khi hệ thống đã xác nhận đúng đơn thanh toán.</div>
+<div class="master-info-strip"><div><b>Nguyên tắc xử lý</b><span>Chỉ thao tác nút của bước hiện tại. Bước đã tự động hóa sẽ không còn nút thủ công gây nhầm.</span></div><div><b>Nguồn sự thật</b><span>VietQR xác nhận thanh toán; Cloudflare/registry xác nhận domain; hệ thống chỉ cộng thời hạn sau khi domain thực sự được gia hạn.</span></div></div>
+<div class="master-kpis"><div><span>Website</span><b id="mSites">0</b></div><div><span>Đang hoạt động</span><b id="mActive">0</b></div><div><span>Tổng bài đăng</span><b id="mPosts">0</b></div><div><span>Tổng lượt xem</span><b id="mViews">0</b></div><div><span>Lượt xem hôm nay</span><b id="mToday">0</b></div></div><section class="master-workflow" id="masterWorkflow">
+<div class="workflow-head"><div><small class="section-kicker">VIỆC CẦN XỬ LÝ</small><h2>Pipeline vận hành</h2><p>Số lớn là việc đang chờ Master. Bấm vào từng ô để đi thẳng tới đúng khu xử lý.</p></div><span class="workflow-updated" id="workflowUpdated">Đang đồng bộ…</span></div>
+<div class="workflow-rail">
+<button class="workflow-step" data-filter="payment_pending" data-jump="leadCRM"><i>1</i><span>Đơn &amp; thanh toán</span><b id="wfPendingPayment">0</b><small>đang chờ tiền</small></button>
+<button class="workflow-step urgent" data-filter="paid" data-jump="leadCRM"><i>2</i><span>Tạo website</span><b id="wfPaidOrders">0</b><small>đã trả tiền</small></button>
+<button class="workflow-step" data-jump="siteOps" data-site-filter="setup"><i>3</i><span>Domain / SSL</span><b id="wfDomainSetup">0</b><small>đang setup</small></button>
+<button class="workflow-step" data-jump="siteOps" data-site-filter="activation"><i>4</i><span>Gửi kích hoạt</span><b id="wfActivation">0</b><small>đã sẵn sàng</small></button>
+<button class="workflow-step urgent" data-jump="renewalOps"><i>5</i><span>Gia hạn domain</span><b id="wfRenewalPaid">0</b><small>đã thanh toán</small></button>
+<button class="workflow-step" data-jump="siteOps" data-site-filter="expiring"><i>6</i><span>Sắp hết hạn</span><b id="wfExpiring">0</b><small>≤ 30 ngày</small></button>
+</div>
+<div class="workflow-sequence"><span>Đơn hàng</span><em>→</em><span>VietQR xác nhận tiền</span><em>→</em><span>Tạo website</span><em>→</em><span>Domain + DNS + SSL</span><em>→</em><span>Gửi kích hoạt</span><em>→</em><span>Vận hành / Gia hạn</span></div>
+</section><div class="legacy-renewal-alert hidden master-renewal-alert" id="renewalMasterAlert" style="display:none!important"><div><span>YÊU CẦU GIA HẠN</span><b id="renewalMasterAlertTitle">Có khách đang chờ xử lý</b><small id="renewalMasterAlertText"></small></div><button class="smallbtn primary-mini" id="renewalMasterAlertBtn" type="button">Xem khách yêu cầu</button></div><section class="provision-notice hidden" id="provisionNotice">
+<div class="provision-notice-icon" id="provisionNoticeIcon">✓</div>
+<div class="provision-notice-body">
+<strong id="provisionNoticeTitle"></strong>
+<span id="provisionNoticeText"></span>
+</div>
+<div class="provision-notice-actions">
+<button class="smallbtn hidden" id="provisionCopyLink" type="button">Sao chép link kích hoạt</button>
+<button class="smallbtn" id="provisionDismiss" type="button">Đóng</button>
+</div>
+</section><section class="master-panel simple-leads" id="leadCRM">
+<div class="simple-lead-head">
+<div>
+<small class="section-kicker">BƯỚC 1 → 2</small>
+<h2>Đơn hàng &amp; thanh toán</h2>
+<p>Đơn mới vào đây. Master chỉ tạo website khi VietQR đã xác nhận ĐÃ THANH TOÁN.</p>
+</div>
+<div class="simple-lead-head-actions">
+<span class="lead-live-status" id="leadLiveStatus"><i></i> Tự động cập nhật</span>
+<button class="btn soft" id="refreshLeads" type="button">↻ Làm mới</button>
+</div>
+</div>
+<div class="simple-lead-tools">
+<input id="leadSearch" placeholder="Tìm tên, SĐT, email, domain…" type="search"/>
+<select id="leadStatusFilter"><option value="">Tất cả đơn</option><option value="paid">✓ Đã thanh toán · cần tạo web</option><option value="payment_pending">⏳ Chờ thanh toán</option><option value="new">Yêu cầu cũ / chưa xử lý</option><option value="contacted">Đã liên hệ</option><option value="won">Đã tạo website</option><option value="lost">Đã bỏ qua</option></select>
+</div>
+<div class="lead-list simple-lead-list" id="leadList"><div class="empty-state">Đang tải yêu cầu…</div></div>
+<div class="master-pagination" id="leadPagination">
+<button class="smallbtn" id="leadPrevPage" type="button">← Trước</button>
+<span id="leadPageInfo">Trang 1/1</span>
+<select id="leadPageSize"><option value="10">10 / trang</option><option value="20">20 / trang</option></select>
+<button class="smallbtn" id="leadNextPage" type="button">Sau →</button>
+</div>
+</section><section class="master-panel site-ops" id="siteOps"><div class="ops-section-head"><div><small class="section-kicker">BƯỚC 3 → 6</small><h2>Website &amp; bàn giao</h2><p>Website sau khi được tạo sẽ đi qua Domain/SSL → kích hoạt → vận hành. Cột “Bước tiếp theo” chỉ rõ Master cần làm gì.</p></div></div><div class="master-filterbar" id="siteFilterBar">
+<input id="siteSearch" oninput="renderSiteRows()" placeholder="Tìm website, khách, domain, SĐT, email..." type="search"/>
+<select id="siteStatusFilter" onchange="renderSiteRows()"><option value="">Tất cả trạng thái</option><option value="setup">Cần cấu hình Domain / SSL</option><option value="activation">Sẵn sàng gửi kích hoạt</option><option value="active">Website đang vận hành</option><option value="renewal">Đang trong quy trình gia hạn</option><option value="expiring">Sắp hết hạn ≤30 ngày</option><option value="inactive">Website đã khóa</option></select>
+<select id="sitePaymentFilter" onchange="renderSiteRows()"><option value="">Tất cả thanh toán</option><option value="paid">Đã thanh toán</option><option value="unpaid">Chưa thanh toán</option><option value="partial">Thanh toán một phần</option></select>
+<button class="smallbtn" id="clearSiteFilters" onclick="clearSiteFilterNow()" type="button">Xóa lọc</button><span class="filter-count" id="siteFilterCount"></span>
+</div><div class="master-table-wrap"><table class="master-table"><thead><tr><th>Website</th><th>Khách hàng</th><th>Domain</th><th>Gói dịch vụ</th><th>Thanh toán</th><th>Hết hạn</th><th>Nội dung</th><th>Bước tiếp theo</th><th>Thao tác</th></tr></thead><tbody id="siteRows"></tbody></table></div><div class="master-pagination" id="sitePagination">
+<button class="smallbtn" id="sitePrevPage" type="button">← Trước</button>
+<span id="sitePageInfo">Trang 1/1</span>
+<select id="sitePageSize"><option value="10">10 / trang</option><option value="20">20 / trang</option><option value="50">50 / trang</option></select>
+<button class="smallbtn" id="siteNextPage" type="button">Sau →</button>
+</div></section><section class="master-panel renewal-ops" id="renewalOps">
+<div class="ops-section-head"><div><small class="section-kicker">BƯỚC 7</small><h2>Gia hạn cần xử lý</h2><p>Chỉ hiển thị các chu kỳ đang chờ hành động. Ưu tiên cao nhất là khách đã thanh toán nhưng domain chưa được gia hạn.</p></div><button class="smallbtn" id="refreshRenewalOps" type="button">↻ Làm mới</button></div>
+<div class="renewal-queue-stats"><div><span>Đã thanh toán</span><b id="renewalPaidCount">0</b></div><div><span>Chờ thanh toán</span><b id="renewalPendingCount">0</b></div><div><span>Sắp hết hạn</span><b id="renewalExpiringCount">0</b></div></div>
+<div class="renewal-ops-list" id="renewalOpsList"><div class="empty-state">Đang tải gia hạn…</div></div>
+</section><section class="finance-dashboard" id="financeDashboard">
+<div class="finance-head"><div><small class="section-kicker">BƯỚC 8 · ĐỐI SOÁT</small><h2>Tài chính &amp; sổ giao dịch</h2><p>Chỉ tính giao dịch khách hàng thực. Website dùng để test quy trình có thể loại khỏi doanh thu nhưng vẫn giữ nguyên domain, dịch vụ và nội dung.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="smallbtn danger-lite" id="cleanupTestData" type="button">Dọn dữ liệu test</button><button class="smallbtn" id="refreshFinance" type="button">Làm mới</button></div></div>
+<div class="finance-kpis">
+<div><span>Thực thu tháng này</span><b id="finMonth">0đ</b></div><div><span>Thực thu năm nay</span><b id="finYear">0đ</b></div><div><span>Tổng thực thu</span><b id="finRevenue">0đ</b></div><div><span>Chi phí đã ghi nhận</span><b id="finCost">0đ</b></div><div><span>Lợi nhuận thực tế</span><b id="finProfit">0đ</b></div><div><span>Chờ thanh toán</span><b id="finPending">0đ</b></div>
+</div>
+<div class="finance-split">
+<div class="finance-mini"><span>Khách mới</span><b id="finInitial">0đ</b></div><div class="finance-mini"><span>Gia hạn</span><b id="finRenewal">0đ</b></div><div class="finance-mini"><span>Gia hạn đang xử lý</span><b id="pipeRequested">0</b></div><div class="finance-mini"><span>Chờ VietQR xác nhận</span><b id="pipePayment">0</b></div><div class="finance-mini"><span>Đã thu · chờ renew domain</span><b id="pipePaid">0</b></div><div class="finance-mini"><span>Sắp hết hạn ≤30 ngày</span><b id="pipeExpiring">0</b></div>
+</div>
+<details class="ledger-card"><summary>Sổ giao dịch hệ thống <span id="ledgerCount"></span></summary>
+<div class="ledger-filterbar"><input id="ledgerSearch" oninput="renderLedger()" placeholder="Tìm khách, website, domain, mã đơn..." type="search"/><select id="ledgerKindFilter" onchange="renderLedger()"><option value="">Tất cả loại</option><option value="initial">Khách mới</option><option value="renewal">Gia hạn</option><option value="manual">Khác</option></select><button class="smallbtn" id="clearLedgerFilters" onclick="clearLedgerFilterNow()" type="button">Xóa lọc</button></div>
+<div class="ledger-wrap"><table class="ledger-table"><thead><tr><th>Ngày</th><th>Khách / website</th><th>Loại</th><th>Chu kỳ</th><th>Thực thu</th><th>Chi phí</th><th>Lợi nhuận</th><th>Mã đơn</th><th></th></tr></thead><tbody id="ledgerRows"><tr><td colspan="9">Đang tải...</td></tr></tbody></table></div></details>
+<details class="ledger-card expense-card"><summary>Chi phí vận hành <span id="expenseCount"></span></summary>
+<div class="expense-form"><select id="expenseCategory"><option value="domain">Domain</option><option value="cloudflare">Cloudflare / hạ tầng</option><option value="email">Email / Resend</option><option value="ads">Quảng cáo</option><option value="software">Phần mềm / API</option><option value="other">Chi phí khác</option></select><input id="expenseTitle" placeholder="VD: Cloudflare Workers Paid"/><input id="expenseAmount" inputmode="numeric" placeholder="Số tiền (VNĐ)"/><select id="expenseRecurring"><option value="none">Một lần</option><option value="monthly">Hàng tháng</option><option value="yearly">Hàng năm</option></select><input id="expenseDate" type="date"/><button class="smallbtn primary-mini" id="addExpense" onclick="addExpense()" type="button">+ Ghi chi phí</button></div>
+<div class="ledger-wrap"><table class="ledger-table"><thead><tr><th>Ngày</th><th>Hạng mục</th><th>Mô tả</th><th>Chu kỳ</th><th>Chi phí</th><th></th></tr></thead><tbody id="expenseRows"><tr><td colspan="6">Đang tải...</td></tr></tbody></table></div>
+</details>
+</section><section class="master-panel master-utilities" id="masterUtilities"><div class="ops-section-head"><div><small class="section-kicker">CÔNG CỤ PHỤ</small><h2>Cấu hình &amp; thao tác ngoại lệ</h2><p>Dùng khi cần xử lý ngoài flow tự động. Không dùng để thay thế đơn hàng đã thanh toán.</p></div><button class="btn soft" id="openCreateSite" type="button">＋ Tạo website thủ công</button></div></section><div class="master-aux-title"><small class="section-kicker">MARKETING &amp; CẤU HÌNH</small><h2>Khu phụ trợ</h2><p>Trial và Template Manager phục vụ marketing/cấu hình, không chen vào hàng đợi vận hành khách hàng.</p></div><details class="master-aux-details" id="trialTools"><summary>Khách dùng thử (Trial)</summary><section class="master-panel trial-crm" id="trialCRM">
+<div class="simple-lead-head"><div><small class="section-kicker">TRIAL WEBSITE</small><h2>Khách dùng thử &amp; chuyển đổi</h2><p>Theo dõi khách đang trải nghiệm, mức độ sử dụng và trạng thái chăm sóc. Dữ liệu trial được tách riêng khỏi yêu cầu mua website.</p></div><button class="smallbtn" id="refreshTrials" type="button">Làm mới</button></div>
+<div class="trial-stat-grid"><div><small>TỔNG ĐĂNG KÝ</small><b id="trialStatTotal">0</b></div><div><small>ĐANG DÙNG</small><b id="trialStatActive">0</b></div><div><small>HẾT HẠN</small><b id="trialStatExpired">0</b></div><div><small>QUAN TÂM</small><b id="trialStatInterested">0</b></div><div><small>ĐÃ MUA</small><b id="trialStatConverted">0</b></div></div>
+<div class="simple-lead-tools"><input id="trialSearch" placeholder="Tìm tên, SĐT, email, mẫu…" type="search"/><select id="trialStatusFilter"><option value="">Tất cả trạng thái</option><option value="pending_activation">Chờ kích hoạt</option><option value="active">Đang dùng</option><option value="expired">Hết hạn</option><option value="interested">Quan tâm</option><option value="converted">Đã mua</option></select></div>
+<div class="trial-list" id="trialList"><div class="empty-state">Đang tải khách dùng thử…</div></div>
+</section></details><details class="master-aux-details" id="templateTools"><summary>Kho giao diện / Template Manager</summary><section class="master-panel tm-shell" id="templateManager">
+<div class="tm-head">
+<div>
+<small class="section-kicker">KHO GIAO DIỆN</small>
+<h2>Template Manager</h2>
+<p>Quản lý tập trung mẫu, giá bán, trạng thái và thứ tự hiển thị. Thay đổi ở đây sẽ đồng bộ sang kho giao diện công khai.</p>
+</div>
+<div class="tm-head-actions">
+<button class="btn soft" id="refreshTemplateManager" type="button">↻ Làm mới</button>
+<button class="btn primary" id="openTemplateEditor" type="button">＋ Thêm template</button>
+</div>
+</div>
+<div class="tm-stats">
+<div><small>TỔNG MẪU</small><strong id="tmTotal">0</strong></div>
+<div><small>ĐANG BÁN</small><strong id="tmActive">0</strong></div>
+<div><small>ĐANG ẨN</small><strong id="tmHidden">0</strong></div>
+<div><small>DANH MỤC</small><strong id="tmCategories">0</strong></div>
+</div>
+<div class="tm-toolbar">
+<input id="tmSearch" placeholder="Tìm theo tên hoặc mã template…" type="search"/>
+<select id="tmCategoryFilter">
+<option value="">Tất cả danh mục</option>
+<option value="bat-dong-san">Bất động sản</option>
+<option value="tin-tuc">Tin tức</option>
+<option value="ban-hang">Bán hàng</option>
+<option value="landing-page">Landing Page</option>
+<option value="dich-vu">Dịch vụ</option>
+</select>
+<select id="tmStatusFilter">
+<option value="">Tất cả trạng thái</option>
+<option value="1">Đang bán</option>
+<option value="0">Đang ẩn</option>
+</select>
+<a class="btn soft" href="https://hoangvuongtech.com/templates/bat-dong-san/" rel="noopener" target="_blank">Xem kho công khai ↗</a>
+</div>
+<div class="tm-list" id="tmList"><div class="empty-state">Đang tải Template Manager…</div></div>
+<div class="master-pagination" id="tmPagination">
+<button class="smallbtn" id="tmPrevPage" type="button">← Trước</button>
+<span id="tmPageInfo">Trang 1/1</span>
+<select id="tmPageSize"><option value="8">8 / trang</option><option value="16">16 / trang</option><option value="32">32 / trang</option></select>
+<button class="smallbtn" id="tmNextPage" type="button">Sau →</button>
+</div>
+<div class="msg hidden" id="tmMsg"></div>
+</section></details><div class="modal hidden" id="templateEditorModal">
+<div class="modal-card tm-modal-card">
+<div class="modal-head"><div><small class="section-kicker">TEMPLATE</small><h2 id="tmModalTitle">Thêm template</h2></div><button class="icon-btn" id="closeTemplateEditor" type="button">×</button></div>
+<form class="form tm-form" id="templateEditorForm">
+<div class="tm-form-grid tm-form-simple">
+<label>Mã template *<input id="teKey" placeholder="VD: mau-3" required=""/></label>
+<label>Tên hiển thị *<input id="teName" placeholder="VD: Mẫu 3 · BĐS Luxury" required=""/></label>
+<label>Danh mục
+      <select id="teCategory"><option value="bat-dong-san">Bất động sản</option><option value="tin-tuc">Tin tức</option><option value="ban-hang">Bán hàng</option><option value="landing-page">Landing Page</option><option value="dich-vu">Dịch vụ</option></select>
+</label>
+<label>Preset / mã theme<input id="tePreset" placeholder="VD: estate_green"/></label>
+<div class="wide te-section-title"><b>Form đăng nội dung của template</b><span>Client Admin tự dùng cấu hình này. Khi thêm template mới không cần sửa lại form bằng code.</span></div>
+<label>Loại nội dung
+      <select id="teContentType">
+<option value="property">Bất động sản</option>
+<option value="news">Tin tức</option>
+<option value="product">Sản phẩm / Affiliate</option>
+<option value="app">Ứng dụng / Download</option>
+<option value="generic">Nội dung chung</option>
+</select>
+</label>
+<label>Tên khung soạn thảo<input id="teContentLabel" placeholder="VD: Nội dung bài viết"/></label>
+<label class="wide" id="teCategoriesWrap">Chuyên mục <span class="optional">(mỗi dòng một chuyên mục)</span>
+<textarea id="teCategories" placeholder="Kinh tế
+Công nghệ
+Du lịch
+Sức khỏe" rows="6"></textarea>
+</label>
+<div class="wide tm-profile-two" id="tePropertyCategories">
+<label>Chuyên mục BĐS bán <span class="optional">(mỗi dòng một mục)</span>
+<textarea id="teSaleCategories" rows="6"></textarea>
+</label>
+<label>Chuyên mục BĐS cho thuê <span class="optional">(mỗi dòng một mục)</span>
+<textarea id="teRentCategories" rows="6"></textarea>
+</label>
+</div>
+<div class="wide te-section-title"><b>Bố cục hiển thị nội dung</b><span>V15.3: hình học gốc được khóa theo từng template để tránh lệch giao diện. Các thông số dưới đây chỉ còn dùng tương thích với template cũ.</span></div>
+<div class="wide tm-layout-grid">
+<label>Số cột / chuyên mục<select id="teCategoryColumns"><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+<label>Số hàng / chuyên mục<select id="teCategoryRows"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+<label>Tin mới trang chủ<input id="teHomeLatestCount" max="24" min="4" type="number" value="10"/></label>
+<label>Bài liên quan<input id="teRelatedCount" max="12" min="2" type="number" value="6"/></label>
+</div>
+<div class="wide tm-sidebar-config">
+<label class="tm-switch-label"><span class="tm-switch-row"><input checked="" id="teSidebarEnabled" type="checkbox"/><b>Hiển thị sidebar</b></span></label>
+<div class="tm-layout-grid">
+<label>Đọc nhiều<input id="teSidebarReadMost" max="12" min="0" type="number" value="6"/></label>
+<label>Tin mới<input id="teSidebarLatest" max="12" min="0" type="number" value="5"/></label>
+<label>Chuyên mục<input id="teSidebarCategories" max="12" min="0" type="number" value="8"/></label>
+</div></div>
+<div class="wide te-section-title"><b>Khung giao diện gốc (Structure First)</b><span>Mỗi mẫu có khung riêng. slots + desktop/tablet/mobile_columns quyết định hình học; bài mẫu và bài thật chỉ lấp vào các vị trí này.</span></div>
+<label class="wide">Structure profile (JSON)
+      <textarea id="teStructureProfile" placeholder='{"version":3,"content_type":"news","sections":[{"key":"hero","type":"hero","title":"Nổi bật","slots":4,"desktop_columns":4,"tablet_columns":2,"mobile_columns":1,"fill_policy":"complete_rows","content_source":"featured","bind_required":1,"empty_policy":"slots"}]}' rows="12" spellcheck="false"></textarea>
+<div class="tm-structure-health" id="teStructureHealth">Đang kiểm tra schema…</div>
+<small id="teStructureHelp">Template đang có sẽ khóa khung gốc để tránh chỉnh nhầm. Template mới phải đạt Structure Contract trước khi bật bán. Riêng template Tin tức bắt buộc đạt News Contract V1: ARTICLE &gt; CATEGORY &gt; HOME, card chỉ tiêu đề, article sidebar sticky và không có scrollbar riêng.</small>
+</label>
+<div class="wide te-section-title"><b>Bộ bài mẫu của template</b><span>Website mới luôn trống. Master chỉ cài bộ bài mẫu cho từng khách sau khi Admin Client đã kích hoạt.</span></div>
+<label class="wide tm-switch-label">
+<span class="tm-switch-row"><input id="teSampleEnabled" type="checkbox"/><b>Bật bộ bài mẫu cho template</b></span>
+<small>Bật để template có sẵn một bộ bài mẫu. Việc cài bài mẫu được thực hiện riêng cho từng website khách trong phần Quản lý.</small>
+</label>
+<label>Số bài trong bộ mẫu<input id="teSampleCount" max="30" min="1" step="1" type="number" value="12"/></label>
+<div class="tm-sample-help"><b>Chống trùng tự động</b><span>Mỗi bài có sample_key riêng. Đồng bộ lại không nhân đôi bài.</span></div>
+<div class="wide te-section-title"><b>Chi phí gói website</b><span>Đây là thông tin khách nhìn thấy ngoài Kho giao diện.</span></div>
+<label>Giá ưu đãi năm đầu (VNĐ)<input id="tePrice" min="0" step="1000" type="number" value="0"/></label>
+<label>Giá từ năm 2 / 12 tháng<input id="teRenewal" min="0" step="1000" type="number" value="0"/></label>
+<div class="wide te-discount-preview">
+<span>Ưu đãi lần đầu</span><strong id="teDiscountPreview">0đ</strong>
+<small>Tự tính = Giá từ năm 2 − Giá năm đầu</small>
+</div>
+<div class="wide te-section-title"><b>Hiển thị trong Kho giao diện</b><span>Chỉ giữ những trường cần thiết để khách nhận diện và mở demo.</span></div>
+<label>Thứ tự hiển thị<input id="teSort" min="0" step="1" type="number" value="0"/></label>
+<label>Badge <span class="optional">(tùy chọn)</span><input id="teBadge" placeholder="VD: ĐỀ XUẤT / MỚI"/></label>
+<label class="wide">Ảnh preview<input id="teImage" placeholder="/assets/demo/mau-3-preview.png hoặc https://..."/></label>
+<label class="wide">Link demo<input id="teDemo" placeholder="/demo/... hoặc https://..."/></label>
+<input id="teAccent" type="hidden" value="blue"/>
+<input id="teDescription" type="hidden" value=""/>
+<input id="teFeatures" type="hidden" value=""/>
+<label class="wide tm-switch-label">Trạng thái
+      <span class="tm-switch-row"><input checked="" id="teActive" type="checkbox"/><b>Hiển thị / đang bán</b></span>
+</label>
+</div>
+<div class="tm-form-preview package-preview">
+<div><span>Năm đầu</span><strong id="tePricePreview">0đ</strong></div>
+<div><span>Từ năm 2</span><strong id="teRenewalPreview">0đ</strong><small>/ 12 tháng</small></div>
+<div class="package-preview-includes"><b>Gói mặc định:</b> Tên miền riêng 1 năm · Hosting 1 năm · Giao diện đã chọn · Quản trị + hỗ trợ bàn giao</div>
+</div>
+<div class="modal-actions"><button class="btn soft" id="cancelTemplateEditor" type="button">Hủy</button><button class="btn primary" id="saveTemplateEditor" type="submit">Lưu template</button></div>
+</form>
+</div>
+</div>
+</div></main></div><div class="master-modal hidden" id="createSiteModal">
+<div class="master-modal-card">
+<div class="modal-head"><div><span class="eyebrow">KHÁCH HÀNG MỚI</span><h2>Khởi tạo website</h2><p>Tạo tenant và link kích hoạt để khách tự hoàn thiện hồ sơ.</p></div><button class="modal-close" id="closeCreateSite">×</button></div>
+<form class="master-form" id="createSiteForm">
+<div class="form-section-title">Website</div>
+<div class="two"><label>Tên website *<input id="csName" placeholder="VD: Nhà Đất Hải Phòng" required=""/></label>
+<label>Tên miền mong muốn *<div class="domain-input-row"><input id="csDomain" placeholder="nhadathaiphong.com" required=""/><button id="checkDomainBtn" type="button">Kiểm tra</button></div><small id="domainCheckNote">Kiểm tra trước khi khởi tạo để tránh dùng domain đã có chủ.</small></label></div>
+<div class="domain-check-result hidden" id="domainCheckResult"></div>
+<div class="form-section-title">Mẫu giao diện bán cho khách</div>
+<div class="theme-sale-note">Mỗi website chỉ kích hoạt <b>1 mẫu giao diện</b> đã bán. Client Admin không tự đổi mẫu.</div>
+<div class="master-theme-picker dynamic-theme-picker" id="csThemePicker"><div class="theme-picker-loading">Đang tải các mẫu đang bán…</div></div>
+<input id="csTemplateKey" type="hidden" value=""/>
+<div class="form-section-title">Thông tin khách ban đầu</div>
+<div class="two"><label>Họ tên khách<input id="csCustomerName" placeholder="Nguyễn Văn A"/></label><label>Số điện thoại<input id="csCustomerPhone" placeholder="09..."/></label></div>
+<div class="two"><label>Email Admin khách *<input id="csAdminEmail" placeholder="admin@domain.vn" required="" type="email"/></label><label>Công ty / thương hiệu<input id="csCompany" placeholder="Tên công ty nếu có"/></label></div>
+<div class="master-contact-box">
+<b>Thông tin liên hệ hiển thị trên website</b>
+<small>Master nhập một lần khi tạo website. Client Admin sẽ nhận sẵn và chỉ cần chỉnh khi muốn thay đổi.</small>
+<div class="two"><label>Điện thoại công khai<input id="csPublicPhone" placeholder="Để trống = dùng SĐT khách"/></label><label>Zalo<input id="csPublicZalo" placeholder="Để trống = dùng SĐT khách"/></label></div>
+<div class="two"><label>Email công khai<input id="csPublicEmail" placeholder="Để trống = Email Admin" type="email"/></label><label>Facebook<input id="csPublicFacebook" placeholder="https://facebook.com/..."/></label></div>
+</div>
+<div class="two"><label>Mã đơn hàng<div class="auto-code-field">Tự động tạo khi khởi tạo website</div></label><label>Ghi chú nội bộ<input id="csNote" placeholder="Gói web, ngày bàn giao..."/></label></div>
+<div class="form-section-title">Gói dịch vụ hằng năm</div>
+<div class="two"><label>Tên gói<input id="csPlan" value="Gói website trọn gói"/></label><label>Giá bán/năm (VNĐ)<input id="csSalePrice" min="0" placeholder="1990000" step="1000" type="number"/></label></div>
+<div class="two"><label>Chi phí nội bộ (VNĐ)<input id="csInternalCost" min="0" placeholder="Domain + hạ tầng" step="1000" type="number"/></label><label>Thanh toán<select id="csPayment"><option value="unpaid">Chưa thanh toán</option><option value="paid">Đã thanh toán</option><option value="partial">Thanh toán một phần</option></select></label></div><div class="two partial-payment-row hidden" id="csPartialPaymentRow"><label>Số tiền khách đã thanh toán (VNĐ)<input id="csPaidAmount" min="0" placeholder="VD: 500000" step="1000" type="number" value="0"/></label><label>Còn lại<div class="auto-code-field" id="csRemainingAmount">0đ</div></label></div><div class="two"></div>
+<div class="form-section-title">Chương trình khuyến mãi</div>
+<div class="two"><label>Thời hạn đăng ký (tháng)<input id="csTermMonths" max="60" min="1" type="number" value="12"/></label><label>Giá niêm yết (VNĐ)<input id="csListPrice" type="number" value="1999000"/></label></div>
+<div class="two"><label>Giảm lần đầu (VNĐ)<input id="csFirstDiscount" type="number" value="500000"/></label><label>Giá gia hạn (VNĐ)<input id="csRenewalPrice" type="number" value="1999000"/></label></div>
+<label>Tên chương trình<input id="csPromotionName" placeholder="VD: Ưu đãi khách hàng mới" value="Ưu đãi kích hoạt lần đầu"/></label>
+<div class="promo-summary" id="csPromoSummary">Giá niêm yết <b>1.999.000đ</b> → khách mới thanh toán <b>1.499.000đ</b>. Từ năm thứ 2: <b>1.999.000đ/năm</b>.</div>
+<div class="activation-explain"><b>Sau khi tạo</b><span>Sau khi tạo website, tiếp tục bước mua/gắn domain. Khi domain hoạt động, hệ thống sẽ tự tạo link kích hoạt để gửi khách.</span></div>
+<button class="btn primary" type="submit">Tạo website</button>
+</form>
+<div class="activation-result hidden" id="createSiteResult"></div>
+</div>
+</div>
+<div class="master-modal hidden" id="customerModal">
+<div class="master-modal-card compact-modal">
+<div class="modal-head"><div><span class="eyebrow">HỒ SƠ KHÁCH HÀNG</span><h2>Thông tin bàn giao</h2></div><button class="modal-close" id="closeCustomer">×</button></div>
+<div id="customerDetail"></div>
+<div class="domain-manager-box hidden" id="domainManagerBox">
+<div class="form-section-title">Quản lý tên miền</div>
+<div class="semi-auto-note"><b>Quy trình:</b> domain ban đầu chỉ là tên dự kiến. Nếu lúc checkout bạn mua một domain khác/đuôi khác, hãy nhập đúng domain thực tế vào ô bên dưới rồi bấm <b>Đã mua domain · Tiếp tục</b>. NEWSREAL sẽ tự đồng bộ domain mới, registry, Pages và SSL.</div>
+<div class="domain-manager-grid">
+<label>Tên miền thực tế đã mua<input id="dmDomain"/><small>Có thể sửa nếu lúc mua bạn đổi sang đuôi khác, ví dụ .com → .org.uk.</small></label>
+<label>Trạng thái<select id="dmStatus"><option value="not_configured">Chưa cấu hình</option><option value="pending">Chờ DNS</option><option value="active">Hoạt động</option><option value="expired">Hết hạn</option></select></label>
+<label>Giá vốn domain (tự động)<input id="dmCost" inputmode="numeric" placeholder="Tự động theo đuôi domain" readonly=""/></label>
+<label>Registrar<input id="dmRegistrar" value="Cloudflare"/></label>
+<label>Ngày đăng ký<input id="dmRegisteredAt" type="date"/></label>
+<label>Ngày hết hạn<input id="dmExpiresAt" type="date"/></label>
+</div>
+<div class="domain-manager-actions">
+<button class="smallbtn" id="dmOpenCloudflare" type="button">Mở Cloudflare mua domain</button>
+<button class="smallbtn primary-mini" id="dmCompleteDomain" type="button">Đã mua domain · Tự cấu hình</button>
+<button class="smallbtn" id="dmSave" type="button">Lưu trạng thái</button>
+</div>
+<div class="domain-check-result hidden" id="dmResult"></div>
+</div>
+</div>
+</div>
+<script src="/assets/master.js?v=20.1.0"></script>
+<div class="master-modal hidden" id="handoverModal">
+<div class="master-modal-card handover-card">
+<button class="master-modal-close" id="closeHandoverModal" type="button">×</button>
+<div class="eyebrow">BÀN GIAO KHÁCH HÀNG</div>
+<h2>Website đã sẵn sàng kích hoạt</h2>
+<p id="handoverSummary"></p>
+<label>Link kích hoạt khách hàng
+   <div class="activation-link-box">
+<input id="handoverLink" readonly=""/>
+<button id="copyHandoverLink" type="button">Sao chép</button>
+</div>
+</label>
+<div class="handover-status" id="handoverPagesStatus"></div>
+<button class="btn primary" id="handoverDone" type="button">Xong</button>
+</div>
+</div>
+<div aria-live="polite" class="master-lead-toast hidden" id="masterLeadToast" role="status">
+<div class="master-lead-toast-icon">🔔</div>
+<div><b id="masterLeadToastTitle">Có yêu cầu mới</b><span id="masterLeadToastText"></span></div>
+<button id="masterLeadToastClose" type="button">×</button>
+</div>
+</body></html>

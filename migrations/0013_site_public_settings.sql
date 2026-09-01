@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS site_public_settings(
+  site_id INTEGER PRIMARY KEY,
+  contact_email TEXT NOT NULL DEFAULT '',
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(site_id) REFERENCES sites(id) ON DELETE CASCADE
+);

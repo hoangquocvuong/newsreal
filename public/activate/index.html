@@ -1,0 +1,25 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kích hoạt website</title><link rel="stylesheet" href="/assets/style.css?v=18.2.0"><style>.activation-password-box{display:grid;gap:12px;text-align:left;margin:18px 0}.activation-password-box label{display:grid;gap:7px;font-weight:800;color:#334155}.activation-password-box input{height:46px;border:1px solid #cbd5e1;border-radius:10px;padding:0 12px;font:inherit}.activation-password-box small{color:#64748b;line-height:1.5}.activation-password-box input:focus{outline:2px solid #93c5fd;border-color:#2563eb}</style>  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="theme-color" content="#ffffff">
+</head>
+<body class="activation-page"><header class="activation-header"><a href="/" class="brand">NEWSREAL</a><span>KÍCH HOẠT WEBSITE</span></header>
+<main class="activation-wrap">
+<section id="activationLoading" class="activation-card"><div class="loading-dot"></div><h2>Đang kiểm tra website...</h2></section>
+<section id="activationReady" class="activation-card activation-success hidden">
+ <div class="success-mark">✓</div><span class="eyebrow">WEBSITE ĐÃ SẴN SÀNG</span><h1 id="activationTitle">Kích hoạt website</h1>
+ <div id="activationSite" class="activation-site"></div>
+ <p>Thông tin khách hàng và website đã được bên cung cấp cấu hình sẵn. Hãy tạo mật khẩu quản trị của riêng bạn để hoàn tất bàn giao.</p>
+ <div class="activation-password-box">
+  <label>Email đăng nhập<input id="activationEmail" type="email" autocomplete="email" placeholder="email@domain.com"></label>
+  <label>Mật khẩu quản trị mới<input id="activationPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Tối thiểu 8 ký tự"></label>
+  <label>Nhập lại mật khẩu<input id="activationPassword2" type="password" minlength="8" autocomplete="new-password" placeholder="Nhập lại mật khẩu"></label>
+  <small id="activationHelp">Link kích hoạt chỉ dùng được một lần. Email này sẽ là tài khoản đăng nhập và dùng để khôi phục mật khẩu khi cần.</small>
+ </div>
+ <div id="activationMsg" class="msg hidden"></div>
+ <button id="activateNow" class="btn primary activation-submit" type="button">Kích hoạt & vào Trang quản trị</button>
+</section>
+<section id="activationProvisioning" class="activation-card hidden"><div class="loading-dot"></div><h2>Website đang hoàn tất cấu hình domain</h2><p id="activationProvisioningText">Cloudflare đang thiết lập DNS và SSL. Trang sẽ tự kiểm tra lại.</p><button id="retryActivation" class="btn" type="button">Kiểm tra lại ngay</button></section>
+<section id="activationWorking" class="activation-card hidden"><div class="loading-dot"></div><h2>Đang bàn giao quyền quản trị...</h2><p>Vui lòng không đóng trang.</p></section>
+<section id="activationError" class="activation-card activation-error hidden"><h1>Không thể kích hoạt</h1><p id="activationErrorText"></p></section>
+</main><script src="/assets/activate.js?v=18.2.0"></script></body></html>

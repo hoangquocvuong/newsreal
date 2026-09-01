@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NewsReal</title>
+<meta name="description" content="Cổng thông tin bất động sản và tin tức thị trường">
+<link rel="stylesheet" href="/assets/style.css?v=20.1.0">
+
+<meta name="description" content="Cổng thông tin bất động sản, nhà đất bán, cho thuê và tin tức thị trường.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Bất động sản">
+<meta property="og:description" content="Tin đăng bất động sản, mua bán, cho thuê và tin tức thị trường.">
+<meta property="og:image" content="">
+<meta property="og:url" content="">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<div class="topbar"><div class="wrap"><span id="topLeft">Tin tức & bất động sản</span><span id="topContact">Hotline: — · Zalo: —</span></div></div>
+
+<header class="header">
+  <div class="wrap">
+    <a class="logo" href="/"><span id="brandLeft">NEWS</span><b id="brandRight">REAL</b></a>
+    <nav class="nav">
+      <a href="/">Trang chủ</a>
+      <a href="/bat-dong-san/">Bất động sản</a>
+      <a href="/mua-ban/">Nhà đất bán</a>
+      <a href="/cho-thue/">Cho thuê</a>
+      <details class="property-taxonomy-menu"><summary>Loại BĐS</summary><div class="property-taxonomy-dropdown"><a href="/bat-dong-san/?property_type=Chung%20cư">Căn hộ / Chung cư</a><a href="/bat-dong-san/?property_type=Nhà%20riêng">Nhà riêng</a><a href="/bat-dong-san/?property_type=Nhà%20phố">Nhà mặt phố</a><a href="/bat-dong-san/?property_type=Biệt%20thự">Biệt thự / Liền kề</a><a href="/bat-dong-san/?property_type=Shophouse">Shophouse / Nhà phố thương mại</a><a href="/bat-dong-san/?property_type=Đất">Đất nền / Đất dự án</a><a href="/bat-dong-san/?property_type=Đất%20thổ%20cư">Đất thổ cư</a><a href="/bat-dong-san/?property_type=Trang%20trại">Đất nông nghiệp / Trang trại</a><a href="/bat-dong-san/?property_type=Văn%20phòng">Văn phòng</a><a href="/bat-dong-san/?property_type=Mặt%20bằng%20kinh%20doanh">Mặt bằng kinh doanh</a><a href="/bat-dong-san/?property_type=Kho%20xưởng">Kho / Nhà xưởng</a><a href="/bat-dong-san/?property_type=Bất%20động%20sản%20công%20nghiệp">Bất động sản công nghiệp</a><a href="/bat-dong-san/?property_type=Khách%20sạn%20%2F%20Resort">Khách sạn / Resort / Nghỉ dưỡng</a><a href="/bat-dong-san/?property_type=Officetel">Officetel / Căn hộ dịch vụ</a><a href="/bat-dong-san/?property_type=Khác">Bất động sản khác</a></div></details>
+      <a href="#news">Tin tức</a>
+    </nav>
+    <div class="actions">
+      <a class="btn soft" href="/favorites">♥ Tin đã lưu</a>
+      <a class="btn primary" href="/admin?tab=newpost">+ Đăng tin</a>
+      <button id="mobileMenuBtn" class="btn soft mobile-menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="hero-home"><div class="wrap">
+  <div class="hero-grid">
+    <div id="heroSlider" class="hero-slider">
+      <div id="heroSlides"></div>
+      
+    </div>
+    <div>
+      <div class="side-title"><span>TIN ĐÁNG CHÚ Ý</span><a href="#news">Xem tất cả →</a></div>
+      <div id="sideStack" class="side-stack"></div>
+    </div>
+  </div>
+
+  <div class="searchbox">
+    <div class="tabs">
+      <button class="tab active" data-transaction="sale">Nhà đất bán</button>
+      <button class="tab" data-transaction="rent">Cho thuê</button>
+      <button class="tab" data-transaction="">Tất cả</button>
+    </div>
+    <div class="filters">
+      <input id="searchQ" class="input" placeholder="Nhập từ khóa, dự án, khu vực...">
+      <select id="searchType" class="select"><option value="">Loại bất động sản</option><option value="Chung cư">Căn hộ / Chung cư</option><option value="Nhà riêng">Nhà riêng</option><option value="Nhà phố">Nhà mặt phố</option><option value="Biệt thự">Biệt thự / Liền kề</option><option value="Shophouse">Shophouse / Nhà phố thương mại</option><option value="Đất">Đất nền / Đất dự án</option><option value="Đất thổ cư">Đất thổ cư</option><option value="Trang trại">Đất nông nghiệp / Trang trại</option><option value="Văn phòng">Văn phòng</option><option value="Mặt bằng kinh doanh">Mặt bằng kinh doanh</option><option value="Kho xưởng">Kho / Nhà xưởng</option><option value="Bất động sản công nghiệp">Bất động sản công nghiệp</option><option value="Khách sạn / Resort">Khách sạn / Resort / Nghỉ dưỡng</option><option value="Officetel">Officetel / Căn hộ dịch vụ</option><option value="Khác">Bất động sản khác</option></select>
+      <select id="searchProvince" class="select"><option value="">Tỉnh / Thành phố</option></select>
+      <select id="searchDistrict" class="select"><option value="">Quận / Huyện</option></select>
+      <select id="searchPrice" class="select">
+        <option value="">Khoảng giá</option>
+        <option value="duoi-2">Dưới 2 tỷ</option>
+        <option value="2-5">2 - 5 tỷ</option>
+        <option value="5-10">5 - 10 tỷ</option>
+        <option value="tren-10">Trên 10 tỷ</option>
+      </select>
+      <button class="btn primary" id="searchBtn">Tìm kiếm</button>
+    </div>
+  </div>
+</div></section>
+
+<section class="section"><div class="wrap">
+  <div class="section-head">
+    <div><small class="section-kicker">BẤT ĐỘNG SẢN</small><h2>Tin đăng mới nhất</h2><p>Tin đăng mới, trình bày gọn để người xem so sánh nhanh.</p></div>
+    <a href="/bat-dong-san/">Xem tất cả →</a>
+  </div>
+  <div id="propertyCards" class="cards"></div>
+</div></section>
+
+
+<section class="section category-links-section"><div class="wrap">
+  <div class="section-head">
+    <div><small class="section-kicker">DANH MỤC NHÀ ĐẤT</small><h2>Tìm nhanh theo nhu cầu</h2><p>Các nhóm phổ biến, đủ dùng nhưng không quá rối.</p></div>
+  </div>
+  <div class="category-link-grid">
+    <a href="/mua-ban/?property_type=Chung%20cư"><b>Bán căn hộ chung cư</b><span>Căn hộ, studio, duplex</span></a>
+    <a href="/mua-ban/?property_type=Nhà%20phố"><b>Bán nhà đất</b><span>Nhà phố, nhà riêng, biệt thự</span></a>
+    <a href="/cho-thue/"><b>Cho thuê nhà</b><span>Nhà ở, căn hộ, phòng</span></a>
+    <a href="/listings?property_type=Kho xưởng"><b>Kho xưởng & mặt bằng</b><span>Kho, xưởng, văn phòng, cửa hàng</span></a>
+    <a href="/listings?property_type=Đất"><b>Đất nền & đất dự án</b><span>Đất ở, đất nền, đất đầu tư</span></a>
+  </div>
+</div></section>
+
+<section class="section category-section" id="categories"><div class="wrap">
+  <div class="category-block square-block">
+    <div class="category-heading">
+      <div><span class="category-icon">🏢</span><div><small>CHUYÊN MỤC 01</small><h3>Bán căn hộ chung cư</h3></div></div>
+      <a href="/mua-ban/?property_type=Chung%20cư">Xem tất cả →</a>
+    </div>
+    <div id="apartmentCards" class="cards"></div>
+  </div>
+
+  <div class="category-block square-block">
+    <div class="category-heading">
+      <div><span class="category-icon">🏠</span><div><small>CHUYÊN MỤC 02</small><h3>Bán nhà đất</h3></div></div>
+      <a href="/mua-ban/">Xem tất cả →</a>
+    </div>
+    <div id="saleCards" class="cards"></div>
+  </div>
+
+  <div class="category-block square-block">
+    <div class="category-heading">
+      <div><span class="category-icon">🔑</span><div><small>CHUYÊN MỤC 03</small><h3>Cho thuê nhà</h3></div></div>
+      <a href="/cho-thue/">Xem tất cả →</a>
+    </div>
+    <div id="rentCards" class="cards"></div>
+  </div>
+
+  <div class="category-block square-block">
+    <div class="category-heading">
+      <div><span class="category-icon">🏭</span><div><small>CHUYÊN MỤC 04</small><h3>Kho xưởng & mặt bằng</h3></div></div>
+      <a href="/listings?property_type=Kho xưởng">Xem tất cả →</a>
+    </div>
+    <div id="warehouseCards" class="cards"></div>
+  </div>
+
+  <div class="category-block square-block">
+    <div class="category-heading">
+      <div><span class="category-icon">🌿</span><div><small>CHUYÊN MỤC 05</small><h3>Đất nền & đất dự án</h3></div></div>
+      <a href="/listings?property_type=Đất">Xem tất cả →</a>
+    </div>
+    <div id="landCards" class="cards"></div>
+  </div>
+</div></section>
+
+<section class="section news-home-section" id="news"><div class="wrap">
+  <div class="section-head">
+    <div><small class="section-kicker">TIN TỨC</small><h2>Tin thị trường & kiến thức</h2><p>Thông tin hỗ trợ người mua, người bán và nhà đầu tư.</p></div>
+  </div>
+  <div class="news-grid">
+    <div id="newsLead"></div>
+    <div id="newsList" class="news-list"></div>
+  </div>
+</div></section>
+</main>
+
+<footer class="footer public-footer"><div class="wrap public-footer-grid">
+  <div class="footer-about"><div class="brand footer-logo"><span data-footer-brand>NEWSREAL</span></div><p class="footer-desc">Kênh thông tin bất động sản, mua bán và cho thuê với nội dung rõ ràng, dễ tìm kiếm và thuận tiện liên hệ.</p><div class="footer-contact-list"><a data-footer-phone href="#">☎ Hotline: —</a><a data-footer-zalo href="#" target="_blank" rel="noopener">💬 Zalo: —</a><a data-footer-email href="#">✉ Email: —</a></div></div>
+  <div><h4>Bất động sản</h4><a href="/mua-ban/">Nhà đất bán</a><a href="/cho-thue/">Nhà đất cho thuê</a><a href="/listings?property_type=Chung%20cư">Căn hộ / Chung cư</a><a href="/listings?property_type=Đất">Đất nền / Đất dự án</a></div>
+  <div><h4>Khám phá</h4><a href="/">Trang chủ</a><a href="/#news">Tin tức thị trường</a><a href="/favorites">Tin đã lưu</a><a href="/admin?tab=newpost">Đăng tin bất động sản</a></div>
+  <div><h4>Thông tin & hỗ trợ</h4><p class="footer-note">Cần tư vấn đăng tin hoặc tìm bất động sản phù hợp? Liên hệ trực tiếp để được hỗ trợ.</p><a href="/admin">Quản trị website</a><a href="https://www.facebook.com/groups/batdongsanhaiphong2021" target="_blank" rel="noopener">Cộng đồng Facebook ↗</a></div>
+</div><div class="footer-bottom"><div class="wrap"><span>© 2026 <b data-footer-brand>NEWSREAL</b>. Nội dung thuộc website.</span><span>Powered by NEWSREAL · HOÀNG VƯƠNG TECH</span></div></div></footer>
+
+<script src="/assets/site.js?v=1788174900.8.0"></script>
+</body>
+</html>
