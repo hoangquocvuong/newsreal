@@ -1,12 +1,10 @@
-NEWSREAL V20.4.1 — TRIAL ACTIVATION HOTFIX
+NEWSREAL V20.4.2 — DEMO MẪU 1 LAYOUT PARITY HOTFIX
 
-Scope: minimal hotfix on V20.4. No module splitting/refactor.
+Scope: BĐS Mẫu 1 showroom demo layout only.
 
-Fixed:
-1. /api/activation was unreachable because an unconditional "Master API không tồn tại" return sat before public activation routes.
-2. Unknown-Master fallback now applies only to master/* routes.
-3. Trial activation now creates a 30-day authenticated Admin session immediately.
-4. Activation page stores the session token before redirecting to Admin.
-5. activate.js cache-buster bumped to 20.4.1.
-
-No destructive D1 migration.
+Fix:
+- Public showroom /demo/bat-dong-san/mau-1/ now anchors the hero structurally by selector, not by dynamic headline text.
+- Prevents "Tin đăng mới nhất" from being moved above hero when showroom sample content is present.
+- Makes showroom demo order match activated Trial website: Hero/Search -> Tin đăng mới nhất -> Tìm nhanh theo nhu cầu -> category sections.
+- No Trial/payment/renewal/admin refactor.
+- No database migration.

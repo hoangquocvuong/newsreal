@@ -85,35 +85,15 @@ function stripDemoPath(path,demo){
 }
 function demoInject(html,demo,trialCtx=null){
  if(!demo||demo==='center')return html;
- html=html.replace(/\/assets\/style\.css\?v=\d+/g,'/assets/style.css?v=20.0.1').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.4.2');
+ html=html.replace(/\/assets\/style\.css\?v=\d+/g,'/assets/style.css?v=20.0.1').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.0.1');
  const preset=demo==='mau-1'?'newsreal':demo==='mau-2'?'estate_green':demo==='mau-3'?'estate_luxe_3':demo==='mau-4'?'estate_minimal_4':demo==='mau-5'?'estate_urban_5':demo==='tin-tuc-1'?'news_portal_1':demo==='tin-tuc-2'?'news_paper_2':demo==='tin-tuc-3'?'news_magazine_3':demo==='tin-tuc-4'?'news_minimal_4':'';
  let out=themedHtml(html,preset);
  const currentPath=typeof rawPath!=='undefined'?rawPath:'';
  const prefix=demoPrefixForPath(currentPath,demo);
- const boot=`<meta name="robots" content="noindex,follow"><meta name="newsreal-demo-build" content="20.4.2"><script>window.NR_DEMO_THEME=${JSON.stringify(demo)};window.NR_DEMO_PREFIX=${JSON.stringify(prefix)};window.NR_TRIAL_TOKEN=${JSON.stringify(trialCtx?.trial_token||'')};window.NR_TRIAL_TENANT=${JSON.stringify(trialCtx?.domain||'')};window.NR_DEMO_TENANT=window.NR_TRIAL_TENANT||'batdongsan2027.org.uk';
-window.nrTrialAdminUrl=function(tab=''){
- if(!window.NR_TRIAL_TOKEN){
-   const a=new URL('/admin',location.origin);
-   if(tab)a.searchParams.set('tab',tab);
-   return a.toString();
- }
- const a=new URL('https://hoangvuongtech.com/admin');
- if(window.NR_TRIAL_TENANT)a.searchParams.set('tenant',window.NR_TRIAL_TENANT);
- a.searchParams.set('nr_trial',window.NR_TRIAL_TOKEN);
- a.searchParams.set('template',String(window.NR_DEMO_THEME||''));
- if(tab)a.searchParams.set('tab',tab);
- return a.toString();
-};
+ const boot=`<meta name="robots" content="noindex,follow"><meta name="newsreal-demo-build" content="20.0.1"><script>window.NR_DEMO_THEME=${JSON.stringify(demo)};window.NR_DEMO_PREFIX=${JSON.stringify(prefix)};window.NR_TRIAL_TOKEN=${JSON.stringify(trialCtx?.trial_token||'')};window.NR_TRIAL_TENANT=${JSON.stringify(trialCtx?.domain||'')};window.NR_DEMO_TENANT=window.NR_TRIAL_TENANT||'batdongsan2027.org.uk';
 window.nrTrialUrl=function(raw){
  if(!window.NR_TRIAL_TOKEN||!raw||typeof raw!=='string'||raw==='#'||/^mailto:|^tel:|^javascript:/i.test(raw))return raw;
- try{
-   const x=new URL(raw,location.origin);
-   if(x.pathname==='/admin'||x.pathname.startsWith('/admin/'))return window.nrTrialAdminUrl(x.searchParams.get('tab')||'');
-   if(x.origin!==location.origin)return raw;
-   if(x.pathname.startsWith('/api/')||x.pathname.startsWith('/assets/')||x.pathname.startsWith('/control-center'))return raw;
-   x.searchParams.set('nr_trial',window.NR_TRIAL_TOKEN);
-   return x.pathname+x.search+x.hash
- }catch(e){return raw}
+ try{const x=new URL(raw,location.origin);if(x.origin!==location.origin)return raw;if(x.pathname.startsWith('/api/')||x.pathname.startsWith('/assets/')||x.pathname.startsWith('/admin')||x.pathname.startsWith('/control-center'))return raw;x.searchParams.set('nr_trial',window.NR_TRIAL_TOKEN);return x.pathname+x.search+x.hash}catch(e){return raw}
 };
 window.NR_ESTATE_CORE={
  'mau-1':{brand:'BẤT ĐỘNG SẢN',cls:'theme-estate-default'},

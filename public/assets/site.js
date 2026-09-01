@@ -239,8 +239,8 @@ function renderNewsFooter(site,isDemo=false,categories=[]){
   if(!footer)return;
   const brand=isDemo?'TIN TỨC 24H':cleanSiteName(site.name||'TIN TỨC');
   const phone=site.phone||'—',zalo=site.zalo||site.phone||'—',email=site.email||'—';
-  const adminUrl=isDemo?(window.nrTrialAdminUrl?window.nrTrialAdminUrl(''):'https://batdongsan2027.org.uk/admin?template=tin-tuc-1'):'/admin';
-  const postUrl=isDemo?(window.nrTrialAdminUrl?window.nrTrialAdminUrl('newpost'):'https://batdongsan2027.org.uk/admin?tab=newpost&template=tin-tuc-1'):'/admin?tab=newpost';
+  const adminUrl=isDemo?'https://batdongsan2027.org.uk/admin?template=tin-tuc-1':'/admin';
+  const postUrl=isDemo?'https://batdongsan2027.org.uk/admin?tab=newpost&template=tin-tuc-1':'/admin?tab=newpost';
   const demoNoNav=isDemo?' onclick="return false"':'';
   const cats=(categories&&categories.length?categories:['Kinh tế','Công nghệ','Đời sống','Sức khỏe']).slice(0,4);
   footer.innerHTML=`<div class="wrap public-footer-grid news-footer-grid">
@@ -379,7 +379,7 @@ function newsCoreApplyShell(site,ctx,key,opts={}){
  if(brandLink&&ctx.isDemo){brandLink.setAttribute('href','#');brandLink.onclick=e=>e.preventDefault()}
  const nav=document.querySelector('.header nav.nav');if(nav)nav.innerHTML=newsCoreNavHtml(ctx);
  const actions=document.querySelector('.header .actions');
- const postUrl=ctx.isDemo?(window.nrTrialAdminUrl?window.nrTrialAdminUrl('newpost'):`https://batdongsan2027.org.uk/admin?tab=newpost&template=${key}`):'/admin?tab=newpost';
+ const postUrl=ctx.isDemo?`https://batdongsan2027.org.uk/admin?tab=newpost&template=${key}`:'/admin?tab=newpost';
  if(actions){
    actions.innerHTML=opts.article
      ? `<a class="btn soft" href="${ctx.isDemo?ctx.base+'/':'/'}">← Trang chủ</a>`
@@ -560,7 +560,7 @@ function renderNewsPortalHome(site){
 
    <section class="n3-wide-list"><div class="wrap"><div class="n3-title"><div><small>KHÁM PHÁ</small><h2>Nội dung khác</h2></div><span>Đa dạng chủ đề mỗi ngày</span></div><div class="n3-wide-grid">${all.slice(10,10+Math.max(8,nrStructureSlots(site,'tin-tuc-1','explore',8))).map(cardN).join('')}</div></div></section>
 
-   <section class="n3-newsletter n3-newsletter-light"><div class="wrap"><div><small>WEBSITE TIN TỨC RIÊNG</small><h2>Nội dung của bạn, thương hiệu của bạn</h2><p>Đăng bài từ trang quản trị và website tự trình bày theo phong cách tạp chí hiện đại.</p></div><a href="${isDemo?(window.nrTrialAdminUrl?window.nrTrialAdminUrl('newpost'):'https://batdongsan2027.org.uk/admin?tab=newpost&template=tin-tuc-1'):'/admin?tab=newpost'}"${isDemo?' target="_blank" rel="noopener"':''}>Đăng bài mới →</a></div></section>`;
+   <section class="n3-newsletter n3-newsletter-light"><div class="wrap"><div><small>WEBSITE TIN TỨC RIÊNG</small><h2>Nội dung của bạn, thương hiệu của bạn</h2><p>Đăng bài từ trang quản trị và website tự trình bày theo phong cách tạp chí hiện đại.</p></div><a href="${isDemo?'https://batdongsan2027.org.uk/admin?tab=newpost&template=tin-tuc-1':'/admin?tab=newpost'}"${isDemo?' target="_blank" rel="noopener"':''}>Đăng bài mới →</a></div></section>`;
   renderNewsFooter(site,isDemo,categories);
 }
 
@@ -776,6 +776,10 @@ function nrApplyStructureOrder(site,key=''){
  // Compatibility adapter for sections without a visible heading in the 9 legacy templates.
  if(keyed.size<profile.sections.length){
   const maps={
+   // V20.4.2 — Mẫu 1 must keep the same structural order in showroom demo and Trial.
+   // Do not infer the hero from its dynamic headline: sample content titles may not contain
+   // the words "Bất động sản", which previously caused `latest` to be prepended above hero.
+   'mau-1':[['hero','.hero-home'],['latest','.section:has(#propertyCards)'],['needs','.category-links-section']],
    'tin-tuc-1':[['breaking','.n3-breaking'],['hero','.n3-hero'],['topics','.n3-topics'],['latest','#moi-nhat'],['explore','.n3-wide-list'],['newsletter','.n3-newsletter']],
    'tin-tuc-2':[['ticker','.np-ticker'],['hero','.np-main'],['latest','.np-latest-zone']],
    'tin-tuc-3':[['editors-pick','.nm-hero'],['trending','.nm-strip'],['weekend','.nm-dark']],
@@ -1147,7 +1151,7 @@ function estateCoreApplyShell(site,key,{compact=false}={}){
  const actions=document.querySelector('.header .actions');
  if(actions){
    const fav=estateCoreUrl('/favorites',key,isDemo);
-   const post=isDemo?(window.nrTrialAdminUrl?window.nrTrialAdminUrl('newpost'):`https://batdongsan2027.org.uk/admin?tab=newpost&template=${key}`):'/admin?tab=newpost';
+   const post=isDemo?`https://batdongsan2027.org.uk/admin?tab=newpost&template=${key}`:'/admin?tab=newpost';
    actions.innerHTML=`<a class="btn soft" href="${fav}">♥ Tin đã lưu</a><a class="btn primary" href="${post}"${isDemo?' target="_blank" rel="noopener"':''}>+ Đăng tin</a><button id="mobileMenuBtn" class="btn soft mobile-menu">☰</button>`;
  }
 }

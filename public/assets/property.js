@@ -102,7 +102,7 @@ function propertyDiscovery(x){
  links.push(['🔑 Nhà cho thuê',qs({transaction:'rent'})]);
  if(x.province)links.push(['🗺 BĐS '+x.province,qs({province:x.province})]);
  links.push(['♥ Tin đã lưu','/favorites']);
- links.push(['➕ Đăng tin',window.nrTrialAdminUrl&&window.NR_TRIAL_TOKEN?window.nrTrialAdminUrl('newpost'):'/admin?tab=newpost']);
+ links.push(['➕ Đăng tin','/admin?tab=newpost']);
  return `<div class="property-discovery"><div class="property-discovery-head"><div><h3>Khám phá thêm bất động sản</h3><p>Lọc nhanh theo nhu cầu để người xem tiếp tục ở lại website.</p></div><a class="market-all" href="/bat-dong-san/">Xem tất cả →</a></div><div class="property-discovery-links">${links.map(([t,u])=>`<a href="${u}">${esc(t)}</a>`).join('')}</div></div>`;
 }
 function smartPropertyRelated(current,posts=[],seed=[]){
