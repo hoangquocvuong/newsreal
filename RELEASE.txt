@@ -1,19 +1,10 @@
-NEWSREAL V20.6.11 — SERVICE 6-SLOT PARITY + TRIAL WEBSITE NAME CONTRACT
+NEWSREAL V20.7.0 — UNIVERSAL TEMPLATE LAYOUT CONTRACT ENGINE
 
-1) SERVICE CATEGORY FRAME CONTRACT
-- Every telecom service category owns exactly 6 homepage content slots.
-- Showroom renders up to 6 real demo packages per category.
-- Trial/client empty mode renders the same 6 positions as empty placeholders, not 4.
-- Partial real content is padded with empty slots so geometry does not collapse.
-- FPT FPT Play section: 6 slots.
-- VNPT Home Internet: 1 featured + 5 side slots = 6.
-- VNPT MyTV: 6 slots.
-- Camera/Combo and Viettel categories remain 6-slot sections.
-
-2) TRIAL DESIRED WEBSITE NAME CONTRACT
-- "Tên website mong muốn *" is required at the first "Dùng thử miễn phí 1 ngày" form.
-- Help text explains this name is used as the basis for proposing/assigning a domain and should match the website content/brand.
-- trial/create validates and stores the desired website name in sales_leads and uses it for the trial site identity.
-- Activation automatically receives the stored name and displays it read-only for new V20.6.11 trials.
-- Backward compatibility: older pending trials with no stored name can still enter it at activation.
-- V20.6.10 Trial Direct Checkout V2 remains unchanged.
+1. structure_profile is now the authoritative 1:1 layout source for showroom, trial and client modes.
+2. Slot count is exact; it is no longer recalculated from computed CSS columns.
+3. Universal slot-host support handles normal grids and custom split layouts (for example VNPT 1 featured + 5 list = 6).
+4. Service FPT/VNPT/Viettel visible category sections are bound to the same contract and each render exactly 6 homepage slots.
+5. Extra real content is kept in data/archive but does not expand a contracted homepage section.
+6. Runtime contract audit reports missing sections/hosts/slot mismatches.
+7. Added npm run check:templates release smoke test.
+8. No DB schema migration required. Existing V20.6.11 trial/direct-checkout behavior is preserved.

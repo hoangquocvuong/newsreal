@@ -1,4 +1,7 @@
 {
   "name": "newsreal-v5-full-realestate",
-  "private": true
+  "private": true,
+  "scripts": {
+    "check:templates": "node scripts/check-template-contract.mjs"
+  }
 }

@@ -3067,3 +3067,4 @@ body.theme-service-vnpt,body.theme-service-viettel{background:#fff;color:#10233f
 
 /* V20.6.11 — trial website name contract */
 .market-trial-site-help{display:block;margin-top:6px;color:#667085;font-size:11px;line-height:1.45;font-weight:500}
+\n/* V20.7.0 — Universal Template Layout Contract Engine.\n   The structure profile owns slot count + grid geometry in every content mode. */\n.nr-structure-grid{display:grid!important;grid-template-columns:repeat(var(--nr-cols-desktop,1),minmax(0,1fr))!important}\n@media(max-width:980px){.nr-structure-grid{grid-template-columns:repeat(var(--nr-cols-tablet,2),minmax(0,1fr))!important}}\n@media(max-width:640px){.nr-structure-grid{grid-template-columns:repeat(var(--nr-cols-mobile,1),minmax(0,1fr))!important}}\n

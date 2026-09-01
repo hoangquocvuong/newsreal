@@ -818,7 +818,7 @@ function nrStructureSection(site,key,matcher=''){
 function nrStructureSlots(site,key,matcher,fallback=0){const s=nrStructureSection(site,key,matcher);return Math.max(0,Number(s?.slots||fallback||0));}
 function nrStructurePlaceholder(type='generic',label=''){
  const property=String(type||'').includes('property');
- return `<article class="nr-structure-placeholder ${property?'nr-property-placeholder':'nr-content-placeholder'}" aria-hidden="true"><div class="nr-placeholder-media"></div><div class="nr-placeholder-body"><span></span><b>${esc(label||(property?'Chưa có tin đăng':'Chưa có bài viết'))}</b><small>Nội dung sẽ hiển thị tại đây</small></div></article>`;
+ return `<article class="nr-structure-placeholder ${property?'nr-property-placeholder':'nr-content-placeholder'}" data-contract-slot="1" data-empty="1" aria-hidden="true"><div class="nr-placeholder-media"></div><div class="nr-placeholder-body"><span></span><b>${esc(label||(property?'Chưa có tin đăng':'Chưa có bài viết'))}</b><small>Nội dung sẽ hiển thị tại đây</small></div></article>`;
 }
 function nrGridColumns(grid,fallback=1){
  try{
@@ -832,68 +832,92 @@ function nrGridColumns(grid,fallback=1){
 }
 function nrIsStructureEmptyNode(n){
  if(!n)return false;
- return n.classList?.contains('nr-structure-placeholder')||n.classList?.contains('nr-structure-empty')||n.classList?.contains('empty')||n.classList?.contains('category-empty')||n.hasAttribute?.('data-empty');
+ return n.dataset?.empty==='1'||n.classList?.contains('nr-structure-placeholder')||n.classList?.contains('nr-structure-empty')||n.classList?.contains('tel-empty')||n.classList?.contains('svc1-empty')||n.classList?.contains('empty')||n.classList?.contains('category-empty')||n.hasAttribute?.('data-empty');
+}
+function nrSlotHostConfig(sec,section){
+ const declared=Array.isArray(sec?.slot_hosts)?sec.slot_hosts:[];
+ if(declared.length){
+  return declared.map((h,i)=>{
+   let node=null;try{node=(section&&section.querySelector(String(h?.selector||'')))||document.querySelector(String(h?.selector||''))}catch(e){}
+   return {node,slots:Math.max(0,Number(h?.slots||0)),selector:String(h?.selector||''),index:i};
+  }).filter(x=>x.node&&x.slots>0);
+ }
+ let grid=null;
+ if(sec?.grid_selector){try{grid=(section&&section.querySelector(sec.grid_selector))||document.querySelector(sec.grid_selector)}catch(e){}}
+ if(!grid&&section){
+  const selectors=['[data-contract-grid="1"]','.estate-rich-grid','.estate-news-grid','.estate-project-grid','.news-configurable-grid','.nm-mosaic','.nm-dark-grid','.n3-grid','.n3-wide-grid','.np-list','.np-category-grid','.nmin-latest-grid','.nmin-lead-grid','.t2-card-grid','.t2-card-track','.t2-news-grid','.cards'];
+  for(const sel of selectors){grid=section.querySelector(sel);if(grid)break}
+ }
+ return grid?[{node:grid,slots:Math.max(0,Number(sec?.slots||0)),selector:String(sec?.grid_selector||''),index:0}]:[];
+}
+function nrSlotChildren(host){
+ const direct=[...host.children];
+ const explicit=direct.filter(n=>n.dataset?.contractSlot==='1');
+ if(explicit.length)return explicit;
+ return direct.filter(n=>!n.matches?.('h1,h2,h3,h4,.section-head,.tel-heading,.svc1-head,.nm-title,.np-heading,.n3-heading'));
+}
+function nrEnforceSlotHost(host,target,sec,profile){
+ if(!host||target<=0)return {expected:target,actual:0};
+ // Remove message-style empties first; contract slots are recreated deterministically below.
+ [...host.children].filter(n=>nrIsStructureEmptyNode(n)&&n.dataset?.contractSlot!=='1').forEach(n=>n.remove());
+ let slotsNow=nrSlotChildren(host);
+ if(slotsNow.length>target){slotsNow.slice(target).forEach(n=>n.remove());slotsNow=slotsNow.slice(0,target)}
+ let real=slotsNow.filter(n=>!nrIsStructureEmptyNode(n));
+ // Homepage slot count is a view contract. Extra real content stays in DB/archive but not in this homepage section.
+ if(real.length>target){real.slice(target).forEach(n=>n.remove());real=real.slice(0,target)}
+ for(const n of real)n.dataset.contractSlot='1';
+ const current=nrSlotChildren(host).length;
+ for(let i=current;i<target;i++)host.insertAdjacentHTML('beforeend',nrStructurePlaceholder(sec?.type));
+ const locked=Number(profile?.geometry_locked||0)===1;
+ const customHosts=Array.isArray(sec?.slot_hosts)&&sec.slot_hosts.length>0;
+ if(locked&&!customHosts&&String(sec?.column_mode||'fixed')!=='computed'&&!host.classList.contains('t2-card-track')){
+  const cols=Math.max(1,Number(sec?.desktop_columns||1));
+  host.classList.add('nr-structure-grid');
+  host.style.setProperty('--nr-cols-desktop',String(cols));
+  host.style.setProperty('--nr-cols-tablet',String(Math.max(1,Number(sec?.tablet_columns||Math.min(2,cols)))));
+  host.style.setProperty('--nr-cols-mobile',String(Math.max(1,Number(sec?.mobile_columns||1))));
+ }
+ host.dataset.nrTargetSlots=String(target);
+ host.dataset.nrActualSlots=String(nrSlotChildren(host).length);
+ return {expected:target,actual:nrSlotChildren(host).length};
 }
 function nrApplyStructureGeometry(site,key=''){
  const profile=nrStructureProfile(site,key),main=document.querySelector('main');if(!main||!profile.sections?.length)return;
+ const report=[];
  for(const sec of profile.sections){
-  const slots=Math.max(0,Number(sec.slots||0));if(!slots)continue;
+  const expected=Math.max(0,Number(sec.slots||0));if(!expected)continue;
   const section=main.querySelector(`[data-structure-key="${CSS.escape(String(sec.key||''))}"]`);
-  let grid=null;
-  if(sec.grid_selector){try{grid=(section&&section.querySelector(sec.grid_selector))||document.querySelector(sec.grid_selector)}catch(e){}}
-  if(!section&&!grid)continue;
-  if(!grid&&section){
-   const selectors=['.estate-rich-grid','.estate-news-grid','.estate-project-grid','.news-configurable-grid','.nm-mosaic','.nm-dark-grid','.n3-grid','.n3-wide-grid','.np-list','.np-category-grid','.nmin-latest-grid','.nmin-lead-grid','.t2-card-grid','.t2-card-track','.t2-news-grid','.cards'];
-   for(const sel of selectors){grid=section.querySelector(sel);if(grid)break}
-  }
-  if(!grid)continue;
-
-  // Empty messages are labels, never grid cards. Remove them before counting geometry.
-  [...grid.children].filter(n=>nrIsStructureEmptyNode(n)).forEach(n=>n.remove());
-
-  const declaredCols=Math.max(1,Number(sec.desktop_columns||1));
-  const columnMode=String(sec.column_mode||'computed');
-  let cols=declaredCols;
-  if(columnMode==='computed') cols=nrGridColumns(grid,declaredCols);
-
-  // Preserve the number of rows designed by the structure, but adapt to the grid
-  // that the template CSS actually renders. Example: 8 slots / 4 declared cols = 2 rows;
-  // if the real template is 3 columns, target becomes 6, not 8 (= 3+3+2 broken row).
-  const designedRows=Math.max(1,Number(sec.desktop_rows||Math.ceil(slots/declaredCols)));
-  const structuralTarget=Math.max(cols,designedRows*cols);
-  const real=[...grid.children].filter(n=>!nrIsStructureEmptyNode(n));
-  let target=structuralTarget;
-
-  if(String(sec.fill_policy||'')==='complete_rows'&&real.length){
-   const completeReal=Math.floor(real.length/cols)*cols;
-   if(completeReal>=cols) target=Math.max(completeReal,Math.min(structuralTarget,Math.ceil(real.length/cols)*cols));
-  }
-
-  // Never leave a partial visual row: missing cells become explicit structural slots.
-  if(real.length<target){
-   const count=target-real.length;
-   for(let i=0;i<count;i++)grid.insertAdjacentHTML('beforeend',nrStructurePlaceholder(sec.type));
-  }
-
-  if(columnMode==='fixed'&&!grid.classList.contains('t2-card-track')){
-   grid.classList.add('nr-structure-grid');
-   grid.style.setProperty('--nr-cols-desktop',String(declaredCols));
-   grid.style.setProperty('--nr-cols-tablet',String(Math.max(1,Number(sec.tablet_columns||Math.min(2,declaredCols)))));
-   grid.style.setProperty('--nr-cols-mobile',String(Math.max(1,Number(sec.mobile_columns||1))));
-  }
-  grid.dataset.nrEffectiveColumns=String(cols);
-  grid.dataset.nrTargetSlots=String(target);
+  if(!section){report.push({key:sec.key,expected,actual:0,error:'missing-section'});continue}
+  const hosts=nrSlotHostConfig(sec,section);
+  if(!hosts.length){report.push({key:sec.key,expected,actual:0,error:'missing-slot-host'});continue}
+  let actual=0,hostExpected=0;
+  for(const h of hosts){const r=nrEnforceSlotHost(h.node,h.slots,sec,profile);actual+=r.actual;hostExpected+=r.expected}
+  // For split/custom layouts the host allocation must sum to the section contract.
+  const target=hostExpected||expected;
+  report.push({key:sec.key,expected,target,actual,ok:actual===expected&&target===expected});
+  section.dataset.nrExpectedSlots=String(expected);section.dataset.nrActualSlots=String(actual);
  }
+ window.NR_TEMPLATE_LAYOUT_REPORT=report;
 }
 function nrAuditStructureContract(site,key=''){
- if(!window.NR_CLIENT_SIMULATION)return;
- const p=nrStructureProfile(site,key),main=document.querySelector('main');if(!main)return;
- const missing=[];
- for(const sec of p.sections||[]){if(Number(sec.bind_required||0)!==1)continue;const node=main.querySelector(`[data-structure-key="${CSS.escape(String(sec.key||''))}"]`);if(!node)missing.push(String(sec.title||sec.key||'section'))}
- const missingSidebars=[];
- for(const sb of (p.sidebars||[])){let root=null;try{root=document.querySelector(String(sb.root_selector||''))}catch(e){}if(!root)missingSidebars.push(String(sb.root_selector||'sidebar'))}
- if(missing.length||missingSidebars.length)console.warn('[NEWSREAL Structure Contract] Template thiếu vùng render:',key,{sections:missing,sidebars:missingSidebars});
- else console.info('[NEWSREAL Structure Contract] OK:',key,(p.sections||[]).length,'sections',(p.sidebars||[]).length,'sidebars');
+ const p=nrStructureProfile(site,key),main=document.querySelector('main');if(!main)return {ok:false,reason:'missing-main'};
+ const errors=[];
+ for(const sec of p.sections||[]){
+  if(Number(sec.bind_required||0)!==1)continue;
+  const node=main.querySelector(`[data-structure-key="${CSS.escape(String(sec.key||''))}"]`);
+  if(!node){errors.push({section:sec.key,error:'missing-section'});continue}
+  const expected=Math.max(0,Number(sec.slots||0));if(!expected)continue;
+  const hosts=nrSlotHostConfig(sec,node);if(!hosts.length){errors.push({section:sec.key,error:'missing-slot-host'});continue}
+  const hostTotal=hosts.reduce((s,h)=>s+Math.max(0,Number(h.slots||0)),0);
+  const actual=hosts.reduce((s,h)=>s+nrSlotChildren(h.node).length,0);
+  if(hostTotal!==expected)errors.push({section:sec.key,error:'host-total-mismatch',expected,hostTotal});
+  if(actual!==expected)errors.push({section:sec.key,error:'slot-mismatch',expected,actual});
+ }
+ for(const sb of (p.sidebars||[])){let r=null;try{r=document.querySelector(String(sb.root_selector||''))}catch(e){}if(!r)errors.push({sidebar:sb.root_selector,error:'missing-sidebar'})}
+ const report={ok:errors.length===0,key,version:String(p.layout_contract||'universal-layout-v1'),errors};
+ window.NR_TEMPLATE_CONTRACT_REPORT=report;
+ if(errors.length)console.error('[NEWSREAL Universal Template Contract] FAIL',report);else console.info('[NEWSREAL Universal Template Contract] OK',key);
+ return report;
 }
 function nrNewsStructureHtml(site,ctx,variant,key){
  const sections=nrStructureSections(site,key);if(!sections.length)return '';
@@ -1798,23 +1822,25 @@ function renderServiceProvider(site={},key='dich-vu-1'){
  let posts=[]; try{posts=Array.isArray(window.NR_POSTS)?window.NR_POSTS:[]}catch{}
  if(nrServiceIsShowroom(key)) posts=cfg.samples.map((x,i)=>({title:x[1],category:x[0],content:x[4],image:x[5]||nrSvcFallback(key,x[0]),fallback_image:nrSvcFallback(key,x[0]),extra_json:{service_speed_down:x[2],service_price:nrSvcDemoPrice(key,i,x[3]),service_promo:x[4]}}));
  const root=document.querySelector('main')||document.body; const ex=x=>{try{return typeof x.extra_json==='object'?x.extra_json:JSON.parse(x.extra_json||'{}')}catch{return {}}};
- const arr=i=>posts.filter(x=>x.category===cfg.cats[i]).slice(0,8);
+ const arr=i=>posts.filter(x=>x.category===cfg.cats[i]).slice(0,60);
+ const secSlots=(name,fallback=6)=>Math.max(0,nrStructureSlots(site,key,name,fallback));
+ const secHostSlots=(name,selector,fallback)=>{const s=nrStructureSection(site,key,name);const h=(Array.isArray(s?.slot_hosts)?s.slot_hosts:[]).find(x=>String(x?.selector||'')===selector);return Math.max(0,Number(h?.slots||fallback||0))};
  const phone=esc(site.phone||'1900 0000'), phoneHref=esc(String(site.phone||'').replace(/\D/g,''));
- const card=(x,cl='')=>{const e=ex(x),im=x.image||x.image_url||x.thumbnail||nrSvcFallback(key,x.category),price=nrServiceIsShowroom(key)?nrSvcSafePrice(key,x.category,e.service_price):e.service_price||'Liên hệ',promo=e.service_promo||String(x.content||'').replace(/<[^>]+>/g,' ').slice(0,180)||'Thông tin đang cập nhật';return `<article class="tel-card ${cl}" data-service-card="1"><button type="button" class="tel-card-img svc-detail-open" data-package="${esc(x.title||'')}" aria-label="Xem chi tiết ${esc(x.title||'gói dịch vụ')}"><img src="${esc(im)}" alt="${esc(x.title)}" loading="lazy" onerror="this.onerror=null;this.src='${esc(x.fallback_image||nrSvcFallback(key,x.category))}'"></button><div class="tel-card-body"><span class="tel-pill">${esc(x.category||'Dịch vụ')}</span><button type="button" class="tel-title-link svc-detail-open" data-package="${esc(x.title||'')}"><h3>${esc(x.title||'Gói dịch vụ')}</h3></button><div class="tel-speed">${esc(e.service_speed_down||'Tư vấn theo nhu cầu')}</div><p class="tel-desc">${esc(promo)}</p><button type="button" class="tel-detail-link svc-detail-open" data-package="${esc(x.title||'')}">Xem chi tiết & khuyến mãi →</button><div class="tel-card-bottom"><div class="tel-price"><small>Chỉ từ</small><strong>${esc(price)}</strong></div><a class="tel-cta svc-lead-open" href="#dang-ky" data-package="${esc(x.title||'')}" data-category="${esc(x.category||'')}">Đăng ký</a></div></div></article>`};
- const empty=(cat,n=6)=>Array.from({length:n},()=>`<div class="tel-empty"><b>${esc(cat)}</b><span>Chưa có gói dịch vụ</span><small>Khung giao diện được giữ nguyên khi website chưa đăng nội dung.</small></div>`).join('');
+ const card=(x,cl='')=>{const e=ex(x),im=x.image||x.image_url||x.thumbnail||nrSvcFallback(key,x.category),price=nrServiceIsShowroom(key)?nrSvcSafePrice(key,x.category,e.service_price):e.service_price||'Liên hệ',promo=e.service_promo||String(x.content||'').replace(/<[^>]+>/g,' ').slice(0,180)||'Thông tin đang cập nhật';return `<article class="tel-card ${cl}" data-service-card="1" data-contract-slot="1"><button type="button" class="tel-card-img svc-detail-open" data-package="${esc(x.title||'')}" aria-label="Xem chi tiết ${esc(x.title||'gói dịch vụ')}"><img src="${esc(im)}" alt="${esc(x.title)}" loading="lazy" onerror="this.onerror=null;this.src='${esc(x.fallback_image||nrSvcFallback(key,x.category))}'"></button><div class="tel-card-body"><span class="tel-pill">${esc(x.category||'Dịch vụ')}</span><button type="button" class="tel-title-link svc-detail-open" data-package="${esc(x.title||'')}"><h3>${esc(x.title||'Gói dịch vụ')}</h3></button><div class="tel-speed">${esc(e.service_speed_down||'Tư vấn theo nhu cầu')}</div><p class="tel-desc">${esc(promo)}</p><button type="button" class="tel-detail-link svc-detail-open" data-package="${esc(x.title||'')}">Xem chi tiết & khuyến mãi →</button><div class="tel-card-bottom"><div class="tel-price"><small>Chỉ từ</small><strong>${esc(price)}</strong></div><a class="tel-cta svc-lead-open" href="#dang-ky" data-package="${esc(x.title||'')}" data-category="${esc(x.category||'')}">Đăng ký</a></div></div></article>`};
+ const empty=(cat,n=6)=>Array.from({length:n},()=>`<div class="tel-empty" data-contract-slot="1" data-empty="1"><b>${esc(cat)}</b><span>Chưa có gói dịch vụ</span><small>Khung giao diện được giữ nguyên khi website chưa đăng nội dung.</small></div>`).join('');
  const paddedCards=(i,n=6,cl='',start=0)=>{const items=arr(i).slice(start,start+n);return items.map((x,j)=>card(x,cl+(start===0&&j===0?' is-first':''))).join('')+empty(cfg.cats[i],Math.max(0,n-items.length))};
  const cards=(i,n=6,cl='')=>paddedCards(i,n,cl,0);
  document.body.classList.remove('theme-service-fpt','theme-service-vnpt','theme-service-viettel'); document.body.classList.add(key==='dich-vu-1'?'theme-service-fpt':key==='dich-vu-2'?'theme-service-vnpt':'theme-service-viettel','tel-pro');
  document.querySelector('.topbar')?.remove();document.querySelector('header.header')?.remove();document.querySelector('footer.footer')?.remove();
  const brand=`<a class="tel-brand" href="#"><strong>${esc(cfg.brand)}</strong><span>${esc(cfg.brand2)}</span></a>`;
  const nav=`<header class="tel-nav"><div class="tel-wrap">${brand}<nav><a href="#internet">Internet</a><a href="#tv">Truyền hình</a><a href="#camera">Camera</a><a href="#combo">Combo</a><a href="#tu-van">Tin tư vấn</a></nav><div class="tel-nav-actions"><a class="tel-hotline" href="tel:${phoneHref}">☎ ${phone}</a><a class="tel-btn" href="#dang-ky">Đăng ký lắp đặt</a></div></div></header>`;
- const consult=`<section class="tel-consult" id="dang-ky"><div class="tel-wrap tel-consult-grid"><div><span class="eyebrow">TƯ VẤN MIỄN PHÍ</span><h2>Kiểm tra hạ tầng & chọn gói phù hợp</h2><p>Để lại số điện thoại. Tư vấn viên liên hệ xác nhận khu vực, nhu cầu và gói cước phù hợp.</p><div class="tel-contact-row"><a href="tel:${phoneHref}">☎ Gọi ngay ${phone}</a>${site.zalo?`<a href="https://zalo.me/${esc(String(site.zalo).replace(/\D/g,''))}" target="_blank" rel="noopener">Zalo tư vấn</a>`:''}</div></div><form id="svcLeadForm" class="tel-form"><div class="tel-form-row"><input name="customer_name" required placeholder="Họ và tên *"><input name="phone" required inputmode="tel" placeholder="Số điện thoại *"></div><div class="tel-form-row"><input name="province" placeholder="Tỉnh / Thành phố"><input name="district" placeholder="Quận / Huyện"></div><select name="need"><option value="">Bạn đang quan tâm dịch vụ nào?</option><option>Internet gia đình</option><option>Internet doanh nghiệp</option><option>Wi-Fi Mesh / nhà nhiều tầng</option><option>Truyền hình</option><option>Camera</option><option>Combo Internet + TV + Camera</option></select><input type="hidden" name="package_title" id="svcLeadPackage"><input type="hidden" name="package_category" id="svcLeadCategory"><div id="svcLeadPicked" class="svc-picked hidden"></div><button class="tel-submit" type="submit">Yêu cầu tư vấn ngay →</button><div id="svcLeadMsg" class="svc-lead-msg"></div></form></div></section>`;
+ const consult=`<section class="tel-consult" id="dang-ky" data-structure-key="contact"><div class="tel-wrap tel-consult-grid"><div><span class="eyebrow">TƯ VẤN MIỄN PHÍ</span><h2>Kiểm tra hạ tầng & chọn gói phù hợp</h2><p>Để lại số điện thoại. Tư vấn viên liên hệ xác nhận khu vực, nhu cầu và gói cước phù hợp.</p><div class="tel-contact-row"><a href="tel:${phoneHref}">☎ Gọi ngay ${phone}</a>${site.zalo?`<a href="https://zalo.me/${esc(String(site.zalo).replace(/\D/g,''))}" target="_blank" rel="noopener">Zalo tư vấn</a>`:''}</div></div><form id="svcLeadForm" class="tel-form"><div class="tel-form-row"><input name="customer_name" required placeholder="Họ và tên *"><input name="phone" required inputmode="tel" placeholder="Số điện thoại *"></div><div class="tel-form-row"><input name="province" placeholder="Tỉnh / Thành phố"><input name="district" placeholder="Quận / Huyện"></div><select name="need"><option value="">Bạn đang quan tâm dịch vụ nào?</option><option>Internet gia đình</option><option>Internet doanh nghiệp</option><option>Wi-Fi Mesh / nhà nhiều tầng</option><option>Truyền hình</option><option>Camera</option><option>Combo Internet + TV + Camera</option></select><input type="hidden" name="package_title" id="svcLeadPackage"><input type="hidden" name="package_category" id="svcLeadCategory"><div id="svcLeadPicked" class="svc-picked hidden"></div><button class="tel-submit" type="submit">Yêu cầu tư vấn ngay →</button><div id="svcLeadMsg" class="svc-lead-msg"></div></form></div></section>`;
  const showroomPriceNote=nrServiceIsShowroom(key)?`<div class="tel-wrap tel-demo-price-note">* Giá hiển thị là dữ liệu minh họa showroom để khách xem bố cục. Chủ website có thể sửa toàn bộ giá, mô tả và ảnh trong Admin.</div>`:'';
- const advice=`<section class="tel-section tel-advice" id="tu-van"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">CẨM NANG DỊCH VỤ</span><h2>Thông tin hữu ích trước khi lắp đặt</h2></div><a href="#dang-ky">Cần tư vấn? →</a></div><div class="tel-advice-grid"><article><b>01</b><h3>Nhà nhiều tầng nên chọn Wi-Fi Mesh thế nào?</h3><p>Gợi ý vùng phủ, số lượng điểm phát và cách bố trí thiết bị.</p></article><article><b>02</b><h3>Internet + TV hay combo 3 dịch vụ?</h3><p>So sánh nhu cầu giải trí, camera và chi phí hàng tháng.</p></article><article><b>03</b><h3>Camera Cloud có gì khác thẻ nhớ?</h3><p>Khả năng xem lại, bảo mật dữ liệu và lựa chọn thời gian lưu trữ.</p></article></div></div></section>`;
+ const advice=`<section class="tel-section tel-advice" id="tu-van" data-structure-key="advice"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">CẨM NANG DỊCH VỤ</span><h2>Thông tin hữu ích trước khi lắp đặt</h2></div><a href="#dang-ky">Cần tư vấn? →</a></div><div class="tel-advice-grid"><article><b>01</b><h3>Nhà nhiều tầng nên chọn Wi-Fi Mesh thế nào?</h3><p>Gợi ý vùng phủ, số lượng điểm phát và cách bố trí thiết bị.</p></article><article><b>02</b><h3>Internet + TV hay combo 3 dịch vụ?</h3><p>So sánh nhu cầu giải trí, camera và chi phí hàng tháng.</p></article><article><b>03</b><h3>Camera Cloud có gì khác thẻ nhớ?</h3><p>Khả năng xem lại, bảo mật dữ liệu và lựa chọn thời gian lưu trữ.</p></article></div></div></section>`;
  let body='';
- if(key==='dich-vu-1') body=`<section class="tel-hero fpt-pro"><div class="tel-wrap tel-hero-grid"><div class="tel-hero-copy"><span class="eyebrow">INTERNET • FPT PLAY • CAMERA AI</span><h1>Kết nối mạnh.<br><em>Trọn trải nghiệm số.</em></h1><p>Internet tốc độ cao, giải trí FPT Play và Camera AI trong một hệ sinh thái cho gia đình hiện đại.</p><div class="tel-hero-actions"><a class="tel-btn big" href="#internet">Xem gói cước</a><a class="tel-link" href="#dang-ky">Kiểm tra hạ tầng →</a></div><div class="tel-proof"><span><b>Wi-Fi 6/7</b> kết nối hiện đại</span><span><b>1 Gbps</b> tốc độ cao</span><span><b>24/7</b> hỗ trợ kỹ thuật</span></div></div><div class="tel-hero-photo"><img src="${nrSvcImg(7,'combo')}" alt="Gia đình sử dụng dịch vụ số"><div class="float-offer"><small>GÓI NỔI BẬT</small><b>Internet + TV + Camera</b><a href="#combo">Khám phá combo →</a></div></div></div></section><section class="tel-shortcuts"><div class="tel-wrap"><a href="#internet"><b>📶</b><span>Internet gia đình<small>Wi-Fi mạnh mọi phòng</small></span></a><a href="#tv"><b>▶</b><span>FPT Play<small>Giải trí đa nền tảng</small></span></a><a href="#camera"><b>◉</b><span>Camera AI<small>An tâm 24/7</small></span></a><a href="#combo"><b>＋</b><span>Combo tiết kiệm<small>Một gói, nhiều tiện ích</small></span></a></div></section><section class="tel-section" id="internet"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">INTERNET FPT</span><h2>Chọn tốc độ theo nhu cầu</h2></div><a href="#dang-ky">Tư vấn chọn gói →</a></div><div class="tel-grid3">${cards(0,6)}</div></div></section><section class="tel-showcase" id="tv"><div class="tel-wrap"><div class="tel-showcase-copy"><span class="eyebrow">FPT PLAY</span><h2>Biến phòng khách thành rạp giải trí</h2><p>Truyền hình, phim, thể thao và nội dung đa nền tảng kết hợp Internet tốc độ cao.</p><a class="tel-btn" href="#dang-ky">Tư vấn combo giải trí</a></div><div class="tel-showcase-cards">${cards(1,6,'compact')}</div></div></section><section class="tel-section" id="camera"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">CAMERA AI</span><h2>An tâm cho nhà ở & cửa hàng</h2></div></div><div class="tel-grid3">${cards(2,6)}</div></div></section><section class="tel-section soft" id="combo"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">COMBO FPT</span><h2>Gộp dịch vụ, tối ưu chi phí</h2></div></div><div class="tel-grid3">${cards(3,6)}</div></div></section>${advice}${consult}`;
- else if(key==='dich-vu-2') body=`<section class="vnpt-pro-hero"><div class="tel-wrap"><div class="vnpt-main"><span class="eyebrow">VNPT HOME</span><h1>Internet mạnh.<br>Giải trí hay.<br><em>Nhà luôn an tâm.</em></h1><p>Chọn Home Internet, MyTV, Wi-Fi Mesh và Home Camera theo đúng số người dùng, diện tích nhà và nhu cầu giải trí.</p><div class="tel-hero-actions"><a class="tel-btn big" href="#internet">Khám phá VNPT Home</a><a class="tel-link" href="#dang-ky">Đăng ký tư vấn →</a></div></div><div class="vnpt-service-board"><div class="big"><span>HOME INTERNET</span><b>Đến ~1 Gbps</b><small>Wi-Fi Mesh thế hệ mới</small></div><div><span>MYTV</span><b>180+</b><small>Kênh & nội dung</small></div><div><span>HOME CAM</span><b>Cloud 7</b><small>Giám sát thông minh</small></div></div></div></section><section class="vnpt-quick"><div class="tel-wrap"><div><b>01</b><span>Chọn nhu cầu</span></div><div><b>02</b><span>Kiểm tra hạ tầng</span></div><div><b>03</b><span>Nhận tư vấn gói</span></div><div><b>04</b><span>Hẹn lắp đặt</span></div></div></section><section class="tel-section" id="internet"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">HOME INTERNET</span><h2>Internet cho từng kiểu gia đình</h2></div></div><div class="vnpt-packages"><div class="vnpt-feature-pack">${paddedCards(0,1,'feature',0)}</div><div class="vnpt-pack-list">${paddedCards(0,5,'horizontal',1)}</div></div></div></section><section class="vnpt-mytv" id="tv"><div class="tel-wrap"><div class="vnpt-mytv-copy"><span class="eyebrow">MYTV</span><h2>Giải trí cho cả gia đình</h2><p>Truyền hình tương tác, nội dung theo yêu cầu và các gói HomeTV kết hợp Internet.</p></div><div class="vnpt-mytv-grid">${cards(1,6)}</div></div></section><section class="tel-section" id="camera"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">HOME CAMERA</span><h2>Quan sát ngôi nhà từ bất cứ đâu</h2></div></div><div class="tel-grid3">${cards(2,6)}</div></div></section><section class="tel-section blue-soft" id="combo"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">HOME COMBO</span><h2>Kết hợp Internet, MyTV, Camera & di động</h2></div></div><div class="tel-grid3">${cards(3,6)}</div></div></section>${advice}${consult}`;
- else body=`<section class="viettel-pro-hero"><div class="tel-wrap"><div class="viettel-copy"><span class="eyebrow">VIETTEL INTERNET • TV360 • CAMERA</span><h1>Mạnh từng kết nối.<br><em>Đủ mọi nhu cầu.</em></h1><p>Internet Wi-Fi 6 tốc độ cao, TV360 và Camera Cloud cho gia đình cần một hệ sinh thái đơn giản, mạnh và dễ đăng ký.</p><div class="tel-hero-actions"><a class="tel-btn big" href="#combo">Xem combo hot</a><a class="tel-link light" href="#dang-ky">Kiểm tra hạ tầng →</a></div></div><div class="viettel-campaign"><span>COMBO NỔI BẬT</span><strong>Internet<br>+ TV360<br>+ Camera</strong><small>Đăng ký một lần • Tư vấn theo khu vực</small><a href="#dang-ky">Đăng ký ngay →</a></div></div></section><section class="viettel-tabs"><div class="tel-wrap"><a href="#internet">Internet Wi-Fi 6</a><a href="#combo">Combo Internet</a><a href="#tv">TV360</a><a href="#camera">Camera Cloud</a><a href="#dang-ky">Internet doanh nghiệp</a></div></section><section class="tel-section" id="combo"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">COMBO ĐƯỢC QUAN TÂM</span><h2>Một gói cho kết nối, giải trí & an ninh</h2></div><a href="#dang-ky">Nhận báo giá khu vực →</a></div><div class="viettel-combo-grid">${cards(3,6)}</div></div></section><section class="viettel-dark" id="internet"><div class="tel-wrap"><div class="tel-heading dark"><div><span class="eyebrow">INTERNET VIETTEL</span><h2>Wi-Fi mạnh cho mọi không gian</h2></div></div><div class="viettel-net-list">${cards(0,6,'horizontal')}</div></div></section><section class="tel-section" id="tv"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">TV360</span><h2>Thể thao & giải trí trên mọi màn hình</h2></div></div><div class="tel-grid3">${cards(1,6)}</div></div></section><section class="tel-section red-soft" id="camera"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">CAMERA CLOUD</span><h2>Giám sát thông minh, xem lại tiện lợi</h2></div></div><div class="tel-grid3">${cards(2,6)}</div></div></section>${advice}${consult}`;
+ if(key==='dich-vu-1') body=`<section class="tel-hero fpt-pro" data-structure-key="hero"><div class="tel-wrap tel-hero-grid"><div class="tel-hero-copy"><span class="eyebrow">INTERNET • FPT PLAY • CAMERA AI</span><h1>Kết nối mạnh.<br><em>Trọn trải nghiệm số.</em></h1><p>Internet tốc độ cao, giải trí FPT Play và Camera AI trong một hệ sinh thái cho gia đình hiện đại.</p><div class="tel-hero-actions"><a class="tel-btn big" href="#internet">Xem gói cước</a><a class="tel-link" href="#dang-ky">Kiểm tra hạ tầng →</a></div><div class="tel-proof"><span><b>Wi-Fi 6/7</b> kết nối hiện đại</span><span><b>1 Gbps</b> tốc độ cao</span><span><b>24/7</b> hỗ trợ kỹ thuật</span></div></div><div class="tel-hero-photo"><img src="${nrSvcImg(7,'combo')}" alt="Gia đình sử dụng dịch vụ số"><div class="float-offer"><small>GÓI NỔI BẬT</small><b>Internet + TV + Camera</b><a href="#combo">Khám phá combo →</a></div></div></div></section><section class="tel-shortcuts" data-structure-key="needs"><div class="tel-wrap"><a href="#internet"><b>📶</b><span>Internet gia đình<small>Wi-Fi mạnh mọi phòng</small></span></a><a href="#tv"><b>▶</b><span>FPT Play<small>Giải trí đa nền tảng</small></span></a><a href="#camera"><b>◉</b><span>Camera AI<small>An tâm 24/7</small></span></a><a href="#combo"><b>＋</b><span>Combo tiết kiệm<small>Một gói, nhiều tiện ích</small></span></a></div></section><section class="tel-section" id="internet" data-structure-key="internet"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">INTERNET FPT</span><h2>Chọn tốc độ theo nhu cầu</h2></div><a href="#dang-ky">Tư vấn chọn gói →</a></div><div class="tel-grid3" data-contract-grid="1">${cards(0,secSlots('internet',6))}</div></div></section><section class="tel-showcase" id="tv" data-structure-key="tv"><div class="tel-wrap"><div class="tel-showcase-copy"><span class="eyebrow">FPT PLAY</span><h2>Biến phòng khách thành rạp giải trí</h2><p>Truyền hình, phim, thể thao và nội dung đa nền tảng kết hợp Internet tốc độ cao.</p><a class="tel-btn" href="#dang-ky">Tư vấn combo giải trí</a></div><div class="tel-showcase-cards" data-contract-grid="1">${cards(1,secSlots('tv',6),'compact')}</div></div></section><section class="tel-section" id="camera" data-structure-key="camera"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">CAMERA AI</span><h2>An tâm cho nhà ở & cửa hàng</h2></div></div><div class="tel-grid3" data-contract-grid="1">${cards(2,secSlots('camera',6))}</div></div></section><section class="tel-section soft" id="combo" data-structure-key="combo"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">COMBO FPT</span><h2>Gộp dịch vụ, tối ưu chi phí</h2></div></div><div class="tel-grid3" data-contract-grid="1">${cards(3,secSlots('combo',6))}</div></div></section>${advice}${consult}`;
+ else if(key==='dich-vu-2') body=`<section class="vnpt-pro-hero" data-structure-key="hero"><div class="tel-wrap"><div class="vnpt-main"><span class="eyebrow">VNPT HOME</span><h1>Internet mạnh.<br>Giải trí hay.<br><em>Nhà luôn an tâm.</em></h1><p>Chọn Home Internet, MyTV, Wi-Fi Mesh và Home Camera theo đúng số người dùng, diện tích nhà và nhu cầu giải trí.</p><div class="tel-hero-actions"><a class="tel-btn big" href="#internet">Khám phá VNPT Home</a><a class="tel-link" href="#dang-ky">Đăng ký tư vấn →</a></div></div><div class="vnpt-service-board"><div class="big"><span>HOME INTERNET</span><b>Đến ~1 Gbps</b><small>Wi-Fi Mesh thế hệ mới</small></div><div><span>MYTV</span><b>180+</b><small>Kênh & nội dung</small></div><div><span>HOME CAM</span><b>Cloud 7</b><small>Giám sát thông minh</small></div></div></div></section><section class="vnpt-quick" data-structure-key="needs"><div class="tel-wrap"><div><b>01</b><span>Chọn nhu cầu</span></div><div><b>02</b><span>Kiểm tra hạ tầng</span></div><div><b>03</b><span>Nhận tư vấn gói</span></div><div><b>04</b><span>Hẹn lắp đặt</span></div></div></section><section class="tel-section" id="internet" data-structure-key="internet"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">HOME INTERNET</span><h2>Internet cho từng kiểu gia đình</h2></div></div><div class="vnpt-packages"><div class="vnpt-feature-pack" data-contract-grid="1">${paddedCards(0,secHostSlots('internet','.vnpt-feature-pack',1),'feature',0)}</div><div class="vnpt-pack-list" data-contract-grid="1">${paddedCards(0,secHostSlots('internet','.vnpt-pack-list',Math.max(0,secSlots('internet',6)-1)),'horizontal',secHostSlots('internet','.vnpt-feature-pack',1))}</div></div></div></section><section class="vnpt-mytv" id="tv" data-structure-key="tv"><div class="tel-wrap"><div class="vnpt-mytv-copy"><span class="eyebrow">MYTV</span><h2>Giải trí cho cả gia đình</h2><p>Truyền hình tương tác, nội dung theo yêu cầu và các gói HomeTV kết hợp Internet.</p></div><div class="vnpt-mytv-grid" data-contract-grid="1">${cards(1,secSlots('tv',6))}</div></div></section><section class="tel-section" id="camera" data-structure-key="camera"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">HOME CAMERA</span><h2>Quan sát ngôi nhà từ bất cứ đâu</h2></div></div><div class="tel-grid3" data-contract-grid="1">${cards(2,secSlots('camera',6))}</div></div></section><section class="tel-section blue-soft" id="combo" data-structure-key="combo"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">HOME COMBO</span><h2>Kết hợp Internet, MyTV, Camera & di động</h2></div></div><div class="tel-grid3" data-contract-grid="1">${cards(3,secSlots('combo',6))}</div></div></section>${advice}${consult}`;
+ else body=`<section class="viettel-pro-hero" data-structure-key="hero"><div class="tel-wrap"><div class="viettel-copy"><span class="eyebrow">VIETTEL INTERNET • TV360 • CAMERA</span><h1>Mạnh từng kết nối.<br><em>Đủ mọi nhu cầu.</em></h1><p>Internet Wi-Fi 6 tốc độ cao, TV360 và Camera Cloud cho gia đình cần một hệ sinh thái đơn giản, mạnh và dễ đăng ký.</p><div class="tel-hero-actions"><a class="tel-btn big" href="#combo">Xem combo hot</a><a class="tel-link light" href="#dang-ky">Kiểm tra hạ tầng →</a></div></div><div class="viettel-campaign"><span>COMBO NỔI BẬT</span><strong>Internet<br>+ TV360<br>+ Camera</strong><small>Đăng ký một lần • Tư vấn theo khu vực</small><a href="#dang-ky">Đăng ký ngay →</a></div></div></section><section class="viettel-tabs" data-structure-key="needs"><div class="tel-wrap"><a href="#internet">Internet Wi-Fi 6</a><a href="#combo">Combo Internet</a><a href="#tv">TV360</a><a href="#camera">Camera Cloud</a><a href="#dang-ky">Internet doanh nghiệp</a></div></section><section class="tel-section" id="combo" data-structure-key="combo"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">COMBO ĐƯỢC QUAN TÂM</span><h2>Một gói cho kết nối, giải trí & an ninh</h2></div><a href="#dang-ky">Nhận báo giá khu vực →</a></div><div class="viettel-combo-grid" data-contract-grid="1">${cards(3,secSlots('combo',6))}</div></div></section><section class="viettel-dark" id="internet" data-structure-key="internet"><div class="tel-wrap"><div class="tel-heading dark"><div><span class="eyebrow">INTERNET VIETTEL</span><h2>Wi-Fi mạnh cho mọi không gian</h2></div></div><div class="viettel-net-list" data-contract-grid="1">${cards(0,secSlots('internet',6),'horizontal')}</div></div></section><section class="tel-section" id="tv" data-structure-key="tv"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">TV360</span><h2>Thể thao & giải trí trên mọi màn hình</h2></div></div><div class="tel-grid3" data-contract-grid="1">${cards(1,secSlots('tv',6))}</div></div></section><section class="tel-section red-soft" id="camera" data-structure-key="camera"><div class="tel-wrap"><div class="tel-heading"><div><span class="eyebrow">CAMERA CLOUD</span><h2>Giám sát thông minh, xem lại tiện lợi</h2></div></div><div class="tel-grid3" data-contract-grid="1">${cards(2,secSlots('camera',6))}</div></div></section>${advice}${consult}`;
  root.innerHTML=`<div class="tel-site tel-${key}">${nav}${showroomPriceNote}${body}<footer class="tel-footer"><div class="tel-wrap">${brand}<p>${esc(cfg.kicker.replace(/ · /g,' • '))}</p><div><a href="#internet">Internet</a><a href="#tv">Truyền hình</a><a href="#camera">Camera</a><a href="#dang-ky">Đăng ký tư vấn</a></div></div></footer><div class="svc-mobile-contact"><a href="tel:${phoneHref}">☎ Gọi ngay</a><a href="#dang-ky">Đăng ký tư vấn</a></div><div id="svcDetailModal" class="svc-detail-modal" aria-hidden="true"><div class="svc-detail-backdrop" data-detail-close="1"></div><div class="svc-detail-panel" role="dialog" aria-modal="true" aria-labelledby="svcDetailTitle"><button class="svc-detail-close" type="button" data-detail-close="1">×</button><div id="svcDetailContent"></div></div></div></div>`;
  const detailModal=document.getElementById('svcDetailModal'),detailContent=document.getElementById('svcDetailContent');
  const findPackage=title=>posts.find(x=>String(x.title||'')===String(title||''));
