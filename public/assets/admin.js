@@ -130,6 +130,7 @@ function configureAdminForTemplate(){
  if(editorHelp)editorHelp.textContent=profile.contentHelp||'Soạn và định dạng nội dung.';
  renderProfileFields();
  if(service){
+   document.getElementById('menuServiceLeads')?.classList.remove('hidden');
    postType.value='service';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
    if(menuNew)menuNew.textContent='Thêm gói dịch vụ';if(menuPosts)menuPosts.textContent='Quản lý dịch vụ';if(overviewBtn)overviewBtn.textContent='＋ Thêm gói dịch vụ';
    if(postTitle)postTitle.placeholder='Ví dụ: Gói Internet Home 500';
@@ -154,7 +155,7 @@ function configureAdminForTemplate(){
  }
  updateContentTypeUI();
 }
-function showTab(n){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));document.getElementById('tab-'+n).classList.remove('hidden');document.querySelectorAll('.menu-btn').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));if(n==='posts')loadPosts();if(n==='stats')loadStats();if(n==='service')loadService()}
+function showTab(n){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));document.getElementById('tab-'+n).classList.remove('hidden');document.querySelectorAll('.menu-btn').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));if(n==='posts')loadPosts();if(n==='stats')loadStats();if(n==='service')loadService();if(n==='serviceleads')loadServiceLeads()}
 document.querySelectorAll('.menu-btn').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 let websiteSettingsSnapshot=null;
 function captureWebsiteSettings(){return {name:setName.value,phone:setPhone.value,zalo:setZalo.value,email:setEmail.value,facebook:setFacebook.value}}
@@ -619,3 +620,13 @@ if(trialParam){
   document.getElementById('adminTrialBuy').onclick=buy;sync();setInterval(paint,1000);setInterval(sync,60000);
  })
 }
+
+
+// V20.6.0 — Service lead inbox owned by each tenant.
+async function loadServiceLeads(){
+ const box=document.getElementById('serviceLeadsPanel');if(!box)return;box.innerHTML='<div class="muted">Đang tải yêu cầu tư vấn...</div>';
+ try{const d=await api('/service-leads');const rows=d.leads||[];if(!rows.length){box.innerHTML='<div class="empty">Chưa có khách hàng gửi yêu cầu tư vấn.</div>';return}
+ box.innerHTML='<div class="lead-table">'+rows.map(x=>`<article class="lead-row"><div><b>${esc(x.customer_name||'Khách hàng')}</b><a href="tel:${esc(x.phone||'')}">${esc(x.phone||'')}</a><small>${esc([x.province,x.district].filter(Boolean).join(' · ')||'Chưa chọn khu vực')}</small></div><div><span class="tag">${esc(x.package_category||'Tư vấn chung')}</span><b>${esc(x.package_title||x.need||'Cần tư vấn dịch vụ')}</b><small>${esc(x.need||'')}</small></div><label>Trạng thái<select data-lead-status="${x.id}"><option value="new" ${x.status==='new'?'selected':''}>Mới</option><option value="contacted" ${x.status==='contacted'?'selected':''}>Đã liên hệ</option><option value="consulting" ${x.status==='consulting'?'selected':''}>Đang tư vấn</option><option value="installed" ${x.status==='installed'?'selected':''}>Đã lắp</option><option value="lost" ${x.status==='lost'?'selected':''}>Không thành công</option></select></label><label>Ghi chú<textarea data-lead-note="${x.id}" placeholder="Ghi chú chăm sóc">${esc(x.note||'')}</textarea></label><button class="btn" onclick="saveServiceLead(${x.id})">Lưu</button></article>`).join('')+'</div>'}catch(e){box.innerHTML='<div class="error">'+esc(e.message||'Không tải được danh sách')+'</div>'}
+}
+async function saveServiceLead(id){const status=document.querySelector(`[data-lead-status="${id}"]`)?.value||'new',note=document.querySelector(`[data-lead-note="${id}"]`)?.value||'';try{await api('/service-leads',{method:'PUT',body:JSON.stringify({id,status,note})});loadServiceLeads()}catch(e){alert(e.message||'Không lưu được')}}
+window.saveServiceLead=saveServiceLead;

@@ -918,6 +918,45 @@ async function ensureTemplateCatalog(env){
     const cats=cfg.categories;const sp={version:6,content_type:'service',geometry_locked:1,route_contract:'service-v1',card_contract:'service-card-v1',article_contract:'service-detail-v1',sidebars:[],sections:[{key:'hero',type:'section',title:`Giải pháp ${cfg.provider} cho gia đình`,slots:0,desktop_columns:1,tablet_columns:1,mobile_columns:1,content_source:'none',bind_required:0,empty_policy:'slots'},{key:'internet',type:'category',title:cats[0],category:cats[0],slots:3,desktop_columns:3,tablet_columns:2,mobile_columns:1,desktop_rows:1,content_source:'category',bind_required:1,empty_policy:'slots'},{key:'television',type:'category',title:cats[1],category:cats[1],slots:3,desktop_columns:3,tablet_columns:2,mobile_columns:1,desktop_rows:1,content_source:'category',bind_required:1,empty_policy:'slots'},{key:'camera',type:'category',title:cats[2],category:cats[2],slots:3,desktop_columns:3,tablet_columns:2,mobile_columns:1,desktop_rows:1,content_source:'category',bind_required:1,empty_policy:'slots'},{key:'combo',type:'category',title:cats[3],category:cats[3],slots:3,desktop_columns:3,tablet_columns:2,mobile_columns:1,desktop_rows:1,content_source:'category',bind_required:1,empty_policy:'slots'},{key:'benefits',type:'benefits',title:'Lợi ích dịch vụ',slots:0,desktop_columns:4,tablet_columns:2,mobile_columns:1,content_source:'none',bind_required:0,empty_policy:'slots'},{key:'contact',type:'section',title:'Đăng ký tư vấn',slots:0,desktop_columns:1,tablet_columns:1,mobile_columns:1,content_source:'none',bind_required:0,empty_policy:'slots'}]};
     try{await env.DB.prepare(`UPDATE template_catalog SET structure_profile=? WHERE template_key=? AND (coalesce(structure_profile,'')='' OR structure_profile NOT LIKE '%"content_type":"service"%')`).bind(JSON.stringify(sp),key).run()}catch(e){}
   }
+  // V20.6.0 — Service Commerce & Lead: richer package taxonomy + conversion fields.
+  const serviceCommerce={
+    'dich-vu-1':{provider:'FPT',categories:['Internet gia đình FPT','Internet doanh nghiệp FPT','Wi-Fi Mesh / Wi-Fi 6 FPT','Internet Gaming FPT','FPT Play / Truyền hình','Camera FPT','Cloud Camera FPT','Combo Internet + FPT Play','Combo Internet + Camera','Triple Combo FPT','Thiết bị FPT','Khuyến mãi FPT','Tin tư vấn FPT']},
+    'dich-vu-2':{provider:'VNPT',categories:['Home Internet VNPT','Internet doanh nghiệp VNPT','Wi-Fi Mesh VNPT','Internet Gaming VNPT','MyTV / Truyền hình','Home Cam VNPT','Cloud Camera VNPT','Combo Internet + MyTV','Combo Internet + Camera','Triple Combo VNPT','Thiết bị VNPT','Khuyến mãi VNPT','Tin tư vấn VNPT']},
+    'dich-vu-3':{provider:'Viettel',categories:['Internet gia đình Viettel','Internet doanh nghiệp Viettel','Wi-Fi Mesh / Wi-Fi 6 Viettel','Internet Gaming Viettel','TV360 / Truyền hình','Camera Viettel','Cloud Camera Viettel','Combo Internet + TV360','Combo Internet + Camera','Triple Combo Viettel','Thiết bị Viettel','Khuyến mãi Viettel','Tin tư vấn Viettel']}
+  };
+  for(const [key,cfg] of Object.entries(serviceCommerce)){
+    const ep={id:'service',label:'Dịch vụ',content_type:'service',categories:cfg.categories,contentLabel:'Mô tả gói / bài tư vấn',contentHelp:'Mô tả quyền lợi, điều kiện, khu vực áp dụng, thiết bị và hướng dẫn đăng ký.',custom_fields:[
+      {key:'service_price',label:'Giá / tháng',type:'text',placeholder:'Ví dụ: 220.000đ/tháng'},
+      {key:'service_speed_down',label:'Tốc độ Download',type:'text',placeholder:'Ví dụ: 300 Mbps'},
+      {key:'service_speed_up',label:'Tốc độ Upload',type:'text',placeholder:'Ví dụ: 300 Mbps'},
+      {key:'service_equipment',label:'Modem / Wi-Fi / Thiết bị',type:'text',placeholder:'Wi-Fi 6, Mesh, Box...'},
+      {key:'service_devices',label:'Số thiết bị phù hợp',type:'text',placeholder:'Ví dụ: 15–25 thiết bị'},
+      {key:'service_tv',label:'Truyền hình / nội dung',type:'text',placeholder:'MyTV, FPT Play, TV360...'},
+      {key:'service_camera',label:'Camera / Cloud',type:'text',placeholder:'Camera AI + Cloud 7 ngày'},
+      {key:'service_install_fee',label:'Phí hòa mạng / lắp đặt',type:'text',placeholder:'Miễn phí / theo khu vực'},
+      {key:'service_prepaid',label:'Ưu đãi trả trước',type:'text',placeholder:'Trả trước 6/12 tháng...'},
+      {key:'service_promo',label:'Khuyến mãi / quyền lợi',type:'textarea',placeholder:'Ưu đãi, quà tặng, điều kiện áp dụng'},
+      {key:'service_area',label:'Khu vực áp dụng',type:'text',placeholder:'Toàn quốc / tỉnh thành cụ thể'},
+      {key:'service_audience',label:'Khách hàng phù hợp',type:'text',placeholder:'Gia đình, game thủ, văn phòng...'},
+      {key:'service_cta',label:'Nhãn CTA',type:'text',placeholder:'Đăng ký tư vấn'}
+    ]};
+    const cats=cfg.categories;
+    const sp={version:7,content_type:'service',geometry_locked:1,route_contract:'service-commerce-v2',card_contract:'service-commerce-card-v2',article_contract:'service-detail-v2',lead_contract:'service-lead-v1',sidebars:[],sections:[
+      {key:'hero',type:'section',title:`Giải pháp ${cfg.provider}`,content_source:'none',bind_required:0},
+      {key:'needs',type:'section',title:'Chọn theo nhu cầu',content_source:'none',bind_required:0},
+      {key:'internet',type:'category',title:cats[0],category:cats[0],slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,content_source:'category',bind_required:1},
+      {key:'wifi',type:'category',title:cats[2],category:cats[2],slots:4,desktop_columns:4,tablet_columns:2,mobile_columns:1,content_source:'category',bind_required:1},
+      {key:'tv',type:'category',title:cats[4],category:cats[4],slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,content_source:'category',bind_required:1},
+      {key:'camera',type:'category',title:cats[5],category:cats[5],slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,content_source:'category',bind_required:1},
+      {key:'combo',type:'category',title:cats[7],category:cats[7],slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,content_source:'category',bind_required:1},
+      {key:'compare',type:'section',title:'So sánh gói cước',content_source:'none',bind_required:0},
+      {key:'advice',type:'category',title:cats[12],category:cats[12],slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,content_source:'category',bind_required:1},
+      {key:'faq',type:'section',title:'Câu hỏi thường gặp',content_source:'none',bind_required:0},
+      {key:'contact',type:'section',title:'Đăng ký tư vấn',content_source:'none',bind_required:0}
+    ]};
+    try{await env.DB.prepare(`UPDATE template_catalog SET editor_profile=?,structure_profile=? WHERE template_key=?`).bind(JSON.stringify(ep),JSON.stringify(sp),key).run()}catch(e){}
+  }
+
   // V15.2: backfill đúng khung riêng cho 9 template hiện tại.
   for(const k of ['mau-1','mau-2','mau-3','mau-4','mau-5','tin-tuc-1','tin-tuc-2','tin-tuc-3','tin-tuc-4','dich-vu-1','dich-vu-2','dich-vu-3']){try{const row=await env.DB.prepare(`SELECT structure_profile FROM template_catalog WHERE template_key=?`).bind(k).first();let cur={};try{cur=JSON.parse(String(row?.structure_profile||'{}'))}catch(e){}const def=defaultTemplateStructure(k);const requiredVersion=Math.max(1,Number(def?.version||1));if(!row?.structure_profile||Number(cur?.version||0)<requiredVersion||!Array.isArray(cur?.sections)||!cur.sections.some(x=>Number(x?.slots||0)>0)){await env.DB.prepare(`UPDATE template_catalog SET structure_profile=? WHERE template_key=?`).bind(JSON.stringify(def),k).run()}}catch(e){}}
 
@@ -3194,6 +3233,24 @@ if(route==='request-renewal'&&request.method==='POST'){
    const pay=await createRenewalPayment(env,site.id,Number(b.years||1));
    return json({ok:true,status:'payment_pending',payment:{order_code:pay.order_code,payment_token:pay.payment_token,years:pay.years,amount:pay.amount,memo:pay.memo,provider:pay.provider,provider_order_code:pay.provider_order_code,qr_code:pay.qr_code,checkout_url:pay.checkout_url,payment_link_id:pay.payment_link_id,qr_url:pay.qr_url,bank_name:pay.bank_name,account_name:pay.account_name,account_number:pay.account_number}});
  }catch(e){return json({error:e.message||'Không tạo được thanh toán gia hạn'},400)}
+}
+// V20.6.0 — tenant-owned service consultation leads.
+if(route==='service-leads'){
+  try{await env.DB.prepare(`CREATE TABLE IF NOT EXISTS service_leads(id INTEGER PRIMARY KEY AUTOINCREMENT,site_id INTEGER NOT NULL,customer_name TEXT NOT NULL DEFAULT '',phone TEXT NOT NULL DEFAULT '',province TEXT NOT NULL DEFAULT '',district TEXT NOT NULL DEFAULT '',need TEXT NOT NULL DEFAULT '',package_title TEXT NOT NULL DEFAULT '',package_category TEXT NOT NULL DEFAULT '',source_url TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'new',note TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`).run()}catch(e){}
+  if(request.method==='POST'){
+    const b=await body(request),name=String(b.customer_name||'').trim(),phone=String(b.phone||'').trim();
+    if(!name||!phone)return json({error:'Vui lòng nhập họ tên và số điện thoại'},400);
+    const r=await env.DB.prepare(`INSERT INTO service_leads(site_id,customer_name,phone,province,district,need,package_title,package_category,source_url) VALUES(?,?,?,?,?,?,?,?,?)`).bind(site.id,name,phone,String(b.province||'').trim(),String(b.district||'').trim(),String(b.need||'').trim(),String(b.package_title||'').trim(),String(b.package_category||'').trim(),String(b.source_url||'').slice(0,500)).run();
+    return json({ok:true,id:r.meta.last_row_id,message:'Đã gửi yêu cầu tư vấn'});
+  }
+  if(request.method==='GET'){
+    if(!user)return json({error:'Chưa đăng nhập'},401);
+    const {results}=await env.DB.prepare(`SELECT * FROM service_leads WHERE site_id=? ORDER BY id DESC LIMIT 500`).bind(site.id).all();return json({ok:true,leads:results||[]},200,{'Cache-Control':'no-store'});
+  }
+  if(request.method==='PUT'){
+    if(!user)return json({error:'Chưa đăng nhập'},401);const b=await body(request),id=Number(b.id||0);if(!id)return json({error:'Thiếu mã lead'},400);
+    await env.DB.prepare(`UPDATE service_leads SET status=?,note=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND site_id=?`).bind(String(b.status||'new'),String(b.note||''),id,site.id).run();return json({ok:true});
+  }
 }
 if(!user)return json({error:'Chưa đăng nhập'},401);
 
