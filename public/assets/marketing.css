@@ -56,3 +56,6 @@
  .order-form{grid-template-columns:1fr}
  .order-form label:nth-of-type(5),.order-form label:nth-of-type(6),.order-form button,.order-safe{grid-column:auto}
 }
+
+/* V20.4.6 Trial Early Conversion */
+.trial-conversion-note{margin-top:18px;padding:14px 16px;border:1px solid #cfe0ff;background:#f6f9ff;display:grid;gap:4px}.trial-conversion-note b{font-size:13px;color:#0f2943}.trial-conversion-note span{font-size:12px;line-height:1.55;color:#53667f}

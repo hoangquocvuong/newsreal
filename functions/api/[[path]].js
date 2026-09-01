@@ -1051,7 +1051,7 @@ function trialPublicState(row){
 }
 async function trialByToken(env,token){
   await ensureTrialTables(env);
-  const row=await env.DB.prepare(`SELECT wt.*,s.domain,s.name,s.preset,s.template_key site_template_key,sl.customer_name,sl.phone,sl.email,sl.template_name,
+  const row=await env.DB.prepare(`SELECT wt.*,s.domain,s.name,s.preset,s.template_key site_template_key,sl.customer_name,sl.phone,sl.email,sl.zalo,sl.company,sl.facebook,sl.site_name,sl.note,sl.marketing_opt_in,sl.template_name,
       tc.price template_price,tc.renewal_price template_renewal_price,tc.demo_url template_demo_url,tc.category template_category
     FROM website_trials wt JOIN sites s ON s.id=wt.site_id LEFT JOIN sales_leads sl ON sl.id=wt.lead_id LEFT JOIN template_catalog tc ON tc.template_key=wt.template_key WHERE wt.trial_token=? LIMIT 1`).bind(String(token||'')).first();
   if(!row)return null;
@@ -1621,7 +1621,7 @@ if(route==='trial/status'&&request.method==='GET'){
   await trialEvent(env,tr,'trial_seen',{path:String(u.searchParams.get('path')||'')});
   const demoBase=String(tr.template_demo_url||(`/demo/${tr.template_category==='tin-tuc'?'tin-tuc':'bat-dong-san'}/${String(tr.template_key||'').replace('tin-tuc-','mau-')}/`));
   const websiteUrl=demoBase+(demoBase.includes('?')?'&':'?')+'nr_trial='+encodeURIComponent(tr.trial_token);
-  return json({ok:true,trial:trialPublicState(tr),customer:{name:tr.customer_name||'',email:tr.email||'',phone:tr.phone||''},template:{key:tr.template_key,name:tr.template_name||tr.template_key,price:Number(tr.template_price||0),renewal_price:Number(tr.template_renewal_price||0),demo_url:demoBase},website_url:websiteUrl});
+  return json({ok:true,trial:trialPublicState(tr),customer:{name:tr.customer_name||'',email:tr.email||'',phone:tr.phone||'',zalo:tr.zalo||'',company:tr.company||'',facebook:tr.facebook||'',site_name:tr.site_name||'',note:tr.note||'',marketing_opt_in:Number(tr.marketing_opt_in||0)},template:{key:tr.template_key,name:tr.template_name||tr.template_key,price:Number(tr.template_price||0),renewal_price:Number(tr.template_renewal_price||0),demo_url:demoBase},website_url:websiteUrl});
 }
 if(route==='trial/convert-request'&&request.method==='POST'){
   const b=await body(request),tr=await trialByToken(env,String(b.token||''));if(!tr)return json({error:'Trial không tồn tại'},404);
@@ -1772,17 +1772,35 @@ if(route==='template-inquiry'&&request.method==='POST'){
     const publicFacebook=String(b.public_facebook||'').trim();
     const publicEmail=String(b.public_email||adminEmail).trim().toLowerCase();
     if(publicEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(publicEmail))return json({error:'Email liên hệ công khai không hợp lệ'},400);
-    if(await env.DB.prepare(`SELECT id FROM sites WHERE lower(domain)=?`).bind(domain).first())return json({error:'Domain đã tồn tại trong hệ thống'},409);
+    const leadId=Number(b.lead_id||0);
+    // V20.4.6 — Early/expired Trial conversion uses ONE pipeline and promotes the
+    // existing trial tenant in-place. This preserves every customer-created post,
+    // media reference, taxonomy choice, credential and website setting.
+    let promoteTrial=null;
+    if(leadId){
+      try{promoteTrial=await env.DB.prepare(`SELECT wt.id trial_id,wt.site_id,wt.trial_token,wt.template_key,wt.status,sl.source,sl.payment_status FROM website_trials wt JOIN sales_leads sl ON sl.id=wt.lead_id WHERE wt.lead_id=? AND sl.source='trial_conversion' LIMIT 1`).bind(leadId).first()}catch(e){}
+    }
+    const promoteSiteId=Number(promoteTrial?.site_id||0);
+    if(await env.DB.prepare(`SELECT id FROM sites WHERE lower(domain)=? AND id<>?`).bind(domain,promoteSiteId||0).first())return json({error:'Domain đã tồn tại trong hệ thống'},409);
     const accentMap={green:'#138a4b',orange:'#e87817',purple:'#7653d6',red:'#d74646',blue:'#1463ff'};
     const accent=accentMap[String(templateRow?.accent||'blue')]||'#1463ff';
-    const exactTemplateKey=String(templateRow?.template_key||requestedTemplateKey||'').trim();
-    const siteRun=await env.DB.prepare(`INSERT INTO sites(name,domain,preset,template_key,accent,phone,zalo,facebook,email,status) VALUES(?,?,?,?,?,?,?,?,?,'active')`)
-      .bind(name,domain,themeKey,exactTemplateKey,accent,publicPhone,publicZalo,publicFacebook,publicEmail).run();
-    const siteId=siteRun.meta.last_row_id;
-    const placeholder=await sha256(activationToken());
-    await env.DB.prepare(`INSERT INTO users(site_id,email,password_hash,role) VALUES(?,?,?,'admin')`).bind(siteId,adminEmail,placeholder).run();
+    const exactTemplateKey=String(templateRow?.template_key||requestedTemplateKey||promoteTrial?.template_key||'').trim();
+    let siteId=promoteSiteId;
+    if(siteId){
+      await env.DB.prepare(`UPDATE sites SET name=?,domain=?,preset=?,template_key=?,accent=?,phone=?,zalo=?,facebook=?,email=?,status='active' WHERE id=?`)
+        .bind(name,domain,themeKey,exactTemplateKey,accent,publicPhone,publicZalo,publicFacebook,publicEmail,siteId).run();
+      // Keep the password the customer created during Trial activation; only sync login email.
+      await env.DB.prepare(`UPDATE users SET email=? WHERE site_id=? AND role='admin'`).bind(adminEmail,siteId).run();
+    }else{
+      const siteRun=await env.DB.prepare(`INSERT INTO sites(name,domain,preset,template_key,accent,phone,zalo,facebook,email,status) VALUES(?,?,?,?,?,?,?,?,?,'active')`)
+        .bind(name,domain,themeKey,exactTemplateKey,accent,publicPhone,publicZalo,publicFacebook,publicEmail).run();
+      siteId=Number(siteRun.meta.last_row_id);
+      const placeholder=await sha256(activationToken());
+      await env.DB.prepare(`INSERT INTO users(site_id,email,password_hash,role) VALUES(?,?,?,'admin')`).bind(siteId,adminEmail,placeholder).run();
+    }
     const orderCode=await nextOrderCode(env);
-    await env.DB.prepare(`INSERT INTO customer_profiles(site_id,full_name,phone,email,company,order_code,internal_note,updated_at) VALUES(?,?,?,?,?,?,?,CURRENT_TIMESTAMP)`)
+    await env.DB.prepare(`INSERT INTO customer_profiles(site_id,full_name,phone,email,company,order_code,internal_note,updated_at) VALUES(?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+      ON CONFLICT(site_id) DO UPDATE SET full_name=excluded.full_name,phone=excluded.phone,email=excluded.email,company=excluded.company,order_code=excluded.order_code,internal_note=excluded.internal_note,updated_at=CURRENT_TIMESTAMP`)
       .bind(siteId,String(b.customer_name||'').trim(),String(b.customer_phone||'').trim(),adminEmail,String(b.company||'').trim(),orderCode,String(b.internal_note||'').trim()).run();
     await ensureSitePublicSettings(env);
     await env.DB.prepare(`INSERT INTO site_public_settings(site_id,contact_email,updated_at) VALUES(?,?,CURRENT_TIMESTAMP)
@@ -1794,14 +1812,15 @@ if(route==='template-inquiry'&&request.method==='POST'){
     const paymentStatus=String(b.payment_status||'unpaid');
     const salePrice=Number(b.sale_price||0);
     const paidAmount=paymentStatus==='paid'?salePrice:paymentStatus==='partial'?Math.max(0,Math.min(salePrice,Number(b.paid_amount||0))):0;
-    await env.DB.prepare(`INSERT INTO service_subscriptions(site_id,plan_name,sale_price,internal_cost,payment_status,paid_amount,service_status,started_at,expires_at,domain_status,registrar,note)
-      VALUES(?,?,?,?,?,?,'setup',?,?,?,'Cloudflare',?)`)
+    await env.DB.prepare(`INSERT INTO service_subscriptions(site_id,plan_name,sale_price,internal_cost,payment_status,paid_amount,service_status,started_at,expires_at,domain_status,registrar,note,finance_excluded,updated_at)
+      VALUES(?,?,?,?,?,?,'setup',?,?,?,'Cloudflare',?,0,CURRENT_TIMESTAMP)
+      ON CONFLICT(site_id) DO UPDATE SET plan_name=excluded.plan_name,sale_price=excluded.sale_price,internal_cost=excluded.internal_cost,payment_status=excluded.payment_status,paid_amount=excluded.paid_amount,service_status='setup',started_at=excluded.started_at,expires_at=excluded.expires_at,domain_status=excluded.domain_status,registrar='Cloudflare',note=excluded.note,finance_excluded=0,updated_at=CURRENT_TIMESTAMP`)
       .bind(siteId,String(b.plan_name||'Gói website trọn gói').trim(),salePrice,Number(b.internal_cost||0),paymentStatus,paidAmount,startedAt,serviceExpires,String(b.domain_status||'not_configured'),String(b.service_note||'').trim()).run();
-    await env.DB.prepare(`INSERT INTO service_promotions(site_id,term_months,bonus_months,promotion_name,list_price,first_discount,first_price,renewal_price) VALUES(?,?,0,?,?,?,?,?)`)
+    await env.DB.prepare(`INSERT INTO service_promotions(site_id,term_months,bonus_months,promotion_name,list_price,first_discount,first_price,renewal_price) VALUES(?,?,0,?,?,?,?,?)
+      ON CONFLICT(site_id) DO UPDATE SET term_months=excluded.term_months,bonus_months=0,promotion_name=excluded.promotion_name,list_price=excluded.list_price,first_discount=excluded.first_discount,first_price=excluded.first_price,renewal_price=excluded.renewal_price,updated_at=CURRENT_TIMESTAMP`)
       .bind(siteId,termMonths,String(b.promotion_name||'Ưu đãi kích hoạt lần đầu').trim(),listPrice,firstDiscount,firstPrice,renewalPrice).run();
     // Activation links are intentionally NOT created at website creation time.
     // They are available only after the custom domain + SSL is active on Cloudflare Pages.
-    const leadId=Number(b.lead_id||0);
     if(leadId){
       await ensureSalesLeads(env);
       await env.DB.prepare(`UPDATE sales_leads SET status='won',converted_site_id=?,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(siteId,leadId).run();
@@ -1809,7 +1828,7 @@ if(route==='template-inquiry'&&request.method==='POST'){
     }
     // V14.6: Website mới luôn được bàn giao ở trạng thái sạch, KHÔNG tự tạo bài mẫu.
     // Bộ bài mẫu vẫn thuộc Template Manager và chỉ Master cài theo từng khách sau khi Admin Client đã kích hoạt.
-    return json({ok:true,site_id:siteId,order_code:orderCode,activation_ready:false,lead_id:leadId||null,sample_result:null});
+    return json({ok:true,site_id:siteId,order_code:orderCode,activation_ready:false,already_activated:!!promoteSiteId,trial_promoted:!!promoteSiteId,lead_id:leadId||null,sample_result:null});
   }
   if(route==='master/regenerate-activation'&&request.method==='POST'){
     const b=await body(request),siteId=Number(b.site_id);
@@ -2966,6 +2985,24 @@ if(route==='site'&&request.method==='GET'){
    const st={posts:virtualPosts.length,properties:virtualPosts.filter(x=>x.type==='property').length,news:virtualPosts.filter(x=>x.type==='news').length,views:virtualPosts.reduce((n,p)=>n+Number(p.views||0),0)};
    return json({site:previewSite,posts:virtualPosts,stats:st,preview:{client:true,template_simulation:true,samples:1,structure_first:true,source:'template-sample-package',content_type:blueprint.content_type}},200,{'Cache-Control':'no-store'});
  }
+ // V20.4.6 — TRIAL TEMPLATE PARITY CONTRACT.
+ // A trial tenant owns customer data, but its homepage frame/taxonomy must always inherit
+ // the currently selected template contract from template_catalog. Public showroom and
+ // Trial therefore receive the same editor/layout/structure profiles; only post data differs.
+ let responseSite=site;
+ if(__siteTrial){
+   try{
+     const tk=String(__siteTrial.template_key||site.template_key||'').trim();
+     const tp=tk?await env.DB.prepare(`SELECT preset,editor_profile,layout_profile,structure_profile FROM template_catalog WHERE template_key=? LIMIT 1`).bind(tk).first():null;
+     if(tp){
+       responseSite={...site,template_key:tk||site.template_key};
+       if(tp.preset)responseSite.preset=tp.preset;
+       if(tp.editor_profile)responseSite.editor_profile=tp.editor_profile;
+       if(tp.layout_profile)responseSite.layout_profile=tp.layout_profile;
+       if(tp.structure_profile)responseSite.structure_profile=tp.structure_profile;
+     }
+   }catch(e){console.log('trial template parity:',e?.message||e)}
+ }
  const sql=hideSamples
   ?`SELECT * FROM posts WHERE site_id=? AND status='published' AND coalesce(is_sample,0)=0 AND coalesce(sample_key,'')='' AND coalesce(listing_code,'') NOT LIKE 'DEMO-%' AND coalesce(listing_code,'') NOT LIKE 'SAMPLE-%' ORDER BY id DESC LIMIT 100`
   :`SELECT * FROM posts WHERE site_id=? AND status='published' ORDER BY id DESC LIMIT 100`;
@@ -2975,7 +3012,7 @@ if(route==='site'&&request.method==='GET'){
    const published=results||[];
    st={...st,posts:published.length,views:published.reduce((n,p)=>n+Number(p.views||0),0)};
  }
- return json({site,posts:results,stats:st,preview:{client:true,template_simulation:templateSimulation,samples:hideSamples?0:1}},200,{'Cache-Control':'no-store'});
+ return json({site:responseSite,posts:results,stats:st,preview:{client:true,template_simulation:templateSimulation,samples:hideSamples?0:1,trial_template_parity:!!__siteTrial}},200,{'Cache-Control':'no-store'});
 }
 if(route==='article'&&request.method==='GET'){
  const id=+u.searchParams.get('id');

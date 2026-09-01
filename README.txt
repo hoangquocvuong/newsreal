@@ -1,4 +1,12 @@
-V20.4.5 TRIAL POST ROUTING HOTFIX
+NEWSREAL V20.4.6 — TRIAL EARLY CONVERSION + TEMPLATE PARITY
+- Unified Trial CTA text: "Đăng ký sử dụng" in public Trial and Client Admin.
+- Early conversion and expired conversion now use the same conversion-request contract.
+- Checkout reuses the existing Trial lead and pre-fills known customer information instead of treating the visitor as a new registration.
+- Master create-site promotes the existing Trial tenant in-place when the lead source is trial_conversion, preserving customer posts, media, credentials and settings.
+- Trial public /api/site now inherits editor/layout/structure profiles from the selected template_catalog entry, so homepage sections/categories match the showroom demo for every template even when some categories have zero customer posts.
+- No sample posts are copied into Trial; content/data isolation remains unchanged.
+
+V20.4.6 TRIAL POST ROUTING HOTFIX
 - Fix regression on marketplace trial demo: clicking + Đăng tin no longer jumps to batdongsan2027.org.uk.
 - When nr_trial is present, all demo post/admin CTAs now stay on HoangVuongTech /admin and preserve tenant + nr_trial + template + tab=newpost.
 - Keeps showroom/non-trial fallback behavior unchanged.

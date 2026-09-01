@@ -192,6 +192,25 @@ async function hydrateSelectedTemplate(){
  setTimeout(()=>document.getElementById('dang-ky').scrollIntoView({behavior:'smooth',block:'start'}),120);
 }
 if(key)hydrateSelectedTemplate();
+// V20.4.6 — Trial conversion is continuation, not a second registration.
+// Reuse all information already captured during Trial; visitor only completes fields
+// that were never known (for example the desired public website name).
+async function hydrateTrialConversion(){
+ const token=params.get('trial_token')||'';if(!token)return;
+ try{
+  const r=await fetch('/api/trial/status?token='+encodeURIComponent(token),{cache:'no-store'}),d=await r.json();if(!r.ok)return;
+  const c=d.customer||{},t=d.template||{};
+  if(t.key&&!document.getElementById('templateKey').value){document.getElementById('templateKey').value=t.key;selectedName=t.name||selectedName;hydrateSelectedTemplate()}
+  const set=(id,v)=>{const el=document.getElementById(id);if(el&&!el.value&&v)el.value=v};
+  set('fName',c.name);set('fPhone',c.phone);set('fEmail',c.email);set('fFacebook',c.facebook);
+  // Trial's generated tenant name is not a customer-facing website name, so only prefill
+  // site_name when it was explicitly changed from the automatic "· Trial" label.
+  if(c.site_name&&!/\s·\sTrial\s/i.test(c.site_name))set('fSite',c.site_name);
+  set('fNote',c.note);const mk=document.getElementById('fMarketing');if(mk&&Number(c.marketing_opt_in||0)===1)mk.checked=true;
+  const box=document.querySelector('.register-copy');if(box&&!box.querySelector('.trial-conversion-note'))box.insertAdjacentHTML('beforeend','<div class="trial-conversion-note"><b>Tiếp tục từ website dùng thử</b><span>Không tạo website mới. Bài viết, dữ liệu và tài khoản quản trị hiện tại sẽ được giữ nguyên sau khi đăng ký.</span></div>');
+ }catch(e){}
+}
+hydrateTrialConversion();
 const moneyVN=n=>Number(n||0)>0?new Intl.NumberFormat('vi-VN').format(Number(n))+'đ':'0đ';
 function updateInvoice(){}
 updateInvoice();
