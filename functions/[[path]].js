@@ -85,15 +85,20 @@ function stripDemoPath(path,demo){
 }
 function demoInject(html,demo,trialCtx=null){
  if(!demo||demo==='center')return html;
- html=html.replace(/\/assets\/style\.css\?v=\d+/g,'/assets/style.css?v=20.0.1').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.0.1');
+ html=html.replace(/\/assets\/style\.css\?v=\d+/g,'/assets/style.css?v=20.4.5').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.4.5');
  const preset=demo==='mau-1'?'newsreal':demo==='mau-2'?'estate_green':demo==='mau-3'?'estate_luxe_3':demo==='mau-4'?'estate_minimal_4':demo==='mau-5'?'estate_urban_5':demo==='tin-tuc-1'?'news_portal_1':demo==='tin-tuc-2'?'news_paper_2':demo==='tin-tuc-3'?'news_magazine_3':demo==='tin-tuc-4'?'news_minimal_4':'';
  let out=themedHtml(html,preset);
  const currentPath=typeof rawPath!=='undefined'?rawPath:'';
  const prefix=demoPrefixForPath(currentPath,demo);
- const boot=`<meta name="robots" content="noindex,follow"><meta name="newsreal-demo-build" content="20.0.1"><script>window.NR_DEMO_THEME=${JSON.stringify(demo)};window.NR_DEMO_PREFIX=${JSON.stringify(prefix)};window.NR_TRIAL_TOKEN=${JSON.stringify(trialCtx?.trial_token||'')};window.NR_TRIAL_TENANT=${JSON.stringify(trialCtx?.domain||'')};window.NR_DEMO_TENANT=window.NR_TRIAL_TENANT||'batdongsan2027.org.uk';
+ const boot=`<meta name="robots" content="noindex,follow"><meta name="newsreal-demo-build" content="20.4.5"><script>window.NR_DEMO_THEME=${JSON.stringify(demo)};window.NR_DEMO_PREFIX=${JSON.stringify(prefix)};window.NR_TRIAL_TOKEN=${JSON.stringify(trialCtx?.trial_token||'')};window.NR_TRIAL_TENANT=${JSON.stringify(trialCtx?.domain||'')};window.NR_DEMO_TENANT=window.NR_TRIAL_TENANT||'batdongsan2027.org.uk';
 window.nrTrialUrl=function(raw){
  if(!window.NR_TRIAL_TOKEN||!raw||typeof raw!=='string'||raw==='#'||/^mailto:|^tel:|^javascript:/i.test(raw))return raw;
  try{const x=new URL(raw,location.origin);if(x.origin!==location.origin)return raw;if(x.pathname.startsWith('/api/')||x.pathname.startsWith('/assets/')||x.pathname.startsWith('/admin')||x.pathname.startsWith('/control-center'))return raw;x.searchParams.set('nr_trial',window.NR_TRIAL_TOKEN);return x.pathname+x.search+x.hash}catch(e){return raw}
+};
+window.nrDemoAdminUrl=function(templateKey,tab){
+ const key=String(templateKey||window.NR_DEMO_THEME||'').trim();
+ if(window.NR_TRIAL_TOKEN){const q=new URLSearchParams();if(window.NR_TRIAL_TENANT)q.set('tenant',window.NR_TRIAL_TENANT);q.set('nr_trial',window.NR_TRIAL_TOKEN);if(key)q.set('template',key);if(tab)q.set('tab',tab);return '/admin?'+q.toString()}
+ const q=new URLSearchParams();if(key)q.set('template',key);if(tab)q.set('tab',tab);return 'https://batdongsan2027.org.uk/admin'+(q.toString()?'?'+q.toString():'')
 };
 window.NR_ESTATE_CORE={
  'mau-1':{brand:'BẤT ĐỘNG SẢN',cls:'theme-estate-default'},
@@ -155,7 +160,7 @@ window.nrApplyEstateDemoShell=function(){
 
  document.querySelectorAll('.header nav.nav,#mainNav,#detailNav,#favoritesNav').forEach(nav=>nav.innerHTML=navHtml);
 
- const admin='https://batdongsan2027.org.uk/admin?tab=newpost&template='+encodeURIComponent(key);
+ const admin=window.nrDemoAdminUrl?window.nrDemoAdminUrl(key,'newpost'):'https://batdongsan2027.org.uk/admin?tab=newpost&template='+encodeURIComponent(key);
  document.querySelectorAll('.header-post-btn').forEach(a=>{a.href=admin;a.target='_blank';a.rel='noopener';a.textContent='+ Đăng tin'});
  document.querySelectorAll('.header .actions').forEach(actions=>{
    if(actions.querySelector('[data-nr-estate-core-actions]'))return;
@@ -460,7 +465,7 @@ function demoCenterHtml(siteName,templates=[],category=''){
  <meta property="og:title" content="${isRoot?'Kho giao diện website':esc(catName)+' - Kho giao diện'} | HoangVuongTech">
  <meta property="og:description" content="Xem demo và chi phí trọn gói của từng mẫu website.">
  <meta property="og:url" content="https://hoangvuongtech.com/templates/${isRoot?'':esc(category)+'/'}">
- <link rel="stylesheet" href="/assets/style.css?v=20.0.1">  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+ <link rel="stylesheet" href="/assets/style.css?v=20.4.5">  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="theme-color" content="#ffffff">
 </head>

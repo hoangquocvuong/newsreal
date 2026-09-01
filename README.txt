@@ -1,3 +1,10 @@
+V20.4.5 TRIAL POST ROUTING HOTFIX
+- Fix regression on marketplace trial demo: clicking + Đăng tin no longer jumps to batdongsan2027.org.uk.
+- When nr_trial is present, all demo post/admin CTAs now stay on HoangVuongTech /admin and preserve tenant + nr_trial + template + tab=newpost.
+- Keeps showroom/non-trial fallback behavior unchanged.
+- Applied to BĐS demo shell and shared news demo post CTA helper so the routing contract cannot drift again.
+- No database migration required.
+
 NEWSREAL V8.9.0 — Finance CRM Bundle
 - Client Support Center
 - Financial dashboard and transaction ledger
