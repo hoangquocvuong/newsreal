@@ -1,6 +1,7 @@
-NEWSREAL V20.6.9 — Trial Direct Checkout Contract
-- Trial activation requires "Tên website mong muốn".
-- Desired website name is stored on the existing trial lead/tenant.
-- Expired trial CTA skips the registration form and opens the existing QR checkout flow directly.
-- Payment remains linked to the existing trial lead/site; successful conversion promotes the same tenant and preserves content.
-- Normal template checkout and renewal flows are unchanged.
+NEWSREAL V20.6.10 — TRIAL DIRECT CHECKOUT V2
+
+- Trial expired CTA now opens a dedicated QR checkout page directly.
+- Removed the marketing/registration-form hop and hidden auto-submit from Trial conversion.
+- Payment is created from the data already stored on the Trial tenant/lead.
+- Normal template purchase and renewal flows are unchanged.
+- No DB migration required.

@@ -1684,7 +1684,50 @@ if(route==='trial/convert-request'&&request.method==='POST'){
     env.DB.prepare(`UPDATE sales_leads SET status='contacted',care_status='interested',last_activity_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(tr.lead_id)
   ]);
   await trialEvent(env,tr,'conversion_requested',{});
-  return json({ok:true,lead_id:tr.lead_id,checkout_url:`/?template=${encodeURIComponent(tr.template_key)}&trial_token=${encodeURIComponent(tr.trial_token)}&trial_checkout=1#dang-ky`});
+  return json({ok:true,lead_id:tr.lead_id,checkout_url:`/trial-checkout/?token=${encodeURIComponent(tr.trial_token)}`});
+}
+
+// V20.6.10 — Trial Direct Checkout v2: payment is created from data already stored on the Trial.
+if(route==='trial/direct-checkout'&&request.method==='POST'){
+  const b=await body(request),trialToken=String(b.token||'').trim();
+  if(!trialToken)return json({error:'Thiếu mã website dùng thử'},400);
+  await ensureTemplateCatalog(env);await ensureSalesLeads(env);await ensurePurchasePayments(env);
+  const tr=await trialByToken(env,trialToken);if(!tr)return json({error:'Website dùng thử không tồn tại'},404);
+  const templateKey=String(tr.template_key||'').trim();
+  const tpl=await env.DB.prepare(`SELECT template_key,name,price,renewal_price FROM template_catalog WHERE template_key=? AND is_active=1 LIMIT 1`).bind(templateKey).first();
+  if(!tpl)return json({error:'Giao diện của website dùng thử không còn mở bán'},409);
+  const name=String(tr.customer_name||'').trim(),phone=String(tr.phone||'').trim(),email=String(tr.email||'').trim().toLowerCase();
+  const siteName=String(tr.site_name||'').trim(),note=String(tr.note||'').trim(),facebook=String(tr.facebook||'').trim();
+  const marketingOptIn=Number(tr.marketing_opt_in||0)===1?1:0;
+  if(!name||!phone||!email||!siteName)return json({error:'Website dùng thử chưa đủ thông tin kích hoạt. Vui lòng liên hệ hỗ trợ.'},409);
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json({error:'Email của website dùng thử không hợp lệ'},409);
+  const templateName=String(tpl.name||tr.template_name||templateKey).trim();
+  const finalPrice=Math.max(0,Number(tpl.price||0)),renewalPrice=Math.max(0,Number(tpl.renewal_price||0));
+  if(finalPrice<=0)return json({error:'Giao diện này chưa có giá thanh toán tự động. Vui lòng liên hệ hỗ trợ.'},409);
+  const leadId=Number(tr.lead_id||0);if(!leadId)return json({error:'Không tìm thấy hồ sơ dùng thử'},409);
+  await env.DB.batch([
+    env.DB.prepare(`UPDATE sales_leads SET source='trial_conversion',status='payment_pending',care_status='interested',template_key=?,template_name=?,price=?,renewal_price=?,customer_name=?,phone=?,email=?,site_name=?,requested_domain='',note=?,facebook=?,marketing_opt_in=?,payment_status='pending',last_activity_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`)
+      .bind(templateKey,templateName,finalPrice,renewalPrice,name,phone,email,siteName,note,facebook,marketingOptIn,leadId),
+    env.DB.prepare(`UPDATE website_trials SET conversion_request_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(tr.id)
+  ]);
+  await env.DB.prepare(`UPDATE purchase_payments SET status='cancelled',updated_at=CURRENT_TIMESTAMP WHERE lead_id=? AND status='pending'`).bind(leadId).run();
+  const orderCode=purchaseOrderCode(leadId),token=activationToken(),tokenHash=await sha256(token);
+  await env.DB.prepare(`INSERT INTO purchase_payments(lead_id,order_code,token_hash,amount,status,provider) VALUES(?,?,?,?,'pending','bank_qr')`).bind(leadId,orderCode,tokenHash,finalPrice).run();
+  await env.DB.prepare(`UPDATE sales_leads SET payment_order_code=?,payment_status='pending',paid_amount=0,paid_at=NULL,last_activity_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(orderCode,leadId).run();
+  await trialEvent(env,tr,'payment_started',{lead_id:leadId,amount:finalPrice,direct_checkout:true});
+  const listPrice=Math.max(finalPrice,renewalPrice||0),discount=Math.max(0,listPrice-finalPrice);
+  const cfg=paymentConfig(env),origin=String(env.PUBLIC_APP_URL||u.origin).replace(/\/$/,'');
+  let provider='bank_qr',memo=orderCode,qrCode='',checkoutUrl='',paymentLinkId='',providerOrderCode=null;
+  let bankName=cfg.bankName,accountName=cfg.accountName,accountNumber=cfg.accountNumber,qrUrl=purchasePaymentQr(env,finalPrice,memo);
+  if(payosReady(env)){
+    const po=await payosCreatePayment(env,{amount:finalPrice,description:`HV${String(leadId).slice(-6)}`,returnUrl:`${origin}/?payment=success`,cancelUrl:`${origin}/?payment=cancel`,buyerName:name,buyerEmail:email,buyerPhone:phone});
+    provider='payos';providerOrderCode=Number(po.orderCode);paymentLinkId=String(po.paymentLinkId||'');checkoutUrl=String(po.checkoutUrl||'');qrCode=String(po.qrCode||'');
+    memo=String(po.description||orderCode);bankName='MB Bank / payOS';accountName=String(po.accountName||'');accountNumber=String(po.accountNumber||'');qrUrl='';
+    await env.DB.prepare(`UPDATE purchase_payments SET provider='payos',provider_order_code=?,payment_link_id=?,checkout_url=?,qr_code=?,updated_at=CURRENT_TIMESTAMP WHERE order_code=?`).bind(providerOrderCode,paymentLinkId,checkoutUrl,qrCode,orderCode).run();
+  }
+  return json({ok:true,lead_id:leadId,order_code:orderCode,payment_token:token,status:'pending',trial_token:trialToken,
+    invoice:{template_name:templateName,list_price:listPrice,domain_price:0,hosting_price:0,discount,total:finalPrice,renewal_price:renewalPrice,site_name:siteName},
+    payment:{provider,provider_order_code:providerOrderCode,amount:finalPrice,memo,qr_code:qrCode,checkout_url:checkoutUrl,payment_link_id:paymentLinkId,qr_url:qrUrl,bank_name:bankName,account_name:accountName,account_number:accountNumber}});
 }
 
 if(route==='template-inquiry'&&request.method==='POST'){
