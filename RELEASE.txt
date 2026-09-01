@@ -1,8 +1,3 @@
-NEWSREAL V20.6.0 — Service Commerce & Lead Contract
-- Service package taxonomy expanded for Internet, business, Mesh/Wi-Fi, gaming, TV, camera/cloud, combos, devices, promotions and advice.
-- Service editor expanded with package-specific commercial fields.
-- Conversion-first consultation form with package context, phone/location/need and tenant-owned lead storage.
-- Admin “Khách hàng cần tư vấn” pipeline: Mới → Đã liên hệ → Đang tư vấn → Đã lắp → Không thành công.
-- Mobile sticky contact actions.
-- Showroom keeps rich samples; trial/client keeps identical architecture without showroom sample content.
-Migration: 0035_service_commerce_leads.sql
+NEWSREAL V20.6.1 — SERVICE STOREFRONT VISUAL OVERHAUL
+Base: V20.6.0
+Fixes: full viewport service rendering; provider-specific visual systems for FPT/VNPT/Viettel; stronger lead conversion presentation.
