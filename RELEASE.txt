@@ -1,9 +1,1 @@
-NEWSREAL V20.6.3 — TELECOM BRAND + RICH SHOWROOM CONTENT
-
-- Giữ nguyên Service Commerce & Lead Contract V20.6.0.
-- FPT visual chuyển màu chủ đạo sang cam, phối xanh dương/xanh lá theo ngôn ngữ thương hiệu.
-- VNPT giữ hệ xanh VNPT; Viettel dùng hệ đỏ Viettel.
-- Showroom mỗi nhà mạng có 24 gói/bài mẫu (6 mục cho mỗi nhóm Internet / Truyền hình / Camera / Combo).
-- Dùng tên gói/thông số tham khảo từ các trang chính thức đã công bố; giá/ưu đãi vẫn ghi rõ có thể thay đổi theo khu vực/thời điểm.
-- Một số ảnh showroom được hotlink từ media chính thức của FPT/VNPT/Viettel; không đóng gói lại ảnh thương hiệu vào ZIP.
-- Trial/client vẫn không copy dữ liệu showroom; giữ nguyên architecture/section contract và chỉ hiển thị dữ liệu thật của tenant.
+NEWSREAL V20.6.4 — Telecom Rich Package Descriptions + VNPT Harmony + Official Media Coverage

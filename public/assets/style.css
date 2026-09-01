@@ -2914,3 +2914,18 @@ body.theme-service-vnpt,body.theme-service-viettel{background:#fff;color:#10233f
 .theme-service-vnpt .tel-brand strong,.theme-service-vnpt .eyebrow,.theme-service-vnpt .tel-pill{color:#0072bc}.theme-service-vnpt .tel-btn,.theme-service-vnpt .tel-cta,.theme-service-vnpt .tel-submit{background:#0072bc;color:#fff}.theme-service-vnpt .vnpt-pro-hero{background:linear-gradient(120deg,#eaf8ff,#fff 48%,#e6f4ff)}
 .theme-service-viettel .tel-brand strong,.theme-service-viettel .eyebrow,.theme-service-viettel .tel-pill{color:#e30613}.theme-service-viettel .tel-btn,.theme-service-viettel .tel-cta,.theme-service-viettel .tel-submit{background:#e30613;color:#fff}
 .tel-card-img{aspect-ratio:16/9}.tel-card-img img{background:#f4f6f8}.tel-card p{min-height:42px}.tel-grid3 .tel-card{min-height:100%}
+/* V20.6.4 — richer package explanation + VNPT visual harmony */
+.tel-card-body .tel-desc{font-size:13px;line-height:1.55;color:#5f6f82;margin:10px 0 16px;min-height:40px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tel-card .tel-speed{font-size:15px;font-weight:900;margin-top:7px}
+.tel-card-body h3{margin-bottom:4px}
+.theme-service-vnpt .vnpt-pro-hero>.tel-wrap{grid-template-columns:1.04fr .96fr;min-height:520px}
+.theme-service-vnpt .vnpt-main{display:flex;flex-direction:column;justify-content:center;background:linear-gradient(135deg,#f5fbff,#e9f7ff);padding-top:64px;padding-bottom:64px}
+.theme-service-vnpt .vnpt-main h1{font-size:56px;line-height:1.03;letter-spacing:-.045em;max-width:620px}
+.theme-service-vnpt .vnpt-main p{max-width:590px;font-size:17px;line-height:1.7;color:#526b7d}
+.theme-service-vnpt .vnpt-service-board{background:linear-gradient(145deg,#0068ad 0%,#008ed3 62%,#18a7dd 100%);padding-top:56px;padding-bottom:56px;align-content:center}
+.theme-service-vnpt .vnpt-service-board>div{background:rgba(255,255,255,.07);backdrop-filter:blur(2px);min-height:150px}
+.theme-service-vnpt .vnpt-service-board .big{min-height:312px}
+.theme-service-vnpt .vnpt-service-board b{font-size:27px;line-height:1.1}
+.theme-service-vnpt .vnpt-quick{background:#fff}
+.theme-service-vnpt .vnpt-quick div{align-items:center;justify-content:center}
+@media(max-width:980px){.theme-service-vnpt .vnpt-main h1{font-size:46px}.theme-service-vnpt .vnpt-pro-hero>.tel-wrap{min-height:auto}}
