@@ -16,6 +16,7 @@ async function loadActivation(){
   activationTitle.textContent=isTrial?'Kích hoạt website dùng thử':('Nhận website '+(d.site.name||''));
   activationSite.innerHTML=`<div><span>Website</span><b>${isTrial?(d.trial.template_name||d.site.name||'Website dùng thử'):(d.site.name||'')}</b></div><div><span>${isTrial?'Thời gian':'Domain'}</span><b>${isTrial?'24 giờ sau khi kích hoạt':(d.site.domain||'')}</b></div>`;
   if(window.activationEmail)activationEmail.value=d.customer?.email||'';
+  if(isTrial&&window.activationSiteNameLabel){activationSiteNameLabel.classList.remove('hidden');activationSiteName.value=d.customer?.site_name||''}
   const intro=document.querySelector('#activationReady>p');if(intro)intro.textContent=isTrial?'Xác nhận email đăng nhập và tự tạo mật khẩu. Thời gian dùng thử 24 giờ chỉ bắt đầu sau bước này.':'Xác nhận email đăng nhập và tự tạo mật khẩu quản trị để hoàn tất bàn giao.';
   showOnly('activationReady');
   if(retryTimer){clearTimeout(retryTimer);retryTimer=null}
@@ -36,15 +37,16 @@ retryActivation.onclick=loadActivation;
 loadActivation();
 
 activateNow.onclick=async()=>{
- const em=(activationEmail.value||'').trim().toLowerCase(),p1=activationPassword.value||'',p2=activationPassword2.value||'';
+ const em=(activationEmail.value||'').trim().toLowerCase(),p1=activationPassword.value||'',p2=activationPassword2.value||'',siteName=(window.activationSiteName?.value||'').trim();
  activationMsg.classList.add('hidden');
+ if(window.activationSiteNameLabel&&!activationSiteNameLabel.classList.contains('hidden')&&!siteName){activationMsg.textContent='Vui lòng nhập Tên website mong muốn.';activationMsg.classList.remove('hidden');activationSiteName.focus();return}
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){activationMsg.textContent='Vui lòng nhập email đăng nhập hợp lệ.';activationMsg.classList.remove('hidden');activationEmail.focus();return}
  if(p1.length<8){activationMsg.textContent='Mật khẩu phải có ít nhất 8 ký tự.';activationMsg.classList.remove('hidden');activationPassword.focus();return}
  if(p1!==p2){activationMsg.textContent='Hai mật khẩu chưa khớp.';activationMsg.classList.remove('hidden');activationPassword2.focus();return}
  activateNow.disabled=true;
  showOnly('activationWorking');
  try{
-  const d=await activationApi('POST',{token,email:em,password:p1});
+  const d=await activationApi('POST',{token,email:em,password:p1,site_name:siteName});
   if(d.token)localStorage.setItem('nr_client_token',d.token);
   location.replace(d.admin_url);
  }catch(err){

@@ -1,8 +1,6 @@
-NEWSREAL V20.6.8 — VNPT Balanced Square Portal
-
-- Rebalanced VNPT hero to remove dead space and keep the blue service board visually dense.
-- VNPT hero/service frames are square (no border-radius), matching a more telecom/portal visual language.
-- Reworked Home Internet block into two balanced columns; featured card uses its image to fill height instead of leaving blank body space.
-- Right-side VNPT package cards now display the full artwork with object-fit: contain, similar to the Viettel full-media fix.
-- VNPT horizontal cards keep title, short description, price, detail link and registration CTA visible.
-- Existing V20.6.7 package-detail, showroom price, lead, trial/showroom contracts remain unchanged.
+NEWSREAL V20.6.9 — Trial Direct Checkout Contract
+- Trial activation requires "Tên website mong muốn".
+- Desired website name is stored on the existing trial lead/tenant.
+- Expired trial CTA skips the registration form and opens the existing QR checkout flow directly.
+- Payment remains linked to the existing trial lead/site; successful conversion promotes the same tenant and preserves content.
+- Normal template checkout and renewal flows are unchanged.

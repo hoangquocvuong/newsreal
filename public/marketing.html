@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="/assets/hoangvuongtech.css?v=1788076000">  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="theme-color" content="#ffffff">
-</head>
+<style>.trial-direct-checkout .register-copy,.trial-direct-checkout .register-form>label,.trial-direct-checkout .register-form>.form-grid,.trial-direct-checkout #sendInquiryBtn{display:none!important}.trial-direct-checkout .register-form:before{content:"Đang mở thanh toán cho website dùng thử…";display:block;padding:24px;font-weight:800;color:#0f2943}</style></head>
 
 <body>
 <header class="hv-head">
@@ -210,7 +210,14 @@ async function hydrateTrialConversion(){
   const box=document.querySelector('.register-copy');if(box&&!box.querySelector('.trial-conversion-note'))box.insertAdjacentHTML('beforeend','<div class="trial-conversion-note"><b>Tiếp tục từ website dùng thử</b><span>Không tạo website mới. Bài viết, dữ liệu và tài khoản quản trị hiện tại sẽ được giữ nguyên sau khi đăng ký.</span></div>');
  }catch(e){}
 }
-hydrateTrialConversion();
+hydrateTrialConversion().then(()=>{
+ if(params.get('trial_checkout')==='1'){
+  const form=document.getElementById('hvOrder');
+  const section=document.getElementById('dang-ky');
+  if(section)section.classList.add('trial-direct-checkout');
+  setTimeout(()=>form?.requestSubmit(),80);
+ }
+});
 const moneyVN=n=>Number(n||0)>0?new Intl.NumberFormat('vi-VN').format(Number(n))+'đ':'0đ';
 function updateInvoice(){}
 updateInvoice();

@@ -1684,7 +1684,7 @@ if(route==='trial/convert-request'&&request.method==='POST'){
     env.DB.prepare(`UPDATE sales_leads SET status='contacted',care_status='interested',last_activity_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(tr.lead_id)
   ]);
   await trialEvent(env,tr,'conversion_requested',{});
-  return json({ok:true,lead_id:tr.lead_id,register_url:`/?template=${encodeURIComponent(tr.template_key)}&trial_token=${encodeURIComponent(tr.trial_token)}#dang-ky`});
+  return json({ok:true,lead_id:tr.lead_id,checkout_url:`/?template=${encodeURIComponent(tr.template_key)}&trial_token=${encodeURIComponent(tr.trial_token)}&trial_checkout=1#dang-ky`});
 }
 
 if(route==='template-inquiry'&&request.method==='POST'){
@@ -2885,9 +2885,11 @@ if(route==='activation'&&request.method==='GET'){
   if(!raw)return json({error:'Thiếu mã kích hoạt'},400);
   const hash=await sha256(raw);
   const row=await env.DB.prepare(`SELECT at.id token_id,at.site_id,at.expires_at,at.used_at,s.name,s.domain,
-      cp.full_name,cp.phone,cp.email,cp.company,cp.activated_at
+      cp.full_name,cp.phone,cp.email,cp.company,cp.activated_at,sl.site_name
     FROM site_activation_tokens at JOIN sites s ON s.id=at.site_id
     LEFT JOIN customer_profiles cp ON cp.site_id=s.id
+    LEFT JOIN website_trials wt0 ON wt0.site_id=s.id
+    LEFT JOIN sales_leads sl ON sl.id=wt0.lead_id
     WHERE at.token_hash=?`).bind(hash).first();
   if(!row)return json({error:'Liên kết kích hoạt không hợp lệ'},404);
   if(row.used_at)return json({error:'Liên kết này đã được sử dụng'},410);
@@ -2906,11 +2908,11 @@ if(route==='activation'&&request.method==='GET'){
       },409);
     }
   }
-  return json({site:{id:row.site_id,name:row.name,domain:row.domain},customer:{full_name:row.full_name||'',phone:row.phone||'',email:row.email||'',company:row.company||''},trial:trial?{is_trial:true,token:trial.trial_token,template_key:trial.template_key,template_name:trial.template_name||trial.template_key,status:trial.status}:null});
+  return json({site:{id:row.site_id,name:row.name,domain:row.domain},customer:{full_name:row.full_name||'',phone:row.phone||'',email:row.email||'',company:row.company||'',site_name:row.site_name||''},trial:trial?{is_trial:true,token:trial.trial_token,template_key:trial.template_key,template_name:trial.template_name||trial.template_key,status:trial.status}:null});
 }
 if(route==='activation'&&request.method==='POST'){
   await ensureCustomerTables(env);
-  const b=await body(request),raw=String(b.token||''),newPassword=String(b.password||''),loginEmail=String(b.email||'').trim().toLowerCase();
+  const b=await body(request),raw=String(b.token||''),newPassword=String(b.password||''),loginEmail=String(b.email||'').trim().toLowerCase(),desiredSiteName=String(b.site_name||'').trim();
   if(!raw)return json({error:'Thiếu mã kích hoạt'},400);
   if(!loginEmail||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginEmail))return json({error:'Email đăng nhập không hợp lệ'},400);
   if(newPassword.length<8)return json({error:'Mật khẩu quản trị phải có ít nhất 8 ký tự'},400);
@@ -2919,6 +2921,7 @@ if(route==='activation'&&request.method==='POST'){
     WHERE at.token_hash=? AND at.used_at IS NULL AND at.expires_at>datetime('now')`).bind(hash).first();
   if(!at)return json({error:'Liên kết kích hoạt không hợp lệ hoặc đã hết hạn'},410);
   const trial=await env.DB.prepare(`SELECT wt.*,tc.name template_name FROM website_trials wt LEFT JOIN template_catalog tc ON tc.template_key=wt.template_key WHERE wt.site_id=? LIMIT 1`).bind(at.site_id).first();
+  if(trial&&!desiredSiteName)return json({error:'Vui lòng nhập Tên website mong muốn'},400);
   if(!trial){
     const ready=await getPagesDomainStatus(env,at.domain);
     if(ready.status!=='active')return json({error:'Domain/SSL chưa sẵn sàng. Vui lòng thử lại sau.',code:'DOMAIN_NOT_READY',pages_status:ready.status,detail:ready.error||''},409);
@@ -2943,7 +2946,8 @@ if(route==='activation'&&request.method==='POST'){
   if(trial){
     ops.push(env.DB.prepare(`UPDATE website_trials SET status='active',started_at=CURRENT_TIMESTAMP,expires_at=datetime('now','+1 day'),grace_expires_at=datetime('now','+8 days'),updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(trial.id));
     ops.push(env.DB.prepare(`UPDATE service_subscriptions SET service_status='active',domain_status='trial',started_at=date('now'),expires_at=date('now','+1 day'),updated_at=CURRENT_TIMESTAMP WHERE site_id=?`).bind(at.site_id));
-    ops.push(env.DB.prepare(`UPDATE sales_leads SET email=?,last_activity_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(loginEmail,trial.lead_id));
+    ops.push(env.DB.prepare(`UPDATE sales_leads SET email=?,site_name=?,last_activity_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(loginEmail,desiredSiteName,trial.lead_id));
+    ops.push(env.DB.prepare(`UPDATE sites SET name=? WHERE id=?`).bind(desiredSiteName+' · Trial',at.site_id));
   }else{
     ops.push(env.DB.prepare(`UPDATE service_subscriptions SET service_status='active',domain_status='active',updated_at=CURRENT_TIMESTAMP WHERE site_id=?`).bind(at.site_id));
   }
