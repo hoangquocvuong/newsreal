@@ -1617,25 +1617,37 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
    Showroom uses real public package examples from the provider; trial/client uses the exact same architecture with no showroom sample posts. */
 const NR_SERVICE_PROVIDERS={
  'dich-vu-1':{
-  preset:'service_fpt_1',provider:'FPT Telecom',brand:'FPT',brand2:'CONNECT',kicker:'INTERNET FPT · FPT PLAY · CAMERA AI',
+  preset:'service_fpt_1',provider:'FPT Telecom',brand:'FPT',brand2:'TELECOM',kicker:'INTERNET FPT · FPT PLAY · CAMERA AI',
   hero:'Internet nhanh. Giải trí trọn vẹn. Camera an tâm.',heroText:'Mẫu website dành cho đại lý và đơn vị tư vấn dịch vụ FPT Telecom, tập trung gói cước rõ ràng và CTA đăng ký nhanh.',
   visual:[['INTERNET','1 Gbps','Wi-Fi 6'],['FPT PLAY','4K','Giải trí gia đình'],['CAMERA AI','24/7','Cloud an toàn'],['HỖ TRỢ','24h','Tư vấn lắp đặt']],
   cats:['Internet FPT','Truyền hình FPT','Camera FPT','Combo FPT'],
   labels:['Internet FPT nổi bật','FPT Play & truyền hình','Camera AI FPT','Combo FPT tiết kiệm'],
   subs:['INTERNET FPT','FPT PLAY','CAMERA AI','COMBO FPT'],
   samples:[
-   ['Internet FPT','Internet Giga','300 Mbps','195.000đ/tháng','Modem Wi-Fi 6; giá và ưu đãi có thể thay đổi theo khu vực.'],
-   ['Internet FPT','Internet Meta','1 Gbps','295.000đ/tháng','Tốc độ download/upload đến 1 Gbps; phù hợp nhiều thiết bị.'],
-   ['Internet FPT','Internet Meta F1','1 Gbps','315.000đ/tháng','Modem Wi-Fi 6 và 01 Access Point; phủ sóng tốt hơn cho gia đình.'],
-   ['Truyền hình FPT','Combo Giga F1 + FPT Play','300 Mbps','220.000đ/tháng','Internet 300 Mbps, FPT Play Box và nhóm kênh truyền hình/giải trí.'],
-   ['Truyền hình FPT','Combo Sky F1 + FPT Play','Đến 1 Gbps','239.000đ/tháng','Internet tốc độ cao kết hợp truyền hình FPT Play cho gia đình.'],
-   ['Truyền hình FPT','Combo Giga F2 + FPT Play','300 Mbps','240.000đ/tháng','02 Access Point và FPT Play Box; phù hợp nhà rộng, nhiều phòng.'],
-   ['Camera FPT','Camera Play 4','Camera AI','Từ 500.000đ','Camera AI FPT cho nhu cầu quan sát trong nhà.'],
-   ['Camera FPT','Camera IQ4S','Camera AI','Từ 500.000đ','Giải pháp camera AI, quản lý và xem từ xa trên ứng dụng.'],
-   ['Camera FPT','Combo 2 Camera Play 4','2 camera','Từ 1.000.000đ','Gói 2 camera cho gia đình/cửa hàng cần nhiều góc quan sát.'],
-   ['Combo FPT','Giga An Tâm 7 - Play 4','300 Mbps','220.000đ/tháng','Internet FPT kết hợp Camera Play 4 và gói Cloud An Tâm 7 ngày.'],
-   ['Combo FPT','Sky An Tâm 7 Play4','Đến 1 Gbps','245.000đ/tháng','Internet tốc độ cao kết hợp camera và lưu trữ cloud.'],
-   ['Combo FPT','Combo Giga - V.VIP','300 Mbps','220.000đ/tháng','Internet + truyền hình; ưu đãi Camera/Cloud theo chương trình từng thời điểm.']
+   ['Internet FPT','Internet Giga F1','300 Mbps','205.000đ/tháng','Modem Wi-Fi 6 + 1 Access Point, phù hợp gia đình ít tầng.'],
+   ['Internet FPT','Internet Sky F1','1 Gbps / 300 Mbps','210.000đ/tháng','Internet tốc độ cao, Wi-Fi 6 + 1 Access Point, phù hợp nhiều thiết bị.'],
+   ['Internet FPT','Internet Meta','1 Gbps / 1 Gbps','339.000đ/tháng','Băng thông đối xứng cao cho gia đình có nhu cầu tải lên lớn.'],
+   ['Internet FPT','Wi-Fi 360','500 Mbps','230.000đ/tháng','Internet + Wi-Fi Mesh, ưu tiên phủ sóng nhà nhiều phòng/tầng.'],
+   ['Internet FPT','F-Game','Đến 1 Gbps','235.000đ/tháng','Tích hợp Ultra Fast, hướng đến game thủ và nhu cầu độ trễ thấp.'],
+   ['Internet FPT','Combo Lux 500 Internet','500 Mbps','830.000đ/tháng','Gói hiệu năng cao, nhiều thiết bị kết nối đồng thời.'],
+   ['Truyền hình FPT','Combo Giga - V.VIP','300/300 Mbps','220.000đ/tháng','Internet + FPT Play, gần 120 kênh và nội dung thể thao/giải trí.'],
+   ['Truyền hình FPT','Combo Sky - V.VIP','1 Gbps / 300 Mbps','239.000đ/tháng','Internet tốc độ cao kết hợp FPT Play cho gia đình.'],
+   ['Truyền hình FPT','Combo Meta - V.VIP','1 Gbps / 1 Gbps','339.000đ/tháng','Internet đối xứng + FPT Play, phù hợp nhiều thiết bị.'],
+   ['Truyền hình FPT','Combo Lux 500 - V.VIP','500/500 Mbps','830.000đ/tháng','FPT Play + Internet hiệu năng cao, nhiều thiết bị.'],
+   ['Truyền hình FPT','Combo Lux 800 - V.VIP','800/800 Mbps','1.030.000đ/tháng','Gói cao cấp, tối ưu tốc độ và trải nghiệm giải trí.'],
+   ['Truyền hình FPT','Triple GigaEyes3 Play4 - FPT Play','300 Mbps','270.000đ/tháng','Internet + FPT Play Box + Camera Play4 + Cloud.'],
+   ['Camera FPT','Camera Play 4','Camera AI','Từ 500.000đ','Camera trong nhà, quản lý tập trung qua hệ sinh thái FPT Life.','https://hi-static.fpt.vn/sys/shop/prod/2025-04-08/67f4b9178361d_mien-phi-camera-khi-dang-ky-internet-thang-4.jpg'],
+   ['Camera FPT','Camera IQ4S','Camera AI','Từ 500.000đ','Camera ngoài trời, giám sát và xem lại qua Cloud.','https://hi-static.fpt.vn/sys/shop/prod/2025-04-08/67f4b9178361d_mien-phi-camera-khi-dang-ky-internet-thang-4.jpg'],
+   ['Camera FPT','Combo 2 Camera Play 4','2 camera','Từ 1.000.000đ','Bộ 2 camera cho nhà ở/cửa hàng cần nhiều góc quan sát.','https://hi-static.fpt.vn/sys/shop/prod/2025-04-08/67f4b9178361d_mien-phi-camera-khi-dang-ky-internet-thang-4.jpg'],
+   ['Camera FPT','Combo 3 Camera IQ4S','3 camera','Từ 1.500.000đ','Bộ camera ngoài trời cho nhiều vị trí giám sát.','https://hi-static.fpt.vn/sys/shop/prod/2025-04-08/67f4b9178361d_mien-phi-camera-khi-dang-ky-internet-thang-4.jpg'],
+   ['Camera FPT','Giga An Tâm 7 - Play 4','300/300 Mbps','220.000đ/tháng','Internet + Camera Play 4 + Cloud An Tâm 7 ngày.','https://hi-static.fpt.vn/sys/shop/prod/2025-04-08/67f4b9178361d_mien-phi-camera-khi-dang-ky-internet-thang-4.jpg'],
+   ['Camera FPT','Sky An Tâm 7 - IQ4S','1 Gbps / 300 Mbps','235.000đ/tháng','Internet tốc độ cao + Camera IQ4S + Cloud 7 ngày.','https://hi-static.fpt.vn/sys/shop/prod/2025-04-08/67f4b9178361d_mien-phi-camera-khi-dang-ky-internet-thang-4.jpg'],
+   ['Combo FPT','Triple Sky - Camera Play 4','1 Gbps / 300 Mbps','Từ 205.000đ/tháng','Internet + gần 120 kênh truyền hình + Camera Play 4.'],
+   ['Combo FPT','Sky F1 An Tâm 7 - Play 4','1 Gbps / 300 Mbps','230.000đ/tháng','Wi-Fi 6 + Access Point + Camera Play 4 + Cloud 7.'],
+   ['Combo FPT','Sky F2 An Tâm 7 - Play 4','1 Gbps / 300 Mbps','260.000đ/tháng','02 Access Point + Camera Play 4 cho nhà nhiều tầng.'],
+   ['Combo FPT','Combo Giga - V.VIP + Camera','300/300 Mbps','220.000đ/tháng','Internet + FPT Play + ưu đãi Camera/Cloud theo chương trình.'],
+   ['Combo FPT','Combo Sky - V.VIP + Camera','1 Gbps / 300 Mbps','239.000đ/tháng','Internet + FPT Play + Camera/Cloud theo điều kiện ưu đãi.'],
+   ['Combo FPT','Triple GigaEyes3 IQ4S - FPT Play','300 Mbps','Liên hệ','Internet + FPT Play + Camera IQ4S cho gia đình/cửa hàng.']
   ]
  },
  'dich-vu-2':{
@@ -1646,18 +1658,30 @@ const NR_SERVICE_PROVIDERS={
   labels:['Home Internet nổi bật','MyTV cho gia đình','Home Cam & Camera','Combo VNPT'],
   subs:['VNPT INTERNET','MYTV','HOME CAM','HOME COMBO'],
   samples:[
-   ['Internet VNPT','HOME 1','200 Mbps','165.000đ/tháng','Gói Internet gia đình; giá tham khảo khu vực ngoại thành HN, TP.HCM và các tỉnh.'],
-   ['Internet VNPT','HOME 2','300 Mbps','210.000đ/tháng','Internet 300 Mbps kèm 01 Wi-Fi Mesh 5.'],
-   ['Internet VNPT','HOME 4','~1 Gbps','285.000đ/tháng','Tốc độ đến khoảng 1 Gbps, kèm 01 Wi-Fi Mesh 6.'],
-   ['Truyền hình MyTV','HOMETV 1','200 Mbps + MyTV','195.000đ/tháng','Internet 200 Mbps kết hợp MyTV Nâng Cao Plus với nhóm kênh truyền hình.'],
-   ['Truyền hình MyTV','HOMETV 2','300 Mbps + MyTV','235.000đ/tháng','Internet 300 Mbps, Wi-Fi Mesh và truyền hình MyTV.'],
-   ['Truyền hình MyTV','HOMETV 4','~1 Gbps + MyTV','315.000đ/tháng','Internet tốc độ cao kết hợp MyTV và Wi-Fi Mesh 6.'],
-   ['Camera VNPT','HOME CAM 1','Internet + Camera','Từ 205.000đ/tháng','Internet kết hợp 01 Camera Indoor và gói lưu trữ Cloud 7 ngày.'],
-   ['Camera VNPT','Home Cam 1 nâng cấp','300 Mbps','250.000đ/tháng','Internet 300 Mbps, 01 Camera Indoor + Cloud 7 và Wi-Fi Mesh 5/6.'],
-   ['Camera VNPT','HOME CAM 3','500 Mbps','300.000đ/tháng','Internet 500 Mbps, Wi-Fi Mesh và camera/cloud theo cấu hình gói.'],
-   ['Combo VNPT','HOME SÀNH 2','300 Mbps','Liên hệ theo khu vực','Gói tích hợp Internet và ưu đãi di động VinaPhone cho nhóm gia đình.'],
-   ['Combo VNPT','HOMETV 3','500 Mbps + MyTV','290.000đ/tháng','Internet 500 Mbps kèm Wi-Fi Mesh và truyền hình MyTV.'],
-   ['Combo VNPT','HOME CAM 4','~1 Gbps + Camera','325.000đ/tháng','Internet tốc độ cao kết hợp Wi-Fi Mesh 6 và camera/cloud.']
+   ['Internet VNPT','Home 1','300 Mbps','Liên hệ theo khu vực','Internet gia đình, hỗ trợ nâng cấp XGSPON và thiết bị theo chính sách.'],
+   ['Internet VNPT','Home 2','500 Mbps','Liên hệ theo khu vực','Internet 500 Mbps, phù hợp gia đình nhiều thiết bị.'],
+   ['Internet VNPT','Home 3','~1 Gbps','Liên hệ theo khu vực','Internet tốc độ cao cho nhu cầu giải trí/làm việc nặng.'],
+   ['Internet VNPT','Home 2 (Mesh)','500 Mbps','Liên hệ','Internet + Wi-Fi Mesh 6 cho vùng phủ rộng.'],
+   ['Internet VNPT','Home 3 (2 Mesh)','~1 Gbps','Liên hệ','Internet tốc độ cao + 2 Wi-Fi Mesh 6 cho nhà nhiều tầng.'],
+   ['Internet VNPT','HomeX','2500 Mbps','990.000đ/tháng','Internet XGSPON 2.5Gbps + Wi-Fi Mesh 6, gói hiệu năng cao.'],
+   ['Truyền hình MyTV','HomeTV 1 (Mesh)','300 Mbps + MyTV','Liên hệ','Internet + MyTV App + Wi-Fi Mesh 6.','https://media-vnpt.vnptvas.vn/Media/Images/upload_images/images/202605/img_vm_2605291842257354.jpg?mode=crop&w=700'],
+   ['Truyền hình MyTV','HomeTV 2 (Mesh)','500 Mbps + MyTV','250.000đ/tháng','Internet 500 Mbps + MyTV + 1 Wi-Fi Mesh 6.','https://media-vnpt.vnptvas.vn/Media/Images/upload_images/images/202605/img_vm_2605291842257354.jpg?mode=crop&w=700'],
+   ['Truyền hình MyTV','HomeTV 2 (2 Mesh)','500 Mbps + MyTV','265.000đ/tháng','Internet 500 Mbps + MyTV + 2 Wi-Fi Mesh 6.','https://media-vnpt.vnptvas.vn/Media/Images/upload_images/images/202605/img_vm_2605291842257354.jpg?mode=crop&w=700'],
+   ['Truyền hình MyTV','HomeTV 3','~1 Gbps + MyTV','310.000đ/tháng','Internet ~1Gbps + MyTV App.','https://media-vnpt.vnptvas.vn/Media/Images/upload_images/images/202605/img_vm_2605291839585263.jpg?mode=crop&w=700'],
+   ['Truyền hình MyTV','HomeTV 3 (2 Mesh)','~1 Gbps + MyTV','355.000đ/tháng','Internet ~1Gbps + MyTV + 2 Wi-Fi Mesh 6.','https://media-vnpt.vnptvas.vn/Media/Images/upload_images/images/202605/img_vm_2605291844449089.jpg?mode=crop&w=700'],
+   ['Truyền hình MyTV','HomeTV VIP1 (Mesh)','300 Mbps + MyTV VIP','270.000đ/tháng','Internet + MyTV VIP + Wi-Fi Mesh 6.','https://media-vnpt.vnptvas.vn/Media/Images/upload_images/images/202605/img_vm_2605291842257354.jpg?mode=crop&w=700'],
+   ['Camera VNPT','Home Cam 1','300 Mbps + Camera','250.000đ/tháng','Internet 300 Mbps + Camera Indoor + Cloud 7 + Wi-Fi Mesh 5/6.'],
+   ['Camera VNPT','Home Cam 2','500 Mbps + Camera','Liên hệ','Internet 500 Mbps kết hợp Camera và Cloud.'],
+   ['Camera VNPT','Home Cam 3','~1 Gbps + Camera','Liên hệ','Internet tốc độ cao + Camera + Wi-Fi Mesh.'],
+   ['Camera VNPT','Camera Indoor + Cloud 7','Camera Cloud','Liên hệ','Giải pháp camera trong nhà, lưu trữ Cloud 7 ngày.'],
+   ['Camera VNPT','Internet + Camera cho cửa hàng','Theo hạ tầng','Liên hệ','Gói tư vấn Internet và Camera cho cửa hàng nhỏ.'],
+   ['Camera VNPT','Home Camera + Wi-Fi Mesh','Internet + Camera','Liên hệ','Kết hợp vùng phủ Wi-Fi và giám sát an ninh.'],
+   ['Combo VNPT','HomeTV 2 + Mesh','500 Mbps','250.000đ/tháng','Internet + MyTV + Mesh cho gia đình.','https://media-vnpt.vnptvas.vn/Media/Images/upload_images/images/202605/img_vm_2605291842257354.jpg?mode=crop&w=700'],
+   ['Combo VNPT','HomeTV 3 + 2 Mesh','~1 Gbps','355.000đ/tháng','Internet + MyTV + 2 Mesh cho nhà nhiều tầng.','https://media-vnpt.vnptvas.vn/Media/Images/upload_images/images/202605/img_vm_2605291844449089.jpg?mode=crop&w=700'],
+   ['Combo VNPT','HomeTV VIP1','300 Mbps','270.000đ/tháng','Internet + MyTV VIP + Mesh.'],
+   ['Combo VNPT','Home Cam 1','300 Mbps','250.000đ/tháng','Internet + Camera Indoor + Cloud 7 + Mesh.'],
+   ['Combo VNPT','HomeX + MyTV','2500 Mbps','990.000đ/tháng','XGSPON 2.5Gbps + MyTV + Mesh 6.'],
+   ['Combo VNPT','Home Internet + MyTV + Camera','Theo nhu cầu','Liên hệ','Combo 3 dịch vụ, tư vấn theo hạ tầng và khu vực.']
   ]
  },
  'dich-vu-3':{
@@ -1668,18 +1692,30 @@ const NR_SERVICE_PROVIDERS={
   labels:['Internet Viettel','Truyền hình TV360','Camera Viettel','Combo Internet + TV360'],
   subs:['INTERNET VIETTEL','TV360','CAMERA CLOUD','COMBO VIETTEL'],
   samples:[
-   ['Internet Viettel','Internet Wi-Fi 6 gia đình','Đến 1 Gbps','Liên hệ theo khu vực','Internet cáp quang tốc độ cao, trang bị modem Wi-Fi 6 theo gói.'],
-   ['Internet Viettel','Internet nhiều thiết bị','Wi-Fi 6','Liên hệ','Phù hợp gia đình có nhiều thiết bị và nhu cầu học, làm việc, giải trí.'],
-   ['Internet Viettel','Internet tốc độ cao','Đến 1 Gbps','Liên hệ','Gói cước được tư vấn theo hạ tầng và khu vực lắp đặt.'],
-   ['Truyền hình TV360','TV360 Vsport 30 ngày','Đa nền tảng','35.000đ/30 ngày','Xem World Cup 2026 và nhóm kênh/thể thao theo quyền lợi gói công bố.'],
-   ['Truyền hình TV360','TV360 Standard','TV / Mobile / Laptop','Từ 20.000đ/7 ngày','Gói TV360 đa thiết bị, phù hợp nhu cầu giải trí linh hoạt.'],
-   ['Truyền hình TV360','TV360 giải trí gia đình','80+ kênh','Theo gói combo','Nội dung truyền hình và giải trí trên TV360 trong combo Internet.'],
-   ['Camera Viettel','Camera an ninh + Cloud','Cloud 01 ngày','Theo gói','Camera an ninh kết hợp lưu trữ cloud theo chính sách gói.'],
-   ['Camera Viettel','Camera cho gia đình','Giám sát 24/7','Liên hệ','Giải pháp camera dùng cùng hệ sinh thái dịch vụ Viettel.'],
-   ['Camera Viettel','Combo Internet + Camera','Internet + Camera','Liên hệ','Gói kết hợp kết nối Internet và camera cho gia đình.'],
-   ['Combo Viettel','Internet + TV360 Giải trí App','Đến 1 Gbps','Từ 215.000đ/tháng','Modem Wi-Fi 6, TV360 và ưu đãi camera/cloud theo điều kiện chương trình.'],
-   ['Combo Viettel','Internet + TV360 Giải trí Box','Đến 1 Gbps','Từ 235.000đ/tháng','Combo có Android Box TV360 và Internet tốc độ cao.'],
-   ['Combo Viettel','Internet + TV360 Đẳng cấp App','Đến 1 Gbps','Từ 245.000đ/tháng','Gói giải trí cao hơn với nhóm kênh thể thao và nội dung TV360.']
+   ['Internet Viettel','NETVT1_H','Tốc độ cao','Liên hệ theo khu vực','Internet gia đình, modem Wi-Fi thế hệ mới theo chính sách.'],
+   ['Internet Viettel','NETVT2_H','500 Mbps - 1 Gbps','265.000đ/tháng','Modem Wi-Fi 6, phù hợp 10–15 thiết bị, hỗ trợ XGSPON nơi sẵn sàng.'],
+   ['Internet Viettel','Internet Wi-Fi 6 gia đình','Đến 1 Gbps','Liên hệ','Internet cáp quang tốc độ cao, tư vấn theo hạ tầng khu vực.'],
+   ['Internet Viettel','Internet nhà nhiều tầng','Wi-Fi 6 / Mesh','Liên hệ','Giải pháp vùng phủ cho nhà nhiều phòng và nhiều thiết bị.'],
+   ['Internet Viettel','Internet doanh nghiệp nhỏ','Theo hạ tầng','Liên hệ','Kết nối ổn định cho cửa hàng/văn phòng nhỏ.'],
+   ['Internet Viettel','Internet XGSPON','Đến 1 Gbps+','Liên hệ','Nâng cấp công nghệ tại khu vực sẵn sàng hạ tầng.'],
+   ['Truyền hình TV360','TV360 World Cup - Ngày','Đa thiết bị','2.000đ/ngày','Xem World Cup 2026 và nhóm kênh truyền hình.','https://media.vietteltelecom.vn/upload/ckfinder/images/20_1%281%29.png'],
+   ['Truyền hình TV360','TV360 World Cup - Tháng','Đa thiết bị','15.000đ/tháng','Gói World Cup linh hoạt theo tháng.','https://media.vietteltelecom.vn/upload/ckfinder/images/20_1%281%29.png'],
+   ['Truyền hình TV360','TV360 Vsport','Mobile / Laptop','35.000đ/30 ngày','World Cup 2026, 120+ kênh và các giải thể thao.','https://media.vietteltelecom.vn/upload/ckfinder/images/20_1%281%29.png'],
+   ['Truyền hình TV360','TV360 Standard','Đa thiết bị','60.000đ/30 ngày','130+ kênh, phim và thể thao, xem đồng thời 2 thiết bị.','https://media.vietteltelecom.vn/upload/ckfinder/images/20_1%281%29.png'],
+   ['Truyền hình TV360','TV360 VIP','Đa thiết bị','80.000đ/30 ngày','World Cup, F1, 130+ kênh và kho phim.','https://media.vietteltelecom.vn/upload/ckfinder/images/20_1%281%29.png'],
+   ['Truyền hình TV360','TV360 Standard 12 tháng','Đa thiết bị','625.000đ/360 ngày','Gói dài hạn cho nhu cầu giải trí gia đình.','https://media.vietteltelecom.vn/upload/ckfinder/images/20_1%281%29.png'],
+   ['Camera Viettel','Home Camera AI','AI xoay 360°','Liên hệ','Camera gia đình với AI, lưu Cloud và đàm thoại hai chiều.','https://media.vietteltelecom.vn/upload/ckfinder/images/87_ab.jpg'],
+   ['Camera Viettel','Camera + Cloud 01 ngày','Cloud','Theo gói','Giải pháp camera và lưu trữ Cloud cho gia đình.','https://media.vietteltelecom.vn/upload/ckfinder/images/87_ab.jpg'],
+   ['Camera Viettel','Camera gia đình 24/7','Giám sát','Liên hệ','Theo dõi từ xa, phù hợp nhà ở/cửa hàng.','https://media.vietteltelecom.vn/upload/ckfinder/images/87_ab.jpg'],
+   ['Camera Viettel','Combo 2 Camera','2 thiết bị','Liên hệ','Nhiều góc quan sát cho nhà/cửa hàng.','https://media.vietteltelecom.vn/upload/ckfinder/images/87_ab.jpg'],
+   ['Camera Viettel','Internet + Camera','Wi-Fi 6 + Camera','Liên hệ','Kết hợp đường truyền và an ninh trong một gói.','https://media.vietteltelecom.vn/upload/ckfinder/images/87_ab.jpg'],
+   ['Camera Viettel','Camera Cloud cho cửa hàng','Cloud','Liên hệ','Giám sát cửa hàng và lưu trữ trực tuyến.','https://media.vietteltelecom.vn/upload/ckfinder/images/87_ab.jpg'],
+   ['Combo Viettel','Internet + TV360 Giải trí App','Đến 1 Gbps','Từ 215.000đ/tháng','Wi-Fi 6 + TV360, ưu đãi Camera/Cloud theo điều kiện.'],
+   ['Combo Viettel','Internet + TV360 Giải trí Box','Đến 1 Gbps','Từ 235.000đ/tháng','Wi-Fi 6 + Android Box TV360 + nội dung giải trí.'],
+   ['Combo Viettel','Internet + TV360 Đẳng cấp App','Đến 1 Gbps','Từ 245.000đ/tháng','130+ kênh, thể thao cao cấp và Internet tốc độ cao.'],
+   ['Combo Viettel','Internet + TV360 Đẳng cấp Box','Đến 1 Gbps','Từ 275.000đ/tháng','Android Box + TV360 Đẳng cấp + Internet Wi-Fi 6.'],
+   ['Combo Viettel','Internet + TV360 + Camera','Đến 1 Gbps','Liên hệ','Combo kết nối, giải trí và an ninh cho gia đình.'],
+   ['Combo Viettel','Internet + Camera Cloud','Wi-Fi 6 + Camera','Liên hệ','Gói Internet kết hợp Camera/Cloud, tư vấn theo khu vực.']
   ]
  }
 };
@@ -1690,7 +1726,7 @@ function nrSvcImg(i,kind='net'){
 function renderServiceProvider(site={},key='dich-vu-1'){
  const root=document.querySelector('main'),cfg=NR_SERVICE_PROVIDERS[key];if(!root||!cfg)return;
  const real=(SITE_DATA?.posts||[]).filter(x=>x.type==='service');
- const samples=(cfg.samples||[]).map((x,i)=>({id:955000+(Number(key.split('-').pop())*100)+i,type:'service',category:x[0],title:x[1],image:nrSvcImg(i, i<3?'net':i<6?'tv':i<9?'cam':'combo'),extra_json:JSON.stringify({service_speed:x[2],service_price:x[3],service_promo:x[4],service_cta:'Đăng ký tư vấn'}),content:x[4]}));
+ const samples=(cfg.samples||[]).map((x,i)=>({id:955000+(Number(key.split('-').pop())*100)+i,type:'service',category:x[0],title:x[1],image:x[5]||nrSvcImg(i, i<6?'net':i<12?'tv':i<18?'cam':'combo'),extra_json:JSON.stringify({service_speed:x[2],service_price:x[3],service_promo:x[4],service_cta:'Đăng ký tư vấn'}),content:x[4]}));
  const posts=nrServiceIsShowroom(key)?samples:real;
  const ex=x=>{try{return typeof x.extra_json==='object'?x.extra_json:JSON.parse(x.extra_json||'{}')}catch{return {}}};
  const img=x=>x.image||x.image_url||x.thumbnail||'';
@@ -1731,7 +1767,7 @@ function renderServiceProvider(site={},key='dich-vu-1'){
  const cfg=NR_SERVICE_PROVIDERS[key]||NR_SERVICE_PROVIDERS['dich-vu-1'];
  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
  let posts=[]; try{posts=Array.isArray(window.NR_POSTS)?window.NR_POSTS:[]}catch{}
- if(nrServiceIsShowroom(key)) posts=cfg.samples.map((x,i)=>({title:x[1],category:x[0],content:x[4],image:nrSvcImg(i,i<3?'net':i<6?'tv':i<9?'cam':'combo'),extra_json:{service_speed_down:x[2],service_price:x[3],service_promo:x[4]}}));
+ if(nrServiceIsShowroom(key)) posts=cfg.samples.map((x,i)=>({title:x[1],category:x[0],content:x[4],image:x[5]||nrSvcImg(i,i<6?'net':i<12?'tv':i<18?'cam':'combo'),extra_json:{service_speed_down:x[2],service_price:x[3],service_promo:x[4]}}));
  const root=document.querySelector('main')||document.body; const ex=x=>{try{return typeof x.extra_json==='object'?x.extra_json:JSON.parse(x.extra_json||'{}')}catch{return {}}};
  const arr=i=>posts.filter(x=>x.category===cfg.cats[i]).slice(0,8);
  const phone=esc(site.phone||'1900 0000'), phoneHref=esc(String(site.phone||'').replace(/\D/g,''));
