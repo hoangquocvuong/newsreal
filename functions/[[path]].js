@@ -49,7 +49,7 @@ function htmlNoCache(body,status=200){
 }
 
 function themedHtml(html,preset){
- const cls=preset==='newsreal'?'theme-estate-default':preset==='estate_green'?'theme-estate-green':preset==='estate_luxe_3'?'theme-estate-luxe':preset==='estate_minimal_4'?'theme-estate-minimal':preset==='estate_urban_5'?'theme-estate-urban':preset==='news_portal_1'?'theme-news-portal':preset==='service_fpt_1'?'theme-service-fpt':'';
+ const cls=preset==='newsreal'?'theme-estate-default':preset==='estate_green'?'theme-estate-green':preset==='estate_luxe_3'?'theme-estate-luxe':preset==='estate_minimal_4'?'theme-estate-minimal':preset==='estate_urban_5'?'theme-estate-urban':preset==='news_portal_1'?'theme-news-portal':preset==='service_fpt_1'?'theme-service-fpt':preset==='service_vnpt_2'?'theme-service-vnpt':preset==='service_viettel_3'?'theme-service-viettel':'';
  return cls?html.replace('<body>',`<body class="${cls}">`):html;
 }
 
@@ -88,12 +88,12 @@ function stripDemoPath(path,demo){
 }
 function demoInject(html,demo,trialCtx=null){
  if(!demo||demo==='center')return html;
- html=html.replace(/\/assets\/style\.css\?v=\d+/g,'/assets/style.css?v=20.5.0').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.5.0');
- const preset=demo==='mau-1'?'newsreal':demo==='mau-2'?'estate_green':demo==='mau-3'?'estate_luxe_3':demo==='mau-4'?'estate_minimal_4':demo==='mau-5'?'estate_urban_5':demo==='tin-tuc-1'?'news_portal_1':demo==='tin-tuc-2'?'news_paper_2':demo==='tin-tuc-3'?'news_magazine_3':demo==='tin-tuc-4'?'news_minimal_4':demo==='dich-vu-1'?'service_fpt_1':'';
+ html=html.replace(/\/assets\/style\.css\?v=[^\"'&<]+/g,'/assets/style.css?v=20.5.1').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.5.1');
+ const preset=demo==='mau-1'?'newsreal':demo==='mau-2'?'estate_green':demo==='mau-3'?'estate_luxe_3':demo==='mau-4'?'estate_minimal_4':demo==='mau-5'?'estate_urban_5':demo==='tin-tuc-1'?'news_portal_1':demo==='tin-tuc-2'?'news_paper_2':demo==='tin-tuc-3'?'news_magazine_3':demo==='tin-tuc-4'?'news_minimal_4':demo==='dich-vu-1'?'service_fpt_1':demo==='dich-vu-2'?'service_vnpt_2':demo==='dich-vu-3'?'service_viettel_3':'';
  let out=themedHtml(html,preset);
  const currentPath=typeof rawPath!=='undefined'?rawPath:'';
  const prefix=demoPrefixForPath(currentPath,demo);
- const boot=`<meta name="robots" content="noindex,follow"><meta name="newsreal-demo-build" content="20.5.0"><script>window.NR_DEMO_THEME=${JSON.stringify(demo)};window.NR_DEMO_PREFIX=${JSON.stringify(prefix)};window.NR_TRIAL_TOKEN=${JSON.stringify(trialCtx?.trial_token||'')};window.NR_TRIAL_TENANT=${JSON.stringify(trialCtx?.domain||'')};window.NR_DEMO_TENANT=window.NR_TRIAL_TENANT||'batdongsan2027.org.uk';
+ const boot=`<meta name="robots" content="noindex,follow"><meta name="newsreal-demo-build" content="20.5.1"><script>window.NR_DEMO_THEME=${JSON.stringify(demo)};window.NR_DEMO_PREFIX=${JSON.stringify(prefix)};window.NR_TRIAL_TOKEN=${JSON.stringify(trialCtx?.trial_token||'')};window.NR_TRIAL_TENANT=${JSON.stringify(trialCtx?.domain||'')};window.NR_DEMO_TENANT=window.NR_TRIAL_TENANT||'batdongsan2027.org.uk';
 window.nrTrialUrl=function(raw){
  if(!window.NR_TRIAL_TOKEN||!raw||typeof raw!=='string'||raw==='#'||/^mailto:|^tel:|^javascript:/i.test(raw))return raw;
  try{const x=new URL(raw,location.origin);if(x.origin!==location.origin)return raw;if(x.pathname.startsWith('/api/')||x.pathname.startsWith('/assets/')||x.pathname.startsWith('/admin')||x.pathname.startsWith('/control-center'))return raw;x.searchParams.set('nr_trial',window.NR_TRIAL_TOKEN);return x.pathname+x.search+x.hash}catch(e){return raw}
@@ -112,7 +112,8 @@ window.NR_ESTATE_CORE={
 };
 window.NR_DEMO_TITLE_LABELS={
  'mau-1':'BĐS Mẫu 1','mau-2':'BĐS Mẫu 2','mau-3':'BĐS Mẫu 3','mau-4':'BĐS Mẫu 4','mau-5':'BĐS Mẫu 5',
- 'tin-tuc-1':'Tin tức Mẫu 1','tin-tuc-2':'Tin tức Mẫu 2','tin-tuc-3':'Tin tức Mẫu 3','tin-tuc-4':'Tin tức Mẫu 4'
+ 'tin-tuc-1':'Tin tức Mẫu 1','tin-tuc-2':'Tin tức Mẫu 2','tin-tuc-3':'Tin tức Mẫu 3','tin-tuc-4':'Tin tức Mẫu 4',
+ 'dich-vu-1':'Dịch vụ FPT','dich-vu-2':'Dịch vụ VNPT','dich-vu-3':'Dịch vụ Viettel'
 };
 window.nrApplyDemoTitle=function(){
  const key=String(window.NR_DEMO_THEME||''),base=window.NR_DEMO_TITLE_LABELS[key];
@@ -327,7 +328,8 @@ document.addEventListener('DOMContentLoaded',()=>{
  const serviceNum=/^dich-vu-(\d+)$/.exec(demo)?.[1]||'';
  const newsNames={'1':'Tin tức Mẫu 1 · Tạp chí hiện đại','2':'Tin tức Mẫu 2 · Báo điện tử','3':'Tin tức Mẫu 3 · Magazine hiện đại','4':'Tin tức Mẫu 4 · Minimal SEO'};
  const estateNames={'mau-1':'Mẫu 1 · Tin tức & BĐS','mau-2':'Mẫu 2 · BĐS hiện đại','mau-3':'Mẫu 3 · BĐS Luxury','mau-4':'Mẫu 4 · BĐS Minimal','mau-5':'Mẫu 5 · BĐS Urban'};
- const demoLabel=newsNum?newsNames[newsNum]:(serviceNum?`Dịch vụ Mẫu ${serviceNum} · Internet & Camera`:(estateNames[demo]||'Mẫu bất động sản'));
+ const serviceNames={'1':'Dịch vụ Mẫu 1 · FPT Telecom','2':'Dịch vụ Mẫu 2 · VNPT','3':'Dịch vụ Mẫu 3 · Viettel'};
+ const demoLabel=newsNum?newsNames[newsNum]:(serviceNum?(serviceNames[serviceNum]||`Dịch vụ Mẫu ${serviceNum}`):(estateNames[demo]||'Mẫu bất động sản'));
  const isNewsDemo=!!newsNum;
  const isServiceDemo=!!serviceNum;
  // V16.9 — Demo browser title must follow the selected template, never the
@@ -344,7 +346,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 const TEMPLATE_CATALOG_DEFAULTS=[
  {template_key:'mau-1',name:'Mẫu 1 · Tin tức & BĐS',category:'bat-dong-san',preset:'newsreal',price:1499000,renewal_price:1999000,is_active:1,sort_order:1,image_url:'/assets/demo/mau-1-preview.png',demo_url:'/demo/bat-dong-san/mau-1/',badge:'NHIỀU NỘI DUNG',description:'Phong cách cổng thông tin bất động sản, phù hợp website có nhiều tin tức, chuyên mục và bài đăng.',features:'Trang chủ nhiều chuyên mục\nTin tức + bất động sản\nPhù hợp SEO nội dung',accent:'blue'},
- {template_key:'dich-vu-1',name:'Dịch vụ Mẫu 1 · Internet, Truyền hình & Camera',category:'dich-vu',preset:'service_fpt_1',price:1499000,renewal_price:1999000,is_active:1,sort_order:1,image_url:'/assets/demo/dich-vu-1-preview.svg',demo_url:'/demo/dich-vu/mau-1/',badge:'DỊCH VỤ',description:'Landing website dịch vụ viễn thông với bảng gói cước, Internet, truyền hình, camera và CTA đăng ký rõ ràng.',features:'Gói Internet\nTruyền hình\nCamera\nCTA tư vấn & đăng ký',accent:'blue'},
+ {template_key:'dich-vu-1',name:'Dịch vụ Mẫu 1 · FPT Telecom',category:'dich-vu',preset:'service_fpt_1',price:1499000,renewal_price:1999000,is_active:1,sort_order:1,image_url:'/assets/demo/dich-vu-1-preview.svg',demo_url:'/demo/dich-vu/mau-1/',badge:'FPT',description:'Mẫu website đại lý FPT Telecom với gói Internet, FPT Play, Camera AI và combo dịch vụ.',features:'Internet FPT\nFPT Play\nCamera AI\nCombo & CTA tư vấn',accent:'blue'},
+ {template_key:'dich-vu-2',name:'Dịch vụ Mẫu 2 · VNPT',category:'dich-vu',preset:'service_vnpt_2',price:1499000,renewal_price:1999000,is_active:1,sort_order:2,image_url:'/assets/demo/dich-vu-2-preview.svg',demo_url:'/demo/dich-vu/mau-2/',badge:'VNPT',description:'Mẫu website dịch vụ VNPT với Home Internet, MyTV, Home Cam và combo gia đình.',features:'Home Internet\nMyTV\nHome Cam\nCombo gia đình',accent:'blue'},
+ {template_key:'dich-vu-3',name:'Dịch vụ Mẫu 3 · Viettel',category:'dich-vu',preset:'service_viettel_3',price:1499000,renewal_price:1999000,is_active:1,sort_order:3,image_url:'/assets/demo/dich-vu-3-preview.svg',demo_url:'/demo/dich-vu/mau-3/',badge:'VIETTEL',description:'Mẫu website Viettel Telecom với Internet Wi-Fi 6, TV360, Camera và combo trọn gói.',features:'Internet Viettel\nTV360\nCamera Cloud\nCombo trọn gói',accent:'red'},
  {template_key:'tin-tuc-1',name:'Tin tức Mẫu 1 · Tạp chí hiện đại',category:'tin-tuc',preset:'news_portal_1',price:1499000,renewal_price:1999000,is_active:1,sort_order:1,image_url:'/assets/demo/tin-tuc-1-preview-v2.png',demo_url:'/demo/tin-tuc/mau-1/',badge:'MỚI',description:'Giao diện tin tức hiện đại, tập trung bài nổi bật, dòng tin mới, chuyên mục và nội dung đọc nhiều.',features:'Trang chủ kiểu tạp chí\nTin nổi bật + đọc nhiều\nChuyên mục tự động theo bài viết\nTối ưu nội dung & mobile',accent:'red'},
  {template_key:'mau-2',name:'Mẫu 2 · BĐS hiện đại',category:'bat-dong-san',preset:'estate_green',price:1799000,renewal_price:2299000,is_active:1,sort_order:2,image_url:'/assets/demo/mau-2-preview.png',demo_url:'/demo/bat-dong-san/mau-2/',badge:'ĐỀ XUẤT',description:'Phong cách portal bất động sản hiện đại, hero tìm kiếm lớn và tập trung mạnh vào chuyển đổi khách hàng.',features:'Bộ lọc tìm kiếm nổi bật\nCard bất động sản hiện đại\nTối ưu trải nghiệm mobile',accent:'green'}
 ];
@@ -471,7 +475,7 @@ function demoCenterHtml(siteName,templates=[],category=''){
  <meta property="og:title" content="${isRoot?'Kho giao diện website':esc(catName)+' - Kho giao diện'} | HoangVuongTech">
  <meta property="og:description" content="Xem demo và chi phí trọn gói của từng mẫu website.">
  <meta property="og:url" content="https://hoangvuongtech.com/templates/${isRoot?'':esc(category)+'/'}">
- <link rel="stylesheet" href="/assets/style.css?v=20.5.0">  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+ <link rel="stylesheet" href="/assets/style.css?v=20.5.1">  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="theme-color" content="#ffffff">
 </head>

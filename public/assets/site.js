@@ -1532,7 +1532,9 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
      'tin-tuc-2':'news_paper_2',
      'tin-tuc-3':'news_magazine_3',
      'tin-tuc-4':'news_minimal_4',
-     'dich-vu-1':'service_fpt_1'
+     'dich-vu-1':'service_fpt_1',
+     'dich-vu-2':'service_vnpt_2',
+     'dich-vu-3':'service_viettel_3'
    };
    const effectivePreset=DEMO_PRESETS[demoTheme]||s.preset||'newsreal';
    document.body.classList.toggle('nr-demo-performance',!!demoTheme);
@@ -1545,6 +1547,8 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
    document.body.classList.toggle('theme-news-magazine',effectivePreset==='news_magazine_3');
    document.body.classList.toggle('theme-news-minimal',effectivePreset==='news_minimal_4');
    document.body.classList.toggle('theme-service-fpt',effectivePreset==='service_fpt_1');
+   document.body.classList.toggle('theme-service-vnpt',effectivePreset==='service_vnpt_2');
+   document.body.classList.toggle('theme-service-viettel',effectivePreset==='service_viettel_3');
    fillPublicFooter(s);
    // V17.1 — Demo tab title is owned by the selected template, never by the shared showroom tenant.
    if(window.NR_DEMO_THEME&&window.nrApplyDemoTitle){
@@ -1579,6 +1583,10 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
      try{renderNewsMinimalHome(s)}catch(e){console.error('NEWS M4',e);showError('Không tải được giao diện Tin tức Mẫu 4.')}
    }else if(effectivePreset==='service_fpt_1'){
      try{renderServiceFpt1(s)}catch(e){console.error('SERVICE M1',e);showError('Không tải được giao diện Dịch vụ Mẫu 1.')}
+   }else if(effectivePreset==='service_vnpt_2'){
+     try{renderServiceVnpt2(s)}catch(e){console.error('SERVICE M2',e);showError('Không tải được giao diện Dịch vụ Mẫu 2.')}
+   }else if(effectivePreset==='service_viettel_3'){
+     try{renderServiceViettel3(s)}catch(e){console.error('SERVICE M3',e);showError('Không tải được giao diện Dịch vụ Mẫu 3.')}
    }else{
      renderTheme1Home(s,props);
    }
@@ -1605,28 +1613,91 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
  }
 })();
 
-/* V20.5.0 — Service template contract. Showroom may use sample services; trial/client stays structurally identical and sample-free. */
-function renderServiceFpt1(site={}){
- const root=document.querySelector('main');if(!root)return;
- const showroom=String(window.NR_DEMO_THEME||'')==='dich-vu-1'&&!window.NR_TRIAL_TOKEN&&new URLSearchParams(location.search).get('nr_client')!=='1'&&new URLSearchParams(location.search).get('nr_samples')!=='0';
+/* V20.5.1 — Service provider template contract.
+   Showroom uses real public package examples from the provider; trial/client uses the exact same architecture with no showroom sample posts. */
+const NR_SERVICE_PROVIDERS={
+ 'dich-vu-1':{
+  preset:'service_fpt_1',provider:'FPT Telecom',brand:'FPT',brand2:'CONNECT',kicker:'INTERNET FPT · FPT PLAY · CAMERA AI',
+  hero:'Internet nhanh. Giải trí trọn vẹn. Camera an tâm.',heroText:'Mẫu website dành cho đại lý và đơn vị tư vấn dịch vụ FPT Telecom, tập trung gói cước rõ ràng và CTA đăng ký nhanh.',
+  visual:[['INTERNET','1 Gbps','Wi-Fi 6'],['FPT PLAY','4K','Giải trí gia đình'],['CAMERA AI','24/7','Cloud an toàn'],['HỖ TRỢ','24h','Tư vấn lắp đặt']],
+  cats:['Internet FPT','Truyền hình FPT','Camera FPT','Combo FPT'],
+  labels:['Internet FPT nổi bật','FPT Play & truyền hình','Camera AI FPT','Combo FPT tiết kiệm'],
+  subs:['INTERNET FPT','FPT PLAY','CAMERA AI','COMBO FPT'],
+  samples:[
+   ['Internet FPT','Internet Giga','300 Mbps','195.000đ/tháng','Modem Wi-Fi 6; giá và ưu đãi có thể thay đổi theo khu vực.'],
+   ['Internet FPT','Internet Meta','1 Gbps','295.000đ/tháng','Tốc độ download/upload đến 1 Gbps; phù hợp nhiều thiết bị.'],
+   ['Internet FPT','Internet Meta F1','1 Gbps','315.000đ/tháng','Modem Wi-Fi 6 và 01 Access Point; phủ sóng tốt hơn cho gia đình.'],
+   ['Truyền hình FPT','Combo Giga F1 + FPT Play','300 Mbps','220.000đ/tháng','Internet 300 Mbps, FPT Play Box và nhóm kênh truyền hình/giải trí.'],
+   ['Truyền hình FPT','Combo Sky F1 + FPT Play','Đến 1 Gbps','239.000đ/tháng','Internet tốc độ cao kết hợp truyền hình FPT Play cho gia đình.'],
+   ['Truyền hình FPT','Combo Giga F2 + FPT Play','300 Mbps','240.000đ/tháng','02 Access Point và FPT Play Box; phù hợp nhà rộng, nhiều phòng.'],
+   ['Camera FPT','Camera Play 4','Camera AI','Từ 500.000đ','Camera AI FPT cho nhu cầu quan sát trong nhà.'],
+   ['Camera FPT','Camera IQ4S','Camera AI','Từ 500.000đ','Giải pháp camera AI, quản lý và xem từ xa trên ứng dụng.'],
+   ['Camera FPT','Combo 2 Camera Play 4','2 camera','Từ 1.000.000đ','Gói 2 camera cho gia đình/cửa hàng cần nhiều góc quan sát.'],
+   ['Combo FPT','Giga An Tâm 7 - Play 4','300 Mbps','220.000đ/tháng','Internet FPT kết hợp Camera Play 4 và gói Cloud An Tâm 7 ngày.'],
+   ['Combo FPT','Sky An Tâm 7 Play4','Đến 1 Gbps','245.000đ/tháng','Internet tốc độ cao kết hợp camera và lưu trữ cloud.'],
+   ['Combo FPT','Combo Giga - V.VIP','300 Mbps','220.000đ/tháng','Internet + truyền hình; ưu đãi Camera/Cloud theo chương trình từng thời điểm.']
+  ]
+ },
+ 'dich-vu-2':{
+  preset:'service_vnpt_2',provider:'VNPT',brand:'VNPT',brand2:'HOME',kicker:'HOME INTERNET · MYTV · HOME CAM',
+  hero:'Kết nối số cho gia đình. Một hệ sinh thái, nhiều tiện ích.',heroText:'Mẫu website dịch vụ VNPT với Home Internet, MyTV và Home Cam, tối ưu cho tư vấn gói cước theo nhu cầu gia đình.',
+  visual:[['HOME INTERNET','~1 Gbps','Fiber tốc độ cao'],['MYTV','180+','Kênh & nội dung'],['HOME CAM','Cloud 7','Quan sát an ninh'],['TỔNG ĐÀI','18001166','Internet / MyTV']],
+  cats:['Internet VNPT','Truyền hình MyTV','Camera VNPT','Combo VNPT'],
+  labels:['Home Internet nổi bật','MyTV cho gia đình','Home Cam & Camera','Combo VNPT'],
+  subs:['VNPT INTERNET','MYTV','HOME CAM','HOME COMBO'],
+  samples:[
+   ['Internet VNPT','HOME 1','200 Mbps','165.000đ/tháng','Gói Internet gia đình; giá tham khảo khu vực ngoại thành HN, TP.HCM và các tỉnh.'],
+   ['Internet VNPT','HOME 2','300 Mbps','210.000đ/tháng','Internet 300 Mbps kèm 01 Wi-Fi Mesh 5.'],
+   ['Internet VNPT','HOME 4','~1 Gbps','285.000đ/tháng','Tốc độ đến khoảng 1 Gbps, kèm 01 Wi-Fi Mesh 6.'],
+   ['Truyền hình MyTV','HOMETV 1','200 Mbps + MyTV','195.000đ/tháng','Internet 200 Mbps kết hợp MyTV Nâng Cao Plus với nhóm kênh truyền hình.'],
+   ['Truyền hình MyTV','HOMETV 2','300 Mbps + MyTV','235.000đ/tháng','Internet 300 Mbps, Wi-Fi Mesh và truyền hình MyTV.'],
+   ['Truyền hình MyTV','HOMETV 4','~1 Gbps + MyTV','315.000đ/tháng','Internet tốc độ cao kết hợp MyTV và Wi-Fi Mesh 6.'],
+   ['Camera VNPT','HOME CAM 1','Internet + Camera','Từ 205.000đ/tháng','Internet kết hợp 01 Camera Indoor và gói lưu trữ Cloud 7 ngày.'],
+   ['Camera VNPT','Home Cam 1 nâng cấp','300 Mbps','250.000đ/tháng','Internet 300 Mbps, 01 Camera Indoor + Cloud 7 và Wi-Fi Mesh 5/6.'],
+   ['Camera VNPT','HOME CAM 3','500 Mbps','300.000đ/tháng','Internet 500 Mbps, Wi-Fi Mesh và camera/cloud theo cấu hình gói.'],
+   ['Combo VNPT','HOME SÀNH 2','300 Mbps','Liên hệ theo khu vực','Gói tích hợp Internet và ưu đãi di động VinaPhone cho nhóm gia đình.'],
+   ['Combo VNPT','HOMETV 3','500 Mbps + MyTV','290.000đ/tháng','Internet 500 Mbps kèm Wi-Fi Mesh và truyền hình MyTV.'],
+   ['Combo VNPT','HOME CAM 4','~1 Gbps + Camera','325.000đ/tháng','Internet tốc độ cao kết hợp Wi-Fi Mesh 6 và camera/cloud.']
+  ]
+ },
+ 'dich-vu-3':{
+  preset:'service_viettel_3',provider:'Viettel Telecom',brand:'VIETTEL',brand2:'HOME',kicker:'INTERNET · TV360 · CAMERA CLOUD',
+  hero:'Wi-Fi mạnh cho mọi phòng. TV360 trọn giải trí. Camera luôn an tâm.',heroText:'Mẫu website dịch vụ Viettel Telecom theo phong cách mạnh, gọn và chuyển đổi nhanh cho Internet, TV360 và Camera.',
+  visual:[['INTERNET','1 Gbps','Wi-Fi 6'],['TV360','World Cup','Giải trí thể thao'],['CAMERA','Cloud','Theo dõi 24/7'],['HỖ TRỢ','24/7','Sau bán online']],
+  cats:['Internet Viettel','Truyền hình TV360','Camera Viettel','Combo Viettel'],
+  labels:['Internet Viettel','Truyền hình TV360','Camera Viettel','Combo Internet + TV360'],
+  subs:['INTERNET VIETTEL','TV360','CAMERA CLOUD','COMBO VIETTEL'],
+  samples:[
+   ['Internet Viettel','Internet Wi-Fi 6 gia đình','Đến 1 Gbps','Liên hệ theo khu vực','Internet cáp quang tốc độ cao, trang bị modem Wi-Fi 6 theo gói.'],
+   ['Internet Viettel','Internet nhiều thiết bị','Wi-Fi 6','Liên hệ','Phù hợp gia đình có nhiều thiết bị và nhu cầu học, làm việc, giải trí.'],
+   ['Internet Viettel','Internet tốc độ cao','Đến 1 Gbps','Liên hệ','Gói cước được tư vấn theo hạ tầng và khu vực lắp đặt.'],
+   ['Truyền hình TV360','TV360 Vsport 30 ngày','Đa nền tảng','35.000đ/30 ngày','Xem World Cup 2026 và nhóm kênh/thể thao theo quyền lợi gói công bố.'],
+   ['Truyền hình TV360','TV360 Standard','TV / Mobile / Laptop','Từ 20.000đ/7 ngày','Gói TV360 đa thiết bị, phù hợp nhu cầu giải trí linh hoạt.'],
+   ['Truyền hình TV360','TV360 giải trí gia đình','80+ kênh','Theo gói combo','Nội dung truyền hình và giải trí trên TV360 trong combo Internet.'],
+   ['Camera Viettel','Camera an ninh + Cloud','Cloud 01 ngày','Theo gói','Camera an ninh kết hợp lưu trữ cloud theo chính sách gói.'],
+   ['Camera Viettel','Camera cho gia đình','Giám sát 24/7','Liên hệ','Giải pháp camera dùng cùng hệ sinh thái dịch vụ Viettel.'],
+   ['Camera Viettel','Combo Internet + Camera','Internet + Camera','Liên hệ','Gói kết hợp kết nối Internet và camera cho gia đình.'],
+   ['Combo Viettel','Internet + TV360 Giải trí App','Đến 1 Gbps','Từ 215.000đ/tháng','Modem Wi-Fi 6, TV360 và ưu đãi camera/cloud theo điều kiện chương trình.'],
+   ['Combo Viettel','Internet + TV360 Giải trí Box','Đến 1 Gbps','Từ 235.000đ/tháng','Combo có Android Box TV360 và Internet tốc độ cao.'],
+   ['Combo Viettel','Internet + TV360 Đẳng cấp App','Đến 1 Gbps','Từ 245.000đ/tháng','Gói giải trí cao hơn với nhóm kênh thể thao và nội dung TV360.']
+  ]
+ }
+};
+function nrServiceIsShowroom(key){return String(window.NR_DEMO_THEME||'')===key&&!window.NR_TRIAL_TOKEN&&new URLSearchParams(location.search).get('nr_client')!=='1'&&new URLSearchParams(location.search).get('nr_samples')!=='0'}
+function renderServiceProvider(site={},key='dich-vu-1'){
+ const root=document.querySelector('main'),cfg=NR_SERVICE_PROVIDERS[key];if(!root||!cfg)return;
  const real=(SITE_DATA?.posts||[]).filter(x=>x.type==='service');
- const samples=[
-  ['Internet FPT','Gói Internet Home 300','300 Mbps','180.000đ/tháng','Wi-Fi 6, tốc độ ổn định cho gia đình'],
-  ['Internet FPT','Gói Internet Home 500','500 Mbps','230.000đ/tháng','Phù hợp gia đình nhiều thiết bị, làm việc tại nhà'],
-  ['Internet FPT','Gói Internet Giga','1 Gbps','320.000đ/tháng','Băng thông cao cho gaming, livestream và văn phòng'],
-  ['Truyền hình FPT','FPT Play cơ bản','Kho nội dung đa dạng','Từ 88.000đ/tháng','Giải trí, phim, thiếu nhi và truyền hình trực tuyến'],
-  ['Truyền hình FPT','FPT Play gia đình','Nhiều thiết bị','Từ 120.000đ/tháng','Trải nghiệm giải trí cho cả gia đình'],
-  ['Truyền hình FPT','Combo Internet + TV','Tiết kiệm hơn','Liên hệ','Một hóa đơn, Internet nhanh và truyền hình tiện lợi'],
-  ['Camera FPT','Camera trong nhà','Full HD','Từ 40.000đ/tháng','Theo dõi nhà cửa trên điện thoại, lưu trữ cloud'],
-  ['Camera FPT','Camera ngoài trời','Chống nước','Liên hệ','Quan sát cửa hàng, sân vườn và khu vực ngoài trời'],
-  ['Camera FPT','Combo Internet + Camera','Kết nối + an ninh','Liên hệ','Giải pháp đồng bộ cho gia đình và cửa hàng'],
-  ['Combo Internet + Truyền hình','Combo giải trí gia đình','Internet + FPT Play','Ưu đãi theo khu vực','Tối ưu chi phí với một gói dịch vụ đồng bộ']
- ].map((x,i)=>({id:950000+i,type:'service',category:x[0],title:x[1],extra_json:JSON.stringify({service_speed:x[2],service_price:x[3],service_promo:x[4],service_cta:'Đăng ký tư vấn'}),content:x[4]}));
- const posts=showroom?samples:((String(window.NR_DEMO_THEME||'')==='dich-vu-1'&&!window.NR_TRIAL_TOKEN)?[]:real);
+ const samples=(cfg.samples||[]).map((x,i)=>({id:955000+(Number(key.split('-').pop())*100)+i,type:'service',category:x[0],title:x[1],extra_json:JSON.stringify({service_speed:x[2],service_price:x[3],service_promo:x[4],service_cta:'Đăng ký tư vấn'}),content:x[4]}));
+ const posts=nrServiceIsShowroom(key)?samples:real;
  const ex=x=>{try{return typeof x.extra_json==='object'?x.extra_json:JSON.parse(x.extra_json||'{}')}catch{return {}}};
- const card=x=>{const e=ex(x);return `<article class="svc1-card"><span class="tag">${esc(x.category||'Dịch vụ')}</span><h3>${esc(x.title||'Gói dịch vụ')}</h3>${e.service_speed?`<div class="spec">${esc(e.service_speed)}</div>`:''}<p>${esc(e.service_promo||String(x.content||'').replace(/<[^>]+>/g,' ').slice(0,120)||'Thông tin chi tiết đang được cập nhật.')}</p><div class="price">${e.service_price?`Chỉ từ <strong>${esc(e.service_price)}</strong>`:'Liên hệ để nhận báo giá'}</div><a class="svc1-btn primary" href="#dang-ky">${esc(e.service_cta||'Đăng ký tư vấn')}</a></article>`};
- const section=(id,title,cat,sub)=>{const arr=posts.filter(x=>x.category===cat).slice(0,3);return `<section class="svc1-section ${id==='tv'?'alt':''}" id="${id}"><div class="svc-wrap"><div class="svc1-head"><div><small>${esc(sub)}</small><h2>${esc(title)}</h2></div></div><div class="svc1-cards">${arr.length?arr.map(card).join(''):[0,1,2].map(()=>`<div class="svc1-empty">Chưa có gói dịch vụ trong chuyên mục này.<br>Khung giao diện vẫn được giữ nguyên.</div>`).join('')}</div></div></section>`};
- document.body.classList.add('theme-service-fpt');
+ const card=x=>{const e=ex(x);return `<article class="svc1-card"><span class="tag">${esc(x.category||'Dịch vụ')}</span><h3>${esc(x.title||'Gói dịch vụ')}</h3>${e.service_speed?`<div class="spec">${esc(e.service_speed)}</div>`:''}<p>${esc(e.service_promo||String(x.content||'').replace(/<[^>]+>/g,' ').slice(0,150)||'Thông tin chi tiết đang được cập nhật.')}</p><div class="price">${e.service_price?`Chỉ từ <strong>${esc(e.service_price)}</strong>`:'Liên hệ để nhận báo giá'}</div><a class="svc1-btn primary" href="#dang-ky">${esc(e.service_cta||'Đăng ký tư vấn')}</a></article>`};
+ const section=(id,idx,alt=false)=>{const cat=cfg.cats[idx],arr=posts.filter(x=>x.category===cat).slice(0,3);return `<section class="svc1-section ${alt?'alt':''}" id="${id}"><div class="svc-wrap"><div class="svc1-head"><div><small>${esc(cfg.subs[idx])}</small><h2>${esc(cfg.labels[idx])}</h2></div><span class="svc-note">Giá/ưu đãi showroom chỉ mang tính tham khảo theo công bố của nhà mạng và có thể thay đổi theo khu vực, thời điểm.</span></div><div class="svc1-cards">${arr.length?arr.map(card).join(''):[0,1,2].map(()=>`<div class="svc1-empty"><b>${esc(cat)}</b><br>Chưa có gói dịch vụ của website này.<br>Khung template vẫn giữ nguyên.</div>`).join('')}</div></div></section>`};
+ document.body.classList.remove('theme-service-fpt','theme-service-vnpt','theme-service-viettel');document.body.classList.add(cfg.preset==='service_fpt_1'?'theme-service-fpt':cfg.preset==='service_vnpt_2'?'theme-service-vnpt':'theme-service-viettel');
  document.querySelector('.topbar')?.remove();document.querySelector('header.header')?.remove();document.querySelector('footer.footer')?.remove();
- root.innerHTML=`<div class="svc1"><nav class="svc1-nav"><div class="svc-wrap"><a class="svc1-brand" href="#">NET<span>PRO</span></a><div class="svc1-links"><a href="#internet">Internet</a><a href="#tv">Truyền hình</a><a href="#camera">Camera</a><a href="#combo">Combo</a><a class="svc1-call" href="#dang-ky">Đăng ký tư vấn</a></div></div></nav><section class="svc1-hero"><div class="svc-wrap svc1-hero-grid"><div><div class="svc1-kicker">INTERNET · TRUYỀN HÌNH · CAMERA</div><h1>Kết nối mạnh hơn. Giải trí tốt hơn. An tâm mỗi ngày.</h1><p>Website dịch vụ tối ưu để giới thiệu gói cước, so sánh lựa chọn và chuyển đổi khách hàng thành đăng ký tư vấn nhanh chóng.</p><div class="svc1-hero-actions"><a class="svc1-btn primary" href="#internet">Xem gói cước</a><a class="svc1-btn" href="#dang-ky">Nhận tư vấn</a></div></div><div class="svc1-visual"><div>INTERNET<b>1 Gbps</b><small>Kết nối tốc độ cao</small></div><div>FPT PLAY<b>4K</b><small>Giải trí tại nhà</small></div><div>CAMERA<b>24/7</b><small>Quan sát thông minh</small></div><div>HỖ TRỢ<b>24h</b><small>Tư vấn & lắp đặt</small></div></div></div></section><div class="svc-wrap svc1-trust"><div><b>⚡ Lắp đặt nhanh</b><small>Hỗ trợ khảo sát khu vực</small></div><div><b>📶 Wi-Fi hiện đại</b><small>Tối ưu nhiều thiết bị</small></div><div><b>🎬 Giải trí đa dạng</b><small>Nội dung cho cả gia đình</small></div><div><b>🛡️ Camera cloud</b><small>An tâm mọi lúc mọi nơi</small></div></div>${section('internet','Các gói Internet nổi bật','Internet FPT','INTERNET FPT')}${section('tv','Truyền hình & giải trí','Truyền hình FPT','FPT PLAY')}${section('camera','Camera thông minh','Camera FPT','CAMERA FPT')}${section('combo','Combo tiết kiệm','Combo Internet + Truyền hình','COMBO DỊCH VỤ')}<section class="svc1-section alt"><div class="svc-wrap"><div class="svc1-head"><div><small>LỢI ÍCH</small><h2>Một website tập trung vào chuyển đổi</h2></div></div><div class="svc1-benefits"><div>🚀<b>Gói cước rõ ràng</b><span>Khách dễ so sánh và lựa chọn.</span></div><div>📱<b>Responsive</b><span>Tối ưu điện thoại và máy tính.</span></div><div>☎️<b>CTA nổi bật</b><span>Dẫn khách đến tư vấn nhanh.</span></div><div>🧩<b>Dễ quản trị</b><span>Tự thêm, sửa gói dịch vụ.</span></div></div></div></section><section class="svc1-section" id="dang-ky"><div class="svc-wrap"><div class="svc1-cta"><div><small>ĐĂNG KÝ TƯ VẤN</small><h2>Sẵn sàng chọn gói phù hợp?</h2><p>Liên hệ để kiểm tra hạ tầng, ưu đãi và thời gian lắp đặt tại khu vực của bạn.</p></div><a class="svc1-btn primary" href="tel:${esc(String(site.phone||'').replace(/\s/g,''))}">☎ ${esc(site.phone||'Liên hệ ngay')}</a></div></div></section><footer class="svc1-footer"><div class="svc-wrap svc1-footer-grid"><div><b class="svc1-brand">NETPRO</b><p>Internet · Truyền hình · Camera</p></div><div><b>Dịch vụ</b><a href="#internet">Internet</a><a href="#tv">Truyền hình</a><a href="#camera">Camera</a></div><div><b>Liên hệ</b><a href="tel:${esc(String(site.phone||'').replace(/\s/g,''))}">${esc(site.phone||'Hotline')}</a><a href="#dang-ky">Đăng ký tư vấn</a></div></div></footer></div>`;
+ const visual=cfg.visual.map(v=>`<div><span>${esc(v[0])}</span><b>${esc(v[1])}</b><small>${esc(v[2])}</small></div>`).join('');
+ root.innerHTML=`<div class="svc1 svc-provider-${key}"><nav class="svc1-nav"><div class="svc-wrap"><a class="svc1-brand" href="#"><strong>${esc(cfg.brand)}</strong><span>${esc(cfg.brand2)}</span></a><div class="svc1-links"><a href="#internet">Internet</a><a href="#tv">Truyền hình</a><a href="#camera">Camera</a><a href="#combo">Combo</a><a class="svc1-call" href="#dang-ky">Đăng ký tư vấn</a></div></div></nav><section class="svc1-hero"><div class="svc-wrap svc1-hero-grid"><div><div class="svc1-kicker">${esc(cfg.kicker)}</div><h1>${esc(cfg.hero)}</h1><p>${esc(cfg.heroText)}</p><div class="svc1-hero-actions"><a class="svc1-btn primary" href="#internet">Xem gói cước</a><a class="svc1-btn" href="#dang-ky">Nhận tư vấn</a></div></div><div class="svc1-visual">${visual}</div></div></section><div class="svc-wrap svc1-trust"><div><b>⚡ Lắp đặt nhanh</b><small>Khảo sát hạ tầng theo khu vực</small></div><div><b>📶 Wi-Fi hiện đại</b><small>Tối ưu nhiều thiết bị</small></div><div><b>🎬 Giải trí đa nền tảng</b><small>Nội dung cho gia đình</small></div><div><b>🛡️ Camera & Cloud</b><small>Giám sát thuận tiện</small></div></div>${section('internet',0,false)}${section('tv',1,true)}${section('camera',2,false)}${section('combo',3,true)}<section class="svc1-section"><div class="svc-wrap"><div class="svc1-head"><div><small>TỐI ƯU CHUYỂN ĐỔI</small><h2>Website bán dịch vụ rõ ràng và dễ quản trị</h2></div></div><div class="svc1-benefits"><div>🚀<b>Gói cước dễ so sánh</b><span>Thông số, giá và ưu đãi nổi bật.</span></div><div>📱<b>Responsive</b><span>Đồng nhất PC, tablet và mobile.</span></div><div>☎️<b>CTA rõ ràng</b><span>Dẫn khách tới đăng ký tư vấn.</span></div><div>🧩<b>Quản trị riêng</b><span>Thêm/sửa đúng chuyên mục nhà mạng.</span></div></div></div></section><section class="svc1-section alt" id="dang-ky"><div class="svc-wrap"><div class="svc1-cta"><div><small>ĐĂNG KÝ TƯ VẤN</small><h2>Kiểm tra hạ tầng và chọn gói phù hợp</h2><p>Liên hệ để xác nhận giá, ưu đãi và khả năng triển khai thực tế tại địa chỉ lắp đặt.</p></div><a class="svc1-btn primary" href="tel:${esc(String(site.phone||'').replace(/\s/g,''))}">☎ ${esc(site.phone||'Liên hệ ngay')}</a></div></div></section><footer class="svc1-footer"><div class="svc-wrap svc1-footer-grid"><div><b class="svc1-brand"><strong>${esc(cfg.brand)}</strong><span>${esc(cfg.brand2)}</span></b><p>${esc(cfg.kicker.replace(/ · /g,' • '))}</p></div><div><b>Dịch vụ</b><a href="#internet">Internet</a><a href="#tv">Truyền hình</a><a href="#camera">Camera</a></div><div><b>Liên hệ</b><a href="tel:${esc(String(site.phone||'').replace(/\s/g,''))}">${esc(site.phone||'Hotline')}</a><a href="#dang-ky">Đăng ký tư vấn</a></div></div></footer></div>`;
 }
+function renderServiceFpt1(site={}){renderServiceProvider(site,'dich-vu-1')}
+function renderServiceVnpt2(site={}){renderServiceProvider(site,'dich-vu-2')}
+function renderServiceViettel3(site={}){renderServiceProvider(site,'dich-vu-3')}
+

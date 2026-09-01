@@ -1,7 +1,3 @@
-NEWSREAL V20.5.0 — SERVICE TEMPLATE GROUP
-
-- Thêm nhóm Template Dịch vụ trong kho giao diện.
-- Thêm Dịch vụ Mẫu 1: Internet / Truyền hình / Camera, phù hợp đại lý/đơn vị triển khai dịch vụ FPT hoặc dịch vụ viễn thông tương tự.
-- Admin theo content_type=service: chuyên mục dịch vụ + trường Giá/tháng, Tốc độ/thông số, Ưu đãi, CTA.
-- Contract parity: showroom có dữ liệu mẫu đầy đủ; trial/client giữ nguyên toàn bộ view/section/taxonomy nhưng không mang bài/gói mẫu.
-- Trial routing và early conversion contract của V20.4.6 được giữ nguyên.
+NEWSREAL V20.5.1
+Service templates: FPT / VNPT / Viettel
+Showroom: real public package examples; Trial/client: same structure, no showroom sample posts.
