@@ -1,3 +1,10 @@
+NEWSREAL V20.4.4 — BĐS NHÀ TRỌ TAXONOMY
+
+- Added property type “Nhà trọ / Phòng trọ” to Admin posting form.
+- Added the same property type to frontend search and Loại BĐS menus.
+- Synchronized Mua / Bán / Cho thuê category defaults with nhà trọ/phòng trọ.
+- Preserves V20.4.3 exact transaction/category rendering fixes.
+
 NEWSREAL V20.4.3 — DEMO MẪU 1 LAYOUT PARITY HOTFIX
 
 Scope: BĐS Mẫu 1 showroom demo layout only.

@@ -704,20 +704,20 @@ const expenseDate=document.getElementById('expenseDate');if(expenseDate&&!expens
 
 
 const TM_DEFAULT_BUY_CATEGORIES=[
- 'Mua căn hộ chung cư','Mua nhà riêng','Mua nhà mặt phố','Mua biệt thự, nhà liền kề',
+ 'Mua căn hộ chung cư','Mua nhà riêng','Mua nhà trọ, phòng trọ','Mua nhà mặt phố','Mua biệt thự, nhà liền kề',
  'Mua shophouse, nhà phố thương mại','Mua đất nền, đất dự án','Mua đất thổ cư, đất ở',
  'Mua trang trại, khu nghỉ dưỡng','Mua kho, nhà xưởng','Mua văn phòng','Mua khách sạn',
  'Mua mặt bằng kinh doanh','Bất động sản cần mua khác'
 ];
 const TM_DEFAULT_SALE_CATEGORIES=[
- 'Bán căn hộ chung cư','Bán nhà riêng','Bán nhà mặt phố','Bán biệt thự, nhà liền kề',
+ 'Bán căn hộ chung cư','Bán nhà riêng','Bán nhà trọ, phòng trọ','Bán nhà mặt phố','Bán biệt thự, nhà liền kề',
  'Bán shophouse, nhà phố thương mại','Bán đất nền, đất dự án','Bán đất thổ cư, đất ở',
  'Bán trang trại, khu nghỉ dưỡng','Bán kho, nhà xưởng','Bán văn phòng','Bán khách sạn',
  'Bán mặt bằng kinh doanh','Bất động sản bán khác'
 ];
 const TM_DEFAULT_RENT_CATEGORIES=[
- 'Cho thuê căn hộ chung cư','Cho thuê nhà riêng','Cho thuê nhà mặt phố','Cho thuê biệt thự, nhà liền kề',
- 'Cho thuê shophouse, cửa hàng','Cho thuê phòng trọ','Cho thuê văn phòng','Cho thuê kho, nhà xưởng',
+ 'Cho thuê căn hộ chung cư','Cho thuê nhà riêng','Cho thuê nhà trọ, phòng trọ','Cho thuê nhà mặt phố','Cho thuê biệt thự, nhà liền kề',
+ 'Cho thuê shophouse, cửa hàng','Cho thuê văn phòng','Cho thuê kho, nhà xưởng',
  'Cho thuê mặt bằng kinh doanh','Cho thuê đất','Bất động sản cho thuê khác'
 ];
 const TM_DEFAULT_NEWS_CATEGORIES=['Kinh tế','Công nghệ','Du lịch','Sức khỏe','Bất động sản','Đời sống','Kinh doanh','Giáo dục','Nhà đẹp'];
