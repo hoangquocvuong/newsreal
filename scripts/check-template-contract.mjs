@@ -13,7 +13,10 @@ const required=[
   ['Camera indoor 6-slot renderer',"secSlots('indoor',6)"],
   ['Camera outdoor 6-slot renderer',"secSlots('outdoor',6)"],
   ['Camera AI 6-slot renderer',"secSlots('ai',6)"],
-  ['Camera pro 6-slot renderer',"secSlots('pro',6)"]
+  ['Camera pro 6-slot renderer',"secSlots('pro',6)"],
+  ['Camera showroom preset dispatch',"'dich-vu-4':'service_camera_store_4'"],
+  ['Camera renderer dispatch',"effectivePreset==='service_camera_store_4'"],
+  ['Service demo template key contract',"/^dich-vu-\\d+$/.test(window.NR_DEMO_THEME)"]
 ];
 let failed=0;
 for(const [name,needle] of required){

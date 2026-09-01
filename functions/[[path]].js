@@ -49,7 +49,7 @@ function htmlNoCache(body,status=200){
 }
 
 function themedHtml(html,preset){
- const cls=preset==='newsreal'?'theme-estate-default':preset==='estate_green'?'theme-estate-green':preset==='estate_luxe_3'?'theme-estate-luxe':preset==='estate_minimal_4'?'theme-estate-minimal':preset==='estate_urban_5'?'theme-estate-urban':preset==='news_portal_1'?'theme-news-portal':preset==='service_fpt_1'?'theme-service-fpt':preset==='service_vnpt_2'?'theme-service-vnpt':preset==='service_viettel_3'?'theme-service-viettel':'';
+ const cls=preset==='newsreal'?'theme-estate-default':preset==='estate_green'?'theme-estate-green':preset==='estate_luxe_3'?'theme-estate-luxe':preset==='estate_minimal_4'?'theme-estate-minimal':preset==='estate_urban_5'?'theme-estate-urban':preset==='news_portal_1'?'theme-news-portal':preset==='service_fpt_1'?'theme-service-fpt':preset==='service_vnpt_2'?'theme-service-vnpt':preset==='service_viettel_3'?'theme-service-viettel':preset==='service_camera_store_4'?'theme-service-camera-store':'';
  return cls?html.replace('<body>',`<body class="${cls}">`):html;
 }
 
@@ -89,7 +89,7 @@ function stripDemoPath(path,demo){
 function demoInject(html,demo,trialCtx=null){
  if(!demo||demo==='center')return html;
  html=html.replace(/\/assets\/style\.css\?v=[^\"'&<]+/g,'/assets/style.css?v=20.5.1').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.5.1');
- const preset=demo==='mau-1'?'newsreal':demo==='mau-2'?'estate_green':demo==='mau-3'?'estate_luxe_3':demo==='mau-4'?'estate_minimal_4':demo==='mau-5'?'estate_urban_5':demo==='tin-tuc-1'?'news_portal_1':demo==='tin-tuc-2'?'news_paper_2':demo==='tin-tuc-3'?'news_magazine_3':demo==='tin-tuc-4'?'news_minimal_4':demo==='dich-vu-1'?'service_fpt_1':demo==='dich-vu-2'?'service_vnpt_2':demo==='dich-vu-3'?'service_viettel_3':'';
+ const preset=demo==='mau-1'?'newsreal':demo==='mau-2'?'estate_green':demo==='mau-3'?'estate_luxe_3':demo==='mau-4'?'estate_minimal_4':demo==='mau-5'?'estate_urban_5':demo==='tin-tuc-1'?'news_portal_1':demo==='tin-tuc-2'?'news_paper_2':demo==='tin-tuc-3'?'news_magazine_3':demo==='tin-tuc-4'?'news_minimal_4':demo==='dich-vu-1'?'service_fpt_1':demo==='dich-vu-2'?'service_vnpt_2':demo==='dich-vu-3'?'service_viettel_3':demo==='dich-vu-4'?'service_camera_store_4':'';
  let out=themedHtml(html,preset);
  const currentPath=typeof rawPath!=='undefined'?rawPath:'';
  const prefix=demoPrefixForPath(currentPath,demo);

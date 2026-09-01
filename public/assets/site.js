@@ -1532,7 +1532,7 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
    SITE_DATA=d;
    const s=d.site;
    if(s?.favicon_url){let f=document.querySelector('link[rel=\"icon\"]');if(!f){f=document.createElement('link');f.rel='icon';document.head.appendChild(f)}f.href=s.favicon_url}
-   const demoTemplateKey=window.NR_DEMO_THEME&&(/^tin-tuc-[1-4]$/.test(window.NR_DEMO_THEME)||/^mau-[1-5]$/.test(window.NR_DEMO_THEME))?window.NR_DEMO_THEME:'';
+   const demoTemplateKey=window.NR_DEMO_THEME&&(/^tin-tuc-[1-4]$/.test(window.NR_DEMO_THEME)||/^mau-[1-5]$/.test(window.NR_DEMO_THEME)||/^dich-vu-\d+$/.test(window.NR_DEMO_THEME))?window.NR_DEMO_THEME:'';
    const activeTemplateKey=demoTemplateKey||s.template_key||'';
    if(activeTemplateKey){
      try{
@@ -1558,7 +1558,8 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
      'tin-tuc-4':'news_minimal_4',
      'dich-vu-1':'service_fpt_1',
      'dich-vu-2':'service_vnpt_2',
-     'dich-vu-3':'service_viettel_3'
+     'dich-vu-3':'service_viettel_3',
+     'dich-vu-4':'service_camera_store_4'
    };
    const effectivePreset=DEMO_PRESETS[demoTheme]||s.preset||'newsreal';
    document.body.classList.toggle('nr-demo-performance',!!demoTheme);
@@ -1573,6 +1574,7 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
    document.body.classList.toggle('theme-service-fpt',effectivePreset==='service_fpt_1');
    document.body.classList.toggle('theme-service-vnpt',effectivePreset==='service_vnpt_2');
    document.body.classList.toggle('theme-service-viettel',effectivePreset==='service_viettel_3');
+   document.body.classList.toggle('theme-service-camera-store',effectivePreset==='service_camera_store_4');
    fillPublicFooter(s);
    // V17.1 — Demo tab title is owned by the selected template, never by the shared showroom tenant.
    if(window.NR_DEMO_THEME&&window.nrApplyDemoTitle){
@@ -1611,6 +1613,8 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
      try{renderServiceVnpt2(s)}catch(e){console.error('SERVICE M2',e);showError('Không tải được giao diện Dịch vụ Mẫu 2.')}
    }else if(effectivePreset==='service_viettel_3'){
      try{renderServiceViettel3(s)}catch(e){console.error('SERVICE M3',e);showError('Không tải được giao diện Dịch vụ Mẫu 3.')}
+   }else if(effectivePreset==='service_camera_store_4'){
+     try{renderServiceCameraStore4(s)}catch(e){console.error('SERVICE M4',e);showError('Không tải được giao diện Camera Store.')}
    }else{
      renderTheme1Home(s,props);
    }
