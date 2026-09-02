@@ -3653,3 +3653,41 @@ html.coc-saved-open,html.coc-saved-open body{overflow:hidden}
   .theme-game-clash .coc-pagination{margin-top:14px;gap:5px;padding:9px 6px}.theme-game-clash .coc-pagination a{min-width:34px;height:34px;font-size:11px}
 }
 @media(max-width:360px){.theme-game-clash .coc-result-grid,.theme-game-clash .coc-related-grid{gap:6px!important}.theme-game-clash .coc-result-grid .coc-card-body,.theme-game-clash .coc-related .coc-card-body{padding:7px!important}}
+
+
+/* V20.9.10 — CoC desktop article sidebar visibility + richer context */
+@media(min-width:901px){
+  .theme-game-clash .coc-detail-grid{align-items:start}
+  .theme-game-clash .coc-detail-side{
+    position:sticky!important;
+    top:92px!important;
+    align-self:start!important;
+    z-index:30;
+    margin:0!important;
+  }
+  .theme-game-clash .coc-detail-side>*{box-sizing:border-box}
+  .theme-game-clash .coc-access-card-rich,
+  .theme-game-clash .coc-side-info,
+  .theme-game-clash .coc-side-guide{
+    background:rgba(255,255,255,.97);
+    border:1px solid #dfe6ee;
+    box-shadow:0 10px 28px rgba(8,17,30,.06);
+    padding:20px;
+    margin:0 0 14px;
+  }
+  .theme-game-clash .coc-access-card-rich{border-top:5px solid #ffb000}
+  .theme-game-clash .coc-access-card-rich h3{margin:8px 0 7px;font-size:23px;line-height:1.2}
+  .theme-game-clash .coc-side-intro{margin:0;color:#62748a;font-size:13px;line-height:1.55}
+  .theme-game-clash .coc-side-box-title{display:flex;flex-direction:column;gap:3px;margin-bottom:12px}
+  .theme-game-clash .coc-side-box-title small{font-size:10px;font-weight:950;letter-spacing:.1em;color:#d47a00}
+  .theme-game-clash .coc-side-box-title strong{font-size:18px;color:#101c2e}
+  .theme-game-clash .coc-side-meta-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:9px 0;border-top:1px solid #edf1f5;font-size:13px}
+  .theme-game-clash .coc-side-meta-row span{color:#718096}
+  .theme-game-clash .coc-side-meta-row b{max-width:58%;text-align:right;color:#172033}
+  .theme-game-clash .coc-side-guide ol{margin:0;padding-left:19px;color:#405268;font-size:13px;line-height:1.7}
+  .theme-game-clash .coc-side-guide li+li{margin-top:4px}
+  .theme-game-clash .coc-side-guide p{margin:13px 0 0;padding-top:12px;border-top:1px solid #edf1f5;color:#62748a;font-size:12px;line-height:1.55}
+}
+@media(max-width:900px){
+  .theme-game-clash .coc-detail-side{display:none!important}
+}

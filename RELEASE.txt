@@ -1,10 +1,9 @@
-NEWSREAL V20.9.9 — CoC Mobile 2-Column Results, Pagination, Related Visibility
+NEWSREAL V20.9.10 — CoC Rich Sticky Article Sidebar
 
-- 12 filtered bases per page with URL-preserving pagination.
-- Mobile filtered results: 2 columns.
-- Related Bases visible on mobile: 2 columns, max 6, strict same Hall level.
-- Filter changes reset pagination to page 1.
-
-NEWSREAL V20.9.9 - CoC Article Mobile Dock + Strict Related Fix
-
-Mobile article action dock, duplicate CTA cleanup, strict same-level related bases, Saved menu icon cleanup, article width alignment.
+- Fix desktop article sidebar being covered by sticky navigation while scrolling.
+- Sidebar now sticks below the CoC header with a safe offset.
+- Expand sidebar with Base Information and Quick Guide sections so the column is useful instead of ending after one CTA.
+- Keep the mobile article clean: desktop sidebar is hidden; mobile retains the fixed Copy Base + Donate dock from V20.9.8.
+- Preserve strict same-group + same-level related bases and V20.9.9 pagination.
+- Game structure profile version 14; article sidebar contract game-rich-sticky-sidebar-v1.
+- No database migration.
