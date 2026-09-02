@@ -41,10 +41,14 @@ const required=[
   ['Game Town Hall exact slots',"nrGameSectionSlots(site,key,n)"],
   ['Game structure profile',"'game-1':{version:1,layout_contract:'universal-layout-v1'"],
   ['Marketplace SEO fields','primary_keyword'],
+  ['Publisher base endpoint',"route==='publisher/base'"],
+  ['Publisher idempotency index','publisher_imports'],
+  ['Publisher secret auth','CONTENT_PUBLISHER_SECRET'],
+  ['Production game slug route','p.url=`/base/${slug}.html`'],
 ];
 let failed=0;
 for(const [name,needle] of required){
-  const haystack=name.startsWith('index ')?index:name.startsWith('function embedded')?fn:name.includes('Marketplace')?fn:name.includes('structure profile')?api:name.includes('CSS')?css:name.startsWith('backend')?api:site;
+  const haystack=name.startsWith('index ')?index:name.startsWith('function embedded')?fn:name.includes('Marketplace')?fn:name.includes('structure profile')?api:name.startsWith('Publisher')||name.startsWith('Production game')?api:name.includes('CSS')?css:name.startsWith('backend')?api:site;
   const ok=haystack.includes(needle)||(name.includes('VNPT')&&(api.includes(needle)||site.includes(needle)));
   console.log(`${ok?'OK':'FAIL'}  ${name}`);
   if(!ok)failed++;
@@ -62,4 +66,6 @@ if(failed){
   console.error(`Template contract failed: ${failed}`);
   process.exit(1);
 }
+
+
 console.log('Template contract smoke: PASS');

@@ -2,6 +2,36 @@
 function json(data,status=200,headers={}){return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8',...headers}})}
 function cookies(req){return Object.fromEntries((req.headers.get('Cookie')||'').split(';').map(x=>x.trim()).filter(Boolean).map(x=>{const i=x.indexOf('=');return [x.slice(0,i),decodeURIComponent(x.slice(i+1))]}))}
 async function sha256(s){const b=new TextEncoder().encode(s),h=await crypto.subtle.digest('SHA-256',b);return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function nrSlug(v=''){return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,180)}
+async function ensurePublisherTables(env){
+  try{await env.DB.prepare(`ALTER TABLE posts ADD COLUMN extra_json TEXT NOT NULL DEFAULT '{}'`).run()}catch(e){}
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS publisher_imports(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    site_id INTEGER NOT NULL,
+    post_id INTEGER NOT NULL,
+    external_key TEXT NOT NULL,
+    slug TEXT NOT NULL,
+    source_url TEXT NOT NULL DEFAULT '',
+    payload_hash TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(site_id,external_key),
+    UNIQUE(site_id,slug),
+    FOREIGN KEY(site_id) REFERENCES sites(id) ON DELETE CASCADE,
+    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE
+  )`).run();
+  try{await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_publisher_imports_post ON publisher_imports(post_id)`).run()}catch(e){}
+}
+function publisherAuthorized(request,env){
+  const auth=String(request.headers.get('Authorization')||'');
+  const token=auth.startsWith('Bearer ')?auth.slice(7).trim():String(request.headers.get('X-Publisher-Token')||'').trim();
+  return !!env.CONTENT_PUBLISHER_SECRET&&token===String(env.CONTENT_PUBLISHER_SECRET);
+}
+async function publisherSite(env,domain){
+  const h=String(domain||'').replace(/^https?:\/\//i,'').split('/')[0].replace(/^www\./,'').toLowerCase().trim();
+  if(!h)return null;
+  return env.DB.prepare(`SELECT * FROM sites WHERE lower(replace(domain,'www.',''))=? AND status='active' LIMIT 1`).bind(h).first();
+}
 async function body(r){try{return await r.json()}catch{return {}}} function tok(){return crypto.randomUUID()+crypto.randomUUID()}
 function host(req){const u=new URL(req.url);return req.headers.get('X-Tenant')||u.searchParams.get('tenant')||u.hostname}
 async function ensureSitePublicSettings(env){
@@ -1580,6 +1610,67 @@ async function diagnoseDomain(env,domain){
 }
 
 export async function onRequest({request,env}){const u=new URL(request.url),route=u.pathname.replace(/^\/api\/?/,'');try{
+// V20.8.1 — authenticated VPS -> Cloudflare content publishing bridge.
+if(route==='publisher/health'&&request.method==='GET'){
+  if(!publisherAuthorized(request,env))return json({error:'Unauthorized'},401);
+  await ensurePublisherTables(env);
+  return json({ok:true,contract:'content-publisher-v1',content_types:['game'],max_payload_bytes:262144});
+}
+if(route==='publisher/check'&&request.method==='GET'){
+  if(!publisherAuthorized(request,env))return json({error:'Unauthorized'},401);
+  await ensurePublisherTables(env);
+  const tenant=String(u.searchParams.get('tenant')||u.searchParams.get('domain')||'').trim();
+  const externalKey=String(u.searchParams.get('external_key')||'').trim();
+  const slug=nrSlug(u.searchParams.get('slug')||'');
+  const target=await publisherSite(env,tenant);if(!target)return json({error:'Tenant không tồn tại hoặc chưa active'},404);
+  let row=null;
+  if(externalKey)row=await env.DB.prepare(`SELECT pi.*,p.title,p.status FROM publisher_imports pi JOIN posts p ON p.id=pi.post_id WHERE pi.site_id=? AND pi.external_key=? LIMIT 1`).bind(target.id,externalKey).first();
+  else if(slug)row=await env.DB.prepare(`SELECT pi.*,p.title,p.status FROM publisher_imports pi JOIN posts p ON p.id=pi.post_id WHERE pi.site_id=? AND pi.slug=? LIMIT 1`).bind(target.id,slug).first();
+  return json({ok:true,exists:!!row,item:row?{post_id:Number(row.post_id),external_key:row.external_key,slug:row.slug,title:row.title,status:row.status,url:`https://${target.domain}/base/${row.slug}.html`,updated_at:row.updated_at}:null});
+}
+if(route==='publisher/base'&&request.method==='POST'){
+  if(!publisherAuthorized(request,env))return json({error:'Unauthorized'},401);
+  await ensurePublisherTables(env);await ensureTemplateCatalog(env);
+  const b=await body(request);
+  const tenant=String(b.tenant_domain||b.tenant||b.domain||'').trim();
+  const target=await publisherSite(env,tenant);if(!target)return json({error:'Tenant không tồn tại hoặc chưa active'},404);
+  const templateKey=String(target.template_key||'');
+  if(templateKey!=='game-1'&&String(target.preset||'')!=='game_clash_1')return json({error:'Publisher Base V1 chỉ nhận tenant Game / Clash of Clans'},409);
+  const title=String(b.title||'').trim();if(!title)return json({error:'Thiếu title'},400);
+  const sourceUrl=String(b.source_url||b.sourceUrl||'').trim();
+  const copyLink=String(b.copy_link||b.baseLink||b.copyLink||'').trim();
+  const externalKey=String(b.external_key||b.base_id||b.baseId||copyLink||sourceUrl||'').trim();
+  if(!externalKey)return json({error:'Thiếu external_key/base_id/baseLink/source_url để chống trùng'},400);
+  let slug=nrSlug(b.slug||b.slug_key||b.slugKey||title);if(!slug)slug='base-'+(await sha256(externalKey)).slice(0,16);
+  const group=String(b.game_group||b.group||b.category||'Town Hall').trim();
+  const level=String(b.game_level||b.level||'').trim().toUpperCase();
+  const purpose=String(b.game_purpose||b.purpose||b.type||b.baseType||'Base').trim();
+  const style=String(b.game_style||b.style||'').trim();
+  const defense=String(b.game_defense||b.defense||'').trim();
+  const access=String(b.access_tier||b.access||b.mode||(/premium/i.test(title)?'Premium':'Free')).trim();
+  const image=String(b.processed_image_url||b.processedImageUrl||b.image_url||b.imageUrl||b.image||'').trim();
+  const premiumLink=String(b.premium_link||b.premiumLink||'').trim();
+  const year=String(b.game_year||b.year||new Date().getUTCFullYear()).trim();
+  const content=String(b.content||b.description||'').trim()||`<p>${title}</p>`;
+  const extra={game_group:group,game_level:level,game_purpose:purpose,game_style:style,game_defense:defense,access_tier:access,copy_link:copyLink,premium_link:premiumLink,game_year:year,slug,source_url:sourceUrl,external_key:externalKey,original_image_url:String(b.original_image_url||b.originalImageUrl||'').trim(),publisher:'vps'};
+  const payloadHash=await sha256(JSON.stringify({title,sourceUrl,copyLink,group,level,purpose,style,defense,access,image,premiumLink,year,content,slug}));
+  let imp=await env.DB.prepare(`SELECT * FROM publisher_imports WHERE site_id=? AND external_key=? LIMIT 1`).bind(target.id,externalKey).first();
+  if(!imp){
+    const slugTaken=await env.DB.prepare(`SELECT id,external_key FROM publisher_imports WHERE site_id=? AND slug=? LIMIT 1`).bind(target.id,slug).first();
+    if(slugTaken&&String(slugTaken.external_key)!==externalKey)slug=`${slug}-${(await sha256(externalKey)).slice(0,8)}`;
+    extra.slug=slug;
+    const r=await env.DB.prepare(`INSERT INTO posts(site_id,type,title,category,image,content,status,author_id,featured,verified,listing_code,views,is_sample,sample_key,extra_json) VALUES(?,?,?,?,?,?,'published',NULL,?,?,?,?,0,'',?)`).bind(target.id,'game',title,group,image,content,b.featured?1:0,1,`COC-${(await sha256(externalKey)).slice(0,12).toUpperCase()}`,Number(b.views||0),JSON.stringify(extra)).run();
+    const postId=Number(r.meta.last_row_id);
+    await env.DB.prepare(`INSERT INTO publisher_imports(site_id,post_id,external_key,slug,source_url,payload_hash) VALUES(?,?,?,?,?,?)`).bind(target.id,postId,externalKey,slug,sourceUrl,payloadHash).run();
+    return json({ok:true,created:true,updated:false,duplicate:false,post_id:postId,slug,url:`https://${target.domain}/base/${slug}.html`},201);
+  }
+  const current=await env.DB.prepare(`SELECT id,extra_json FROM posts WHERE id=? AND site_id=? LIMIT 1`).bind(imp.post_id,target.id).first();
+  if(!current)return json({error:'Publisher index trỏ tới post không còn tồn tại'},409);
+  const merged={...(()=>{try{return JSON.parse(current.extra_json||'{}')}catch{return {}}})(),...extra,slug:imp.slug};
+  await env.DB.prepare(`UPDATE posts SET type='game',title=?,category=?,image=?,content=?,status='published',featured=?,verified=1,extra_json=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND site_id=?`).bind(title,group,image,content,b.featured?1:0,JSON.stringify(merged),imp.post_id,target.id).run();
+  await env.DB.prepare(`UPDATE publisher_imports SET source_url=?,payload_hash=?,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(sourceUrl,payloadHash,imp.id).run();
+  return json({ok:true,created:false,updated:true,duplicate:imp.payload_hash===payloadHash,post_id:Number(imp.post_id),slug:imp.slug,url:`https://${target.domain}/base/${imp.slug}.html`});
+}
 // TRIAL WEBSITE MAINTENANCE — hourly/daily cron safe endpoint.
 if(route==='system/trial-maintenance'&&request.method==='POST'){
   await ensureCustomerTables(env);await ensureTrialTables(env);
@@ -3173,6 +3264,13 @@ if(route==='site'&&request.method==='GET'){
   ?`SELECT * FROM posts WHERE site_id=? AND status='published' AND coalesce(is_sample,0)=0 AND coalesce(sample_key,'')='' AND coalesce(listing_code,'') NOT LIKE 'DEMO-%' AND coalesce(listing_code,'') NOT LIKE 'SAMPLE-%' ORDER BY id DESC LIMIT 100`
   :`SELECT * FROM posts WHERE site_id=? AND status='published' ORDER BY id DESC LIMIT 100`;
  const {results}=await env.DB.prepare(sql).bind(site.id).all();
+ // V20.8.1 — production Game posts expose the same stable /base/<slug>.html route as showroom.
+ for(const p of (results||[])){
+   if(String(p.type||'').toLowerCase()!=='game')continue;
+   let ex={};try{ex=JSON.parse(String(p.extra_json||'{}'))}catch(e){}
+   const slug=nrSlug(ex.slug||p.title||('base-'+p.id));
+   p.slug=slug;p.url=`/base/${slug}.html`;p.demo_url=p.url;
+ }
  let st=await stats(env,site.id);
  if(hideSamples){
    const published=results||[];

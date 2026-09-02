@@ -42,3 +42,7 @@ bucket_name = "newsreal-images"
 # Webhook URL configured in payOS channel:
 # https://hoangvuongtech.com/api/payos-webhook
 # PAYMENT_QR_URL remains only as MB static-QR fallback when payOS Secrets are absent.
+
+# V20.8.1 VPS -> Cloudflare publisher bridge (Cloudflare Secret, NEVER commit value):
+# CONTENT_PUBLISHER_SECRET
+# VPS env: COCBASE_CLOUDFLARE_PUBLISH_URL, COCBASE_TENANT_DOMAIN, CONTENT_PUBLISHER_SECRET
