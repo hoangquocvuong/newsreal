@@ -39,9 +39,9 @@ const required=[
   ['Game Clash preset',"'game-1':'game_clash_1'"],
   ['Game Clash renderer','renderGameClash1'],
   ['Game Town Hall level chooser',"GAME_LEVELS={th:Array.from({length:17}"],
-  ['Game structure profile',"'game-1':{version:9,layout_contract:'universal-layout-v1'"],
+  ['Game structure profile',"'game-1':{version:10,layout_contract:'universal-layout-v1'"],
   ['Game level card renderer symbol','function nrGameLevelCards(group,prefix'],
-  ['backend Game renderer boot contract',"boot_contract:'game-renderer-symbol-complete-v1'"],
+  ['backend Game renderer boot contract',"boot_contract:'game-route-runtime-complete-v2'"],
   ['Game community archive route','/bases?'],
   ['Game fast filter binding','nrGameBindFastFilters'],
   ['Game mobile detail CSS','.coc-stats.big{display:flex!important'],
@@ -52,6 +52,8 @@ const required=[
   ['Game smart desktop nav','coc-desktop-nav'],
   ['Game mobile hamburger','data-coc-menu-toggle="1"'],
   ['Game compact filter drawer','data-coc-filter-toggle="1"'],
+  ['Game filter type runtime helper','function nrGameFilterTypes(group)'],
+  ['Game About Terms server route',"path==='/about'||path==='/terms'"],
   ['Game filter drawer apply','data-coc-filter-apply="1"'],
   ['Game Saved toast','nrGameToast'],
   ['Game Saved toast message','Base đã được lưu'],
@@ -80,7 +82,7 @@ const required=[
 ];
 let failed=0;
 for(const [name,needle] of required){
-  const haystack=name.startsWith('index ')?index:name.startsWith('function embedded')?fn:name.includes('Marketplace')?fn:name.includes('structure profile')?api:name.startsWith('Publisher')||name.startsWith('Production game')?api:name.includes('CSS')?css:name.startsWith('backend')?api:site;
+  const haystack=name.startsWith('index ')?index:name.startsWith('function embedded')||name.includes('About Terms server route')?fn:name.includes('Marketplace')?fn:name.includes('structure profile')?api:name.startsWith('Publisher')||name.startsWith('Production game')?api:name.includes('CSS')?css:name.startsWith('backend')?api:site;
   const ok=haystack.includes(needle)||(name.includes('VNPT')&&(api.includes(needle)||site.includes(needle)));
   console.log(`${ok?'OK':'FAIL'}  ${name}`);
   if(!ok)failed++;

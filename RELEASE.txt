@@ -1,23 +1,8 @@
-NEWSREAL V20.9.5 — COC RENDERER SYMBOL RECOVERY
+NEWSREAL V20.9.6 — COC ROUTE + FILTER RUNTIME FIX
 
-Critical fix
-- Fixed the real Clash of Clans homepage renderer crash in V20.9.4.
-- Root cause: renderGameClash1() called nrGameLevelCards(), but that renderer helper had been accidentally removed in the V20.9.1+ refactor.
-- Restored nrGameLevelCards() from the last known-good Game renderer contract.
-- Game demo posts now prefer the already-booted SITE_DATA payload and only fall back to the compiled sample array.
-- Public Game demo remains isolated from the BDS tenant/API and cannot cross-fallback to a real-estate renderer.
-
-Preserved
-- Multi-criteria filter: Hall + Purpose/District + Year + Sort.
-- Mobile staged filter drawer and explicit Apply button.
-- Mobile hamburger navigation, no bottom navigation.
-- Local-first Saved + visual toast.
-- Unified Donate color and centered floating coffee button.
-- Cloudflare/D1 batch stats contract.
-- Dynamic template settings for Donate/About/Terms/Footer.
-
-Contract
-- game-1 structure profile version: 9
-- boot_contract: game-renderer-symbol-complete-v1
-
-No new D1 migration.
+- Fixes Game About/Terms demo routes so they always serve the Game shell, never the BĐS static fallback.
+- Restores missing nrGameFilterTypes() runtime helper that crashed /bases filter rendering in V20.9.5.
+- Keeps multi-criteria filters: Hall + Level + Purpose/District + Year + Sort.
+- Keeps mobile drawer, Saved toast, Donate consistency, D1 stats and dynamic template settings.
+- Demo/static asset build bumped to 20.9.6.
+- Game contract bumped to version 10 / game-route-runtime-complete-v2.
