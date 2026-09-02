@@ -3323,3 +3323,4 @@ body.theme-news-magazine .nm-mosaic>.nm-tile img{width:100%!important;height:100
 @media(max-width:900px){
   .nr-sidebar-follow-host{transform:none!important;will-change:auto!important}
 }
+\n\n/* V20.7.9 — Homepage Sidebar Balance Contract V1 */\n@media (min-width:1001px){\n  body[class*="theme-news-"] [data-structure-key="latest"] .n3-layout,\n  body[class*="theme-news-"] [data-structure-key="latest"] .np-content-layout,\n  body[class*="theme-news-"] [data-structure-key="latest"] .nmin-layout{align-items:start!important}\n  body[class*="theme-news-"] [data-structure-key="latest"] .n3-grid,\n  body[class*="theme-news-"] [data-structure-key="latest"] .np-list,\n  body[class*="theme-news-"] [data-structure-key="latest"] .nmin-latest-grid{align-content:start!important}\n}\n

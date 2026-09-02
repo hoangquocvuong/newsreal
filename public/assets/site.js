@@ -661,7 +661,7 @@ function renderNewsPortalHome(site){
 
    <section class="n3-section" id="moi-nhat"><div class="wrap">
     <div class="n3-title"><div><small>DÒNG TIN</small><h2>Tin mới nhất</h2></div><span>Cập nhật các nội dung đáng chú ý</span></div>
-    <div class="n3-layout"><div class="n3-grid">${all.slice(1,1+layout.home_latest_count).map(cardN).join('')||'<div class="empty">Chưa có nội dung.</div>'}</div>
+    <div class="n3-layout"><div class="n3-grid">${all.slice(1,1+nrNewsHomeLatestRenderCount(site,'tin-tuc-1',layout.home_latest_count)).map(cardN).join('')||'<div class="empty">Chưa có nội dung.</div>'}</div>
     ${layout.sidebar_enabled?`<aside class="n3-popular news-home-sidebar" id="doc-nhieu">
       <section class="news-side-box"><div class="n3-aside-title">ĐỌC NHIỀU</div>${[...all].sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,layout.sidebar_read_most).map((x,i)=>`<a class="news-side-rank" href="${nurl(x)}"><b>${String(i+1).padStart(2,'0')}</b><div><span>${esc(x.category||'Tin tức')}</span><h3>${esc(x.title)}</h3></div></a>`).join('')}</section>
       <section class="news-side-box news-side-categories"><div class="n3-aside-title">CHUYÊN MỤC</div><div>${categories.slice(0,layout.sidebar_categories).map(c=>`<a href="#cat-${seoSlug(c)}">${esc(c)}</a>`).join('')}</div></section>
@@ -682,6 +682,47 @@ function renderNewsPortalHome(site){
 }
 
 
+// V20.7.9 — HOMEPAGE SIDEBAR BALANCE CONTRACT V1.
+// A homepage that owns a sidebar must never end the "latest" feed noticeably
+// above that sidebar. Structure `slots` remain the guaranteed minimum; when a
+// section opts into `slot_contract: sidebar-balanced`, the renderer provides a
+// small reserve and the geometry pass keeps only the extra complete rows needed
+// to meet the sidebar height. The same rule is used by showroom, trial and client.
+function nrSidebarBalanceConfig(site,key=''){
+ const p=nrStructureProfile(site,key),cfg=p?.homepage_sidebar_balance;
+ if(!cfg||Number(cfg.enabled||0)!==1)return null;
+ return {
+  target_section:String(cfg.target_section||'latest'),
+  max_extra_rows:Math.max(0,Math.min(6,Number(cfg.max_extra_rows||3))),
+  tolerance_px:Math.max(0,Math.min(120,Number(cfg.tolerance_px||32)))
+ };
+}
+function nrNewsHomeLatestRenderCount(site,key,baseCount){
+ const p=nrStructureProfile(site,key),cfg=nrSidebarBalanceConfig(site,key);
+ const sec=(p.sections||[]).find(x=>String(x?.key||'')===String(cfg?.target_section||'latest'));
+ if(!cfg||!sec||String(sec.slot_contract||'exact')!=='sidebar-balanced')return Math.max(1,Number(baseCount||sec?.slots||1));
+ const cols=Math.max(1,Number(sec.desktop_columns||1));
+ return Math.max(1,Number(sec.slots||baseCount||1))+cols*cfg.max_extra_rows;
+}
+function nrSidebarBalancedTarget(site,key,sec,host,baseTarget){
+ const cfg=nrSidebarBalanceConfig(site,key);
+ if(!cfg||String(sec?.key||'')!==cfg.target_section||String(sec?.slot_contract||'exact')!=='sidebar-balanced')return Math.max(0,Number(baseTarget||0));
+ const p=nrStructureProfile(site,key),sidebarDef=(p.sidebars||[])[0];
+ let sidebar=null;try{sidebar=document.querySelector(String(sidebarDef?.root_selector||''))}catch(e){}
+ if(!sidebar||!host||window.innerWidth<1001)return Math.max(0,Number(baseTarget||0));
+ const base=Math.max(1,Number(sec.slots||baseTarget||1)),cols=Math.max(1,Number(sec.desktop_columns||1));
+ const max=base+cols*cfg.max_extra_rows;
+ const cards=nrSlotChildren(host).filter(n=>!nrIsStructureEmptyNode(n));
+ const sample=cards[0]||nrSlotChildren(host)[0];
+ if(!sample)return base;
+ let gap=0;try{const cs=getComputedStyle(host);gap=parseFloat(cs.rowGap||cs.gap||'0')||0}catch(e){}
+ const cardH=Math.max(1,sample.getBoundingClientRect().height||sample.offsetHeight||1);
+ const sideH=Math.max(0,sidebar.getBoundingClientRect().height||sidebar.scrollHeight||0);
+ if(!sideH)return base;
+ const rowH=cardH+gap;
+ const rows=Math.max(Math.ceil(base/cols),Math.ceil(Math.max(0,sideH-cfg.tolerance_px)/rowH));
+ return Math.max(base,Math.min(max,rows*cols));
+}
 const DEFAULT_NEWS_LAYOUT={category_columns:4,category_rows:3,sidebar_enabled:1,sidebar_read_most:6,sidebar_latest:6,sidebar_categories:8,home_latest_count:12,related_count:8};
 function newsLayoutProfile(site,variant=1){
  let p={};try{p=site?.layout_profile&&typeof site.layout_profile==='object'?site.layout_profile:JSON.parse(site?.layout_profile||'{}')}catch{}
@@ -996,11 +1037,16 @@ function nrApplyStructureGeometry(site,key=''){
   const hosts=nrSlotHostConfig(sec,section);
   if(!hosts.length){report.push({key:sec.key,expected,actual:0,error:'missing-slot-host'});continue}
   let actual=0,hostExpected=0;
-  for(const h of hosts){const r=nrEnforceSlotHost(h.node,h.slots,sec,profile);actual+=r.actual;hostExpected+=r.expected}
-  // For split/custom layouts the host allocation must sum to the section contract.
-  const target=hostExpected||expected;
-  report.push({key:sec.key,expected,target,actual,ok:actual===expected&&target===expected});
-  section.dataset.nrExpectedSlots=String(expected);section.dataset.nrActualSlots=String(actual);
+  for(const h of hosts){
+   const dynamicTarget=hosts.length===1?nrSidebarBalancedTarget(site,key,sec,h.node,h.slots):h.slots;
+   const r=nrEnforceSlotHost(h.node,dynamicTarget,sec,profile);actual+=r.actual;hostExpected+=r.expected
+  }
+  // Exact sections stay exact. Sidebar-balanced latest sections may grow by complete
+  // rows, but never below the declared minimum and never beyond the configured cap.
+  const target=hostExpected||expected,balanced=String(sec.slot_contract||'exact')==='sidebar-balanced';
+  const ok=balanced?(actual===target&&target>=expected):(actual===expected&&target===expected);
+  report.push({key:sec.key,expected,target,actual,balanced,ok});
+  section.dataset.nrExpectedSlots=String(target);section.dataset.nrBaseSlots=String(expected);section.dataset.nrActualSlots=String(actual);
  }
  window.NR_TEMPLATE_LAYOUT_REPORT=report;
 }
@@ -1013,10 +1059,12 @@ function nrAuditStructureContract(site,key=''){
   if(!node){errors.push({section:sec.key,error:'missing-section'});continue}
   const expected=Math.max(0,Number(sec.slots||0));if(!expected)continue;
   const hosts=nrSlotHostConfig(sec,node);if(!hosts.length){errors.push({section:sec.key,error:'missing-slot-host'});continue}
-  const hostTotal=hosts.reduce((s,h)=>s+Math.max(0,Number(h.slots||0)),0);
+  const balanced=String(sec.slot_contract||'exact')==='sidebar-balanced';
+  const target=balanced?Math.max(expected,Number(node.dataset.nrExpectedSlots||expected)):expected;
+  const hostTotal=balanced?target:hosts.reduce((s,h)=>s+Math.max(0,Number(h.slots||0)),0);
   const actual=hosts.reduce((s,h)=>s+nrSlotChildren(h.node).length,0);
-  if(hostTotal!==expected)errors.push({section:sec.key,error:'host-total-mismatch',expected,hostTotal});
-  if(actual!==expected)errors.push({section:sec.key,error:'slot-mismatch',expected,actual});
+  if(!balanced&&hostTotal!==expected)errors.push({section:sec.key,error:'host-total-mismatch',expected,hostTotal});
+  if(actual!==target)errors.push({section:sec.key,error:'slot-mismatch',expected:target,base:expected,actual});
  }
  for(const sb of (p.sidebars||[])){let r=null;try{r=document.querySelector(String(sb.root_selector||''))}catch(e){}if(!r)errors.push({sidebar:sb.root_selector,error:'missing-sidebar'})}
  const report={ok:errors.length===0,key,version:String(p.layout_contract||'universal-layout-v1'),errors};
@@ -1168,7 +1216,7 @@ function renderVariantArticle(site,ctx,variant,key){
 }
 function renderNewsPaperHome(site){
  const ctx=newsVariantContext(site,2);setupNewsVariantHeader(site,ctx,'tin-tuc-2','TIN NHANH 360');if(renderNewsClientEmpty(site,ctx,2))return;if(renderVariantArticle(site,ctx,2,'tin-tuc-2'))return;if(maybeRenderNewsCategoryArchive(site,ctx))return;
- const a=ctx.all,lead=a[0],side=a.slice(1,5),latest=a.slice(1,1+ctx.layout.home_latest_count);
+ const a=ctx.all,lead=a[0],side=a.slice(1,5),latest=a.slice(1,1+nrNewsHomeLatestRenderCount(site,'tin-tuc-2',ctx.layout.home_latest_count));
  const row=x=>`<a class="np-row" href="${ctx.url(x)}">${nrImgTag(ctx.img(x),x.title)}<div><span>${esc(x.category)}</span><h3>${esc(x.title)}</h3><small>${Number(x.views||0).toLocaleString('vi-VN')} lượt xem</small></div></a>`;
  const compact=x=>`<a class="np-top-story" href="${ctx.url(x)}">${nrImgTag(ctx.img(x),x.title)}<div><span>${esc(x.category)}</span><h3>${esc(x.title)}</h3><small>${Number(x.views||0).toLocaleString('vi-VN')} lượt xem</small></div></a>`;
  const sidebar=ctx.layout.sidebar_enabled?`<aside class="np-home-sidebar" id="doc-nhieu">

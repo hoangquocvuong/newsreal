@@ -31,7 +31,11 @@ const required=[
   ['function embedded boot timeout','__NR_BOOT_TIMEOUT__'],
   ['sidebar follow contract CSS','Universal Sidebar Follow Contract V1'],
   ['sidebar home sticky CSS','.news-home-sidebar'],
-  ['sidebar article sticky CSS','.news-article-sidebar']
+  ['sidebar article sticky CSS','.news-article-sidebar'],
+  ['homepage sidebar balance helper','nrSidebarBalancedTarget'],
+  ['homepage sidebar reserve helper','nrNewsHomeLatestRenderCount'],
+  ['backend sidebar balance contract','homepage_sidebar_balance'],
+  ['backend sidebar-balanced slots',"slot_contract:'sidebar-balanced'"]
 ];
 let failed=0;
 for(const [name,needle] of required){

@@ -1,5 +1,1 @@
-NEWSREAL V20.7.8 — Sidebar Follow V3
-- Replaces fragile tall-sidebar CSS sticky with scroll-synchronised article-runway follow.
-- Sidebar title is never pre-shifted under the header.
-- Short sidebars pin below the actual sticky header stack; tall sidebars scroll naturally then hold their bottom.
-- No private sidebar scrollbar.
+NEWSREAL V20.7.9 — Homepage Sidebar Balance Contract V1
