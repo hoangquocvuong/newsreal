@@ -1,8 +1,8 @@
-NEWSREAL V20.8.4 — CoC Menu, Related Content, Footer & Sharp Hero
+NEWSREAL V20.8.8 — CoC Mobile UX & Smart Navigation
 
-- CoC main/More menu links now navigate to real sections/routes.
-- Related bases added to desktop detail pages.
-- CoC-specific full footer replaces empty/foreign footer.
-- Hero Hall image uses high-resolution source and contain fit; no crop.
-- Mobile detail remains compact: image + stats + copy link; related/footer hidden there.
-- Fast archive filters remain History API/DOM-only without full page reload.
+- Based on V20.8.4 CoC community architecture.
+- Professional responsive Hall hero with high-resolution srcset and no crop.
+- New task-oriented desktop and mobile navigation.
+- Filter clicks focus the results block without full-page reload.
+- Persistent Buy Me a Coffee donate CTA.
+- Mobile touch-target, card, spacing and safe-area improvements.
