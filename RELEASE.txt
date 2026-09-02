@@ -1,21 +1,8 @@
-NEWSREAL V20.9.11 - COC RUNTIME RECOVERY + DAILY HERO ROTATION
+NEWSREAL V20.9.12 — CoC CTA-last Sidebar + One-line Cards
 
-FIXES
-- Restores nrGameRememberFilter(), removed accidentally during later refactors.
-- Restores nrGameScrollResults(), required by filtered routes, pagination, and #base-results deep links.
-- Removes stale nrGameSetFilterOpen() call from Escape handling and uses progressive-filter close logic.
-- Prevents /bases routes from falling into the emergency Game recovery screen.
-
-HERO SHOWCASE
-- Hero skin showcase is now a true calendar-day rotation.
-- Uses the browser's LOCAL calendar date, not UTC date.
-- Builds a stable pool from the newest available skin year for each hero.
-- Selects one deterministic skin per day, so consecutive days move to the next skin in the pool.
-- Stores only that day's cached skin and refreshes automatically on the next day.
-
-CONTRACT
-- game-1 structure profile version 15.
-- boot_contract: game-runtime-symbol-complete-v3
-- hero_contract: daily-hero-skin-rotation-v2
-
-NO NEW DATABASE MIGRATION.
+- Desktop article sidebar order: Base Information -> Quick Guide -> Copy Base Link.
+- Copy Base Link card is the last sidebar block and becomes a bottom-sticky CTA while the article scrolls.
+- The full sidebar itself is no longer top-sticky, preventing upper blocks from being clipped behind the header.
+- All CoC base-card titles are limited to one visual line with ellipsis for aligned card rows.
+- Keeps V20.9.11 runtime recovery, progressive filter, pagination, related bases, D1 stats, Saved and daily Hero Skin rotation.
+- No DB migration.

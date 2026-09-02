@@ -3691,3 +3691,34 @@ html.coc-saved-open,html.coc-saved-open body{overflow:hidden}
 @media(max-width:900px){
   .theme-game-clash .coc-detail-side{display:none!important}
 }
+
+
+/* V20.9.12 — CoC sidebar CTA-last + single-line card titles */
+.theme-game-clash .coc-card-body h3,
+.theme-game-clash .coc-card-body h3 a{
+  display:block!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  -webkit-line-clamp:unset!important;
+  -webkit-box-orient:initial!important;
+}
+@media(min-width:901px){
+  .theme-game-clash .coc-detail-side{
+    position:static!important;
+    top:auto!important;
+    z-index:auto!important;
+  }
+  .theme-game-clash .coc-side-info,
+  .theme-game-clash .coc-side-guide{
+    position:relative;
+  }
+  .theme-game-clash .coc-access-card-rich{
+    position:sticky!important;
+    bottom:18px!important;
+    top:auto!important;
+    z-index:35;
+    margin-bottom:0!important;
+    box-shadow:0 14px 34px rgba(8,17,30,.16)!important;
+  }
+}
