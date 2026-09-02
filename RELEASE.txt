@@ -1,8 +1,12 @@
-NEWSREAL V20.8.4 — CoC Menu, Related Content, Footer & Sharp Hero
+NEWSREAL V20.8.5 — CoC Original Popup, 4-Metric Cards & Background Parity
 
-- CoC main/More menu links now navigate to real sections/routes.
-- Related bases added to desktop detail pages.
-- CoC-specific full footer replaces empty/foreign footer.
-- Hero Hall image uses high-resolution source and contain fit; no crop.
-- Mobile detail remains compact: image + stats + copy link; related/footer hidden there.
-- Fast archive filters remain History API/DOM-only without full page reload.
+- Replaces plain desktop dropdown/menu links with the CocBasePro-style popup/bottom-sheet interaction model.
+- Main menu News / Find Source / Donate / Saved / More now open fast in-page popup panels without page reload.
+- More uses a compact 3x3 portal grid for Town Hall, Builder Hall, Events, Capital Hall, Rankings, Hero Skins, About, Privacy and Apps.
+- Base archive cards now show Vote, View, Download and Bookmark.
+- Base detail places the same four controls directly below the base image.
+- Bookmark works instantly via local storage in showroom; production can bind the same UI to Firebase/backend identity later.
+- Mobile base detail keeps the SEO description visible instead of hiding the article copy.
+- Restores the exact CocBasePro legacy global background image and overlay treatment behind the Game portal.
+- Game structure profile bumped to v4; card/detail contracts bumped to v3.
+- Fast filters remain History API + DOM-only updates.
