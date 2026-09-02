@@ -1,9 +1,9 @@
-NEWSREAL V20.9.2 — CoC Filter Combo + Boot Recovery
+NEWSREAL V20.9.3 — CoC Hard Boot + Multi-Criteria Filter Recovery
 
-Fixes:
-- Recovery from V20.9.1 public site boot failure caused by optional settings schema dependency.
-- Multi-criteria CoC filters work as a cumulative combination (e.g. TH12 + Farming + 2026 + Vote).
-- Mobile filter drawer stays open while choosing criteria and applies/scrolls only when the user taps the result button.
-- Desktop filter is reorganized for clearer combined criteria.
-- All Donate controls use one blue color, no hover styling, and the floating coffee icon is centered.
-- Preserves V20.9.1 Cloudflare/D1 stats and dynamic template settings.
+- Public /demo/game/clash-of-clans/ boots from its own local showroom package and never depends on the shared BDS tenant API.
+- Absolute anti-cross-template fallback: an API failure can never expose the BDS transport shell.
+- Asset/demo build cache-buster bumped to 20.9.3 and fast-nav session cache version bumped.
+- Mobile filter is staged multi-criteria: choose Group + Level + Purpose + Year + Sort, then press Xem N bases.
+- Desktop filter wraps cleanly and preserves all selected criteria.
+- Donate buttons use one green color with no hover color/transform; circular coffee icon is centered.
+- Keeps V20.9.1 stats/settings and V20.9.0 mobile-first contracts.

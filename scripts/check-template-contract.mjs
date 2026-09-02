@@ -39,7 +39,7 @@ const required=[
   ['Game Clash preset',"'game-1':'game_clash_1'"],
   ['Game Clash renderer','renderGameClash1'],
   ['Game Town Hall level chooser',"GAME_LEVELS={th:Array.from({length:17}"],
-  ['Game structure profile',"'game-1':{version:6,layout_contract:'universal-layout-v1'"],
+  ['Game structure profile',"'game-1':{version:7,layout_contract:'universal-layout-v1'"],
   ['Game community archive route','/bases?'],
   ['Game fast filter binding','nrGameBindFastFilters'],
   ['Game mobile detail CSS','.coc-stats.big{display:flex!important'],

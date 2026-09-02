@@ -46,7 +46,7 @@ const pageTenant=new URLSearchParams(location.search).get('tenant')||'';function
 // V20.7.8 — Fast demo navigation cache + predictive prefetch.
 // Showroom demo data is immutable during a browsing session, so it can be reused
 // across homepage/category/article navigations. Trial/client data is never cached here.
-const NR_FAST_NAV_VERSION='20.7.7';
+const NR_FAST_NAV_VERSION='20.9.3';
 function nrFastDemoCacheEnabled(){
   return !!window.NR_DEMO_THEME&&!window.NR_TRIAL_TOKEN&&!window.NR_CLIENT_SIM&&new URLSearchParams(location.search).get('nr_client')!=='1';
 }
@@ -1696,14 +1696,22 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
    const demoTemplateKey=window.NR_DEMO_THEME&&(/^tin-tuc-[1-4]$/.test(window.NR_DEMO_THEME)||/^mau-[1-5]$/.test(window.NR_DEMO_THEME)||/^dich-vu-\d+$/.test(window.NR_DEMO_THEME)||/^game-\d+$/.test(window.NR_DEMO_THEME))?window.NR_DEMO_THEME:'';
    // Demo route already tells us the template key, so site data and catalog profile
    // are requested in parallel. Subsequent demo pages reuse session cache.
-   const sitePromise=nrFetchJsonCached(tenantApiUrl('/api/site'),{kind:'site',key:demoTemplateKey||'site',ttl:300000});
-   const demoCatalogPromise=demoTemplateKey?nrFetchJsonCached(tenantApiUrl('/api/template-catalog?key='+encodeURIComponent(demoTemplateKey)),{kind:'catalog',key:demoTemplateKey,ttl:1800000,options:{cache:'force-cache'}}):null;
-   const d=await sitePromise;
+   const isPublicGameDemo=demoTemplateKey==='game-1'&&!window.NR_TRIAL_TOKEN&&!window.NR_CLIENT_SIM;
+   const sitePromise=isPublicGameDemo?null:nrFetchJsonCached(tenantApiUrl('/api/site'),{kind:'site',key:demoTemplateKey||'site',ttl:300000});
+   const demoCatalogPromise=(demoTemplateKey&&!isPublicGameDemo)?nrFetchJsonCached(tenantApiUrl('/api/template-catalog?key='+encodeURIComponent(demoTemplateKey)),{kind:'catalog',key:demoTemplateKey,ttl:1800000,options:{cache:'force-cache'}}):null;
+   // V20.9.3: the public Clash of Clans showroom is a self-contained demo package.
+   // It must NEVER depend on the shared BDS demo tenant/API to decide what DOM to paint.
+   // Yield once so GAME_REAL_SAMPLE_POSTS is initialized, then boot from the local package.
+   let d;
+   if(isPublicGameDemo){
+     await Promise.resolve();
+     d={site:{id:0,name:'COC Base Portal',template_key:'game-1',preset:'game_clash_1',template_settings:{donate_url:'https://buymeacoffee.com/cocbase',about_title:'About COC Base Portal',about_content:'Thư viện base cộng đồng dành cho Town Hall, Builder Hall và Clan Capital.',terms_title:'Điều khoản sử dụng',terms_content:'Base được chia sẻ cho cộng đồng.',footer_text:'Community Clash of Clans base sharing · Not affiliated with Supercell.'},structure_profile:{version:7,content_type:'game',sections:[{key:'hero',type:'section',bind_required:0},{key:'filters',type:'section',bind_required:0},{key:'town-hall',type:'category',category:'Town Hall',slots:17,desktop_columns:4,tablet_columns:3,mobile_columns:2,bind_required:1},{key:'builder-hall',type:'category',category:'Builder Hall',slots:9,desktop_columns:4,tablet_columns:2,mobile_columns:2,bind_required:1},{key:'clan-capital',type:'category',category:'Clan Capital',slots:10,desktop_columns:4,tablet_columns:2,mobile_columns:2,bind_required:1}] }},posts:Array.isArray(GAME_REAL_SAMPLE_POSTS)?GAME_REAL_SAMPLE_POSTS:[],stats:{posts:Array.isArray(GAME_REAL_SAMPLE_POSTS)?GAME_REAL_SAMPLE_POSTS.length:0},preview:{demo:true,template_demo:true,source:'local-game-showroom'}};
+   }else d=await sitePromise;
    SITE_DATA=d;
-   const s=d.site;
+   const s=d.site||{};
    if(s?.favicon_url){let f=document.querySelector('link[rel=\"icon\"]');if(!f){f=document.createElement('link');f.rel='icon';document.head.appendChild(f)}f.href=s.favicon_url}
    const activeTemplateKey=demoTemplateKey||s.template_key||'';
-   if(activeTemplateKey){
+   if(activeTemplateKey&&!isPublicGameDemo){
      try{
        const td=(demoCatalogPromise&&activeTemplateKey===demoTemplateKey)
          ?await demoCatalogPromise
@@ -1810,7 +1818,21 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
    nrInstallPredictivePrefetch();
  }catch(e){
    console.error(e);
-   if(window.NR_DEMO_THEME==='tin-tuc-1'||document.body.classList.contains('theme-news-portal')){
+   if(window.NR_DEMO_THEME==='game-1'){
+     // Absolute anti-cross-template guard: a failed API can never reveal the BDS transport shell.
+     try{
+       document.body.classList.add('theme-game-clash');
+       const fallbackSite={name:'COC Base Portal',template_key:'game-1',preset:'game_clash_1',template_settings:{donate_url:'https://buymeacoffee.com/cocbase'}};
+       const fallbackPosts=(typeof GAME_REAL_SAMPLE_POSTS!=='undefined'&&Array.isArray(GAME_REAL_SAMPLE_POSTS))?GAME_REAL_SAMPLE_POSTS:[];
+       SITE_DATA={site:fallbackSite,posts:fallbackPosts,stats:{posts:fallbackPosts.length},preview:{demo:true,source:'hard-game-fallback'}};
+       renderGameClash1(fallbackSite);
+       nrGameSavedSync();
+     }catch(gameFallbackError){
+       console.error('GAME HARD FALLBACK',gameFallbackError);
+       const main=document.querySelector('main');
+       if(main)main.innerHTML='<section class="coc-browser"><div class="coc-wrap"><div class="coc-no-results"><b>COC Base Portal</b><p>Không tải được dữ liệu mẫu. Hãy tải lại trang.</p></div></div></section>';
+     }
+   }else if(window.NR_DEMO_THEME==='tin-tuc-1'||document.body.classList.contains('theme-news-portal')){
      const main=document.querySelector('main');
      if(main)main.innerHTML='<section class="n3-section"><div class="wrap"><div class="empty">Không tải được dữ liệu demo tin tức.</div></div></section>';
    }else if(typeof heroSlides!=='undefined'&&heroSlides)heroSlides.innerHTML='<div class="empty">Không tải được dữ liệu trang chủ.</div>';
@@ -1890,7 +1912,27 @@ function nrGameFilterUrl(prefix,state,changes={}){const n={...state,...changes};
 function nrGameFilterPage(posts,prefix){const state=nrGameFilterState(),{group,level,type,year,sort}=state,groupName=group==='th'?'Town Hall':group==='bh'?'Builder Hall':'Clan Capital',types=nrGameFilterTypes(group),years=['all','2026','2025'];nrGameRememberFilter(state);let arr=posts.filter(p=>{const e=nrGameExtra(p),g=String(e.game_group||p.category||'').toLowerCase(),lv=nrGameLevel(p).replace(/\D/g,''),pt=String(e.game_purpose||'').toLowerCase();return g.includes(group==='th'?'town hall':group==='bh'?'builder hall':'clan capital')&&(level==='all'||lv===level)&&(type==='all'||pt===type||pt.startsWith(type))&&(year==='all'||String(e.game_year||'2026')===year)});if(sort==='rating')arr.sort((a,b)=>Number(b.rating||0)-Number(a.rating||0));else if(sort==='download')arr.sort((a,b)=>Number(nrGameExtra(b).downloads||b.downloads||0)-Number(nrGameExtra(a).downloads||a.downloads||0));else if(sort==='view')arr.sort((a,b)=>Number(b.views||0)-Number(a.views||0));const link=(label,changes,active)=>`<a data-coc-filter="1" class="${active?'active':''}" href="${nrGameFilterUrl(prefix,state,changes)}">${label}</a>`;const levelBtns=['all',...GAME_LEVELS[group].map(String)].map(v=>link(v==='all'?'All':group.toUpperCase()+v,{level:v},v===level)).join(''),reset=nrGameFilterUrl(prefix,{group,level:'all',type:'all',year:'all',sort:'latest'}),summary=[level==='all'?groupName:group.toUpperCase()+level,type==='all'?'Any type':(types.find(x=>x[0]===type)?.[1]||type),year==='all'?'Any year':year,sort==='latest'?'Latest':sort==='rating'?'Vote':sort==='download'?'Download':'View'];return `<section class="coc-browser" data-coc-browser="1"><div class="coc-wrap"><div class="coc-browser-head"><div><small>COMMUNITY BASES</small><h1>${groupName} ${level==='all'?'':group.toUpperCase()+level} Base Layouts</h1><p>Chọn cấp nhà và tiêu chí. Kết quả thay đổi tức thì, không tải lại toàn trang.</p></div></div><div class="coc-mobile-filter-summary"><button type="button" class="coc-filter-open" data-coc-filter-toggle="1" aria-expanded="false"><span><small>BỘ LỌC</small><b>${summary.join(' · ')}</b></span><i>☰</i></button></div><div class="coc-filter-panel" data-coc-filter-panel="1" aria-hidden="false"><div class="coc-filter-mobile-head"><div><small>FILTER BASES</small><strong>Lọc nhanh base phù hợp</strong></div><button type="button" data-coc-filter-close="1" aria-label="Đóng bộ lọc">×</button></div><div class="coc-filter-scroll"><div class="coc-filter-row"><b>Group</b>${['th','bh','ch'].map(g=>link(g==='th'?'Town Hall':g==='bh'?'Builder Hall':'Clan Capital',{group:g},g===group)).join('')}</div><div class="coc-filter-row"><b>Level</b>${levelBtns}</div><div class="coc-filter-row"><b>${group==='ch'?'District':'Type'}</b>${types.map(([v,t])=>link(t,{type:v},v===type)).join('')}</div><div class="coc-filter-row"><b>Year</b>${years.map(v=>link(v==='all'?'All':v,{year:v},v===year)).join('')}</div><div class="coc-filter-row"><b>Sort</b>${[['latest','Latest'],['rating','Vote'],['download','Download'],['view','View']].map(([v,t])=>link(t,{sort:v},v===sort)).join('')}</div></div><div class="coc-filter-mobile-actions"><a data-coc-filter="1" class="reset" href="${reset}">Reset</a><button type="button" data-coc-filter-apply="1">Xem ${arr.length} bases</button></div></div><div class="coc-results-toolbar" id="base-results" data-coc-results="1"><div><small>RESULTS</small><strong>${arr.length} base phù hợp</strong><span>${groupName}${level!=='all'?' · '+group.toUpperCase()+level:''}</span></div><a data-coc-filter="1" href="${reset}">Reset filters</a></div><div class="coc-grid coc-result-grid">${arr.length?arr.map(nrGameBaseCard).join(''):'<div class="coc-no-results">Chưa có base phù hợp bộ lọc này.</div>'}</div></div></section>`}
 function nrGameScrollResults(behavior='smooth'){requestAnimationFrame(()=>requestAnimationFrame(()=>{const el=document.querySelector('[data-coc-results="1"]');if(!el)return;const y=el.getBoundingClientRect().top+window.scrollY-(window.innerWidth<=820?72:94);window.scrollTo({top:Math.max(0,y),behavior})}))}
 function nrGameSetFilterOpen(open){const panel=document.querySelector('[data-coc-filter-panel="1"]'),toggle=document.querySelector('[data-coc-filter-toggle="1"]');if(!panel)return;panel.classList.toggle('is-mobile-open',!!open);panel.setAttribute('aria-hidden',open?'false':(window.innerWidth<=820?'true':'false'));if(toggle)toggle.setAttribute('aria-expanded',open?'true':'false');document.documentElement.classList.toggle('coc-filter-open',!!open)}
-function nrGameBindFastFilters(posts,prefix){const browser=document.querySelector('[data-coc-browser="1"]');if(!browser)return;browser.addEventListener('click',e=>{const toggle=e.target.closest('[data-coc-filter-toggle="1"]');if(toggle){e.preventDefault();nrGameSetFilterOpen(true);return}const close=e.target.closest('[data-coc-filter-close="1"]');if(close){e.preventDefault();nrGameSetFilterOpen(false);return}const apply=e.target.closest('[data-coc-filter-apply="1"]');if(apply){e.preventDefault();nrGameSetFilterOpen(false);nrGameScrollResults('smooth');return}const a=e.target.closest('a[data-coc-filter="1"]');if(!a)return;const u=new URL(a.href,location.origin);if(u.origin!==location.origin)return;e.preventDefault();const mobile=window.innerWidth<=820;history.replaceState({cocFilter:1},'',u.pathname+u.search);const old=document.querySelector('[data-coc-browser="1"]');if(old)old.outerHTML=nrGameFilterPage(posts,prefix);nrGameBindFastFilters(posts,prefix);nrGameSavedSync();nrGameHydrateStats();if(mobile){nrGameSetFilterOpen(true)}else{const next=document.querySelector('[data-coc-browser="1"]');next?.scrollIntoView({block:'start',behavior:'auto'})}})}
+function nrGameBindFastFilters(posts,prefix){
+ const browser=document.querySelector('[data-coc-browser="1"]');if(!browser)return;
+ browser.addEventListener('click',e=>{
+   const toggle=e.target.closest('[data-coc-filter-toggle="1"]');if(toggle){e.preventDefault();nrGameSetFilterOpen(true);return}
+   const close=e.target.closest('[data-coc-filter-close="1"]');if(close){e.preventDefault();nrGameSetFilterOpen(false);return}
+   const apply=e.target.closest('[data-coc-filter-apply="1"]');if(apply){e.preventDefault();nrGameSetFilterOpen(false);nrGameScrollResults('smooth');return}
+   const a=e.target.closest('a[data-coc-filter="1"]');if(!a)return;
+   const u=new URL(a.href,location.origin);if(u.origin!==location.origin)return;
+   e.preventDefault();
+   const mobile=window.innerWidth<=820;
+   const selectedInsideDrawer=mobile&&!!a.closest('[data-coc-filter-panel="1"]');
+   const selectedReset=a.classList.contains('reset');
+   history.pushState({cocFilter:1},'',u.pathname+u.search);
+   const old=document.querySelector('[data-coc-browser="1"]');if(old)old.outerHTML=nrGameFilterPage(posts,prefix);
+   nrGameBindFastFilters(posts,prefix);nrGameSavedSync();nrGameHydrateStats();
+   // Mobile is a staged multi-filter workflow: TH12 -> Farming -> 2026 -> Vote,
+   // then the user presses "Xem N bases". Never close/scroll after each chip.
+   if(selectedInsideDrawer&&!selectedReset){nrGameSetFilterOpen(true);return}
+   nrGameSetFilterOpen(false);nrGameScrollResults('smooth');
+ })
+}
 function nrGameRelatedPosts(post,posts){const e=nrGameExtra(post),group=String(e.game_group||post.category||'').toLowerCase(),level=nrGameLevel(post);const score=p=>{if(p===post)return-99;const x=nrGameExtra(p);let n=0;if(String(x.game_group||p.category||'').toLowerCase()===group)n+=4;if(nrGameLevel(p)===level)n+=5;if(String(x.game_purpose||'').toLowerCase()===String(e.game_purpose||'').toLowerCase())n+=2;return n};return posts.filter(p=>p!==post).sort((a,b)=>score(b)-score(a)).slice(0,6)}
 function nrGameDetail(post,prefix,posts=[],settings={}){const e=nrGameExtra(post),level=nrGameLevel(post),copy=e.copy_link||'#',related=nrGameRelatedPosts(post,posts),slug=nrGameBaseSlug(post),stats=nrGameSeedStats(post),href=post.demo_url||post.url||location.pathname;return `<div class="coc-site">${nrGameHeader(prefix,'',settings)}<main class="coc-detail coc-wrap"><div class="coc-breadcrumb"><a href="${prefix||'/'}">Home</a> / ${esc(level)} / ${esc(post.title||'Base')}</div><div class="coc-detail-grid"><article data-coc-base-card="1" data-coc-slug="${esc(slug)}" data-coc-title="${esc(post.title||level+' Base Layout')}" data-coc-image="${esc(post.image||'')}" data-coc-url="${esc(href)}"><img class="coc-detail-image" src="${esc(post.image||GAME_CLASH_LEVEL_ART[level]||GAME_CLASH_LEVEL_ART.TH18)}" alt="${esc(post.title||level+' Base Layout')}"><div class="coc-detail-copy"><div class="coc-tags"><span>${esc(level)}</span><span>${esc(e.game_purpose||'Base')}</span><span>${esc(e.game_style||'Original')}</span><span>${esc(e.game_defense||'Balanced Defense')}</span></div><h1>${esc(post.title||level+' Base Layout')}</h1><div class="coc-stats big"><button type="button" class="coc-vote-btn" data-coc-vote="${esc(slug)}">⭐ <b data-coc-rating>${stats.rating}</b></button><span>👁 <b data-coc-views>${Number(stats.views).toLocaleString()}</b></span><span>⬇ <b data-coc-downloads>${Number(stats.downloads).toLocaleString()}</b></span><button type="button" class="coc-bookmark-btn coc-bookmark-detail" data-coc-bookmark="${esc(slug)}" aria-label="Save base" aria-pressed="false">🔖 <b>Save</b></button></div><div class="coc-article-body">${post.content||''}</div></div></article><aside class="coc-detail-side"><div class="coc-access-card"><small>BASE LINK</small><h3>${esc(level)} · ${esc(e.game_purpose||'Base')}</h3><a href="${esc(copy)}" data-coc-download="${esc(slug)}" target="_blank" rel="noopener">Copy Base Link</a></div></aside></div>${related.length?`<section class="coc-related"><div class="coc-heading"><div><span>RELATED BASES</span><h2>Bài viết liên quan</h2></div></div><div class="coc-related-grid">${related.map(nrGameBaseCard).join('')}</div></section>`:''}</main><div class="coc-mobile-copy-dock"><a href="${esc(copy)}" data-coc-download="${esc(slug)}" target="_blank" rel="noopener">Copy Base</a></div>${nrGameFooter(prefix,settings)}</div>`}
 function nrGameSavedRead(){try{const x=JSON.parse(localStorage.getItem('NR_COC_SAVED_V1')||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}

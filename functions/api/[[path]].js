@@ -73,13 +73,9 @@ function nrGameStatsPublic(row){
 }
 
 async function siteFor(env,req){
+  await ensureSitePublicSettings(env);
   const h=host(req).replace(/^www\./,'').toLowerCase();
-  // V20.9.2: public site boot must never depend on optional personalization schema.
-  // Try the enriched query first; if a newly deployed DB has not run migration 0040 yet,
-  // immediately fall back to the core sites/customer query so demo/client pages still boot.
-  let settingsReady=true;
-  try{await ensureSitePublicSettings(env)}catch(e){settingsReady=false;console.log('site public settings ensure:',e?.message||e)}
-  const richSql=`SELECT s.*,
+  const baseSql=`SELECT s.*,
     coalesce(ps.contact_email,'') contact_email,
     coalesce(ps.settings_json,'{}') template_settings_json,
     coalesce(cp.phone,'') customer_phone,
@@ -88,28 +84,14 @@ async function siteFor(env,req){
     FROM sites s
     LEFT JOIN site_public_settings ps ON ps.site_id=s.id
     LEFT JOIN customer_profiles cp ON cp.site_id=s.id`;
-  const coreSql=`SELECT s.*,
-    '' contact_email,
-    '{}' template_settings_json,
-    coalesce(cp.phone,'') customer_phone,
-    coalesce(cp.email,'') customer_email,
-    coalesce((SELECT email FROM users u WHERE u.site_id=s.id AND u.role='admin' ORDER BY u.id LIMIT 1),'') admin_email
-    FROM sites s
-    LEFT JOIN customer_profiles cp ON cp.site_id=s.id`;
-  const query=async(base)=>{
-    let row=await env.DB.prepare(base+` WHERE lower(s.domain)=? AND s.status='active'`).bind(h).first();
-    if(!row&&(h==='localhost'||h.endsWith('.pages.dev')))row=await env.DB.prepare(base+` WHERE s.status='active' ORDER BY s.id LIMIT 1`).first();
-    return row;
-  };
-  let s=null;
-  if(settingsReady){try{s=await query(richSql)}catch(e){console.log('site rich query fallback:',e?.message||e)}}
-  if(!s)s=await query(coreSql);
+  let s=await env.DB.prepare(baseSql+` WHERE lower(s.domain)=? AND s.status='active'`).bind(h).first();
+  if(!s&&(h==='localhost'||h.endsWith('.pages.dev')))s=await env.DB.prepare(baseSql+` WHERE s.status='active' ORDER BY s.id LIMIT 1`).first();
   if(s){
+    // Sites created before V9.3.5 also get useful defaults automatically.
     s.phone=String(s.phone||s.customer_phone||'');
     s.zalo=String(s.zalo||s.customer_phone||'');
     s.email=String(s.contact_email||s.email||s.customer_email||s.admin_email||'');
     s.contact_email=s.email;
-    if(!s.template_settings_json)s.template_settings_json='{}';
   }
   return s
 }
@@ -753,7 +735,7 @@ function defaultTemplateStructure(key){
   'dich-vu-2':{version:8,layout_contract:'universal-layout-v1',content_type:'service',geometry_locked:1,sidebars:[],sections:[sec('hero','section','Giải pháp VNPT',{content_source:'none',bind_required:0}),sec('needs','section','Chọn theo nhu cầu',{content_source:'none',bind_required:0}),sec('internet','category','Internet VNPT',{category:'Internet VNPT',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1,slot_hosts:[{selector:'.vnpt-feature-pack',slots:1},{selector:'.vnpt-pack-list',slots:5}]}),sec('tv','category','Truyền hình MyTV',{category:'Truyền hình MyTV',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('camera','category','Camera VNPT',{category:'Camera VNPT',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('combo','category','Combo VNPT',{category:'Combo VNPT',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('advice','section','Cẩm nang dịch vụ',{content_source:'none',bind_required:0}),sec('contact','section','Đăng ký tư vấn',{content_source:'none',bind_required:0})]},
   'dich-vu-3':{version:8,layout_contract:'universal-layout-v1',content_type:'service',geometry_locked:1,sidebars:[],sections:[sec('hero','section','Giải pháp Viettel',{content_source:'none',bind_required:0}),sec('needs','section','Chọn theo nhu cầu',{content_source:'none',bind_required:0}),sec('combo','category','Combo Viettel',{category:'Combo Viettel',slots:6,desktop_columns:2,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('internet','category','Internet Viettel',{category:'Internet Viettel',slots:6,desktop_columns:2,tablet_columns:1,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('tv','category','Truyền hình TV360',{category:'Truyền hình TV360',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('camera','category','Camera Viettel',{category:'Camera Viettel',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('advice','section','Cẩm nang dịch vụ',{content_source:'none',bind_required:0}),sec('contact','section','Đăng ký tư vấn',{content_source:'none',bind_required:0})]},
   'dich-vu-4':{version:9,layout_contract:'universal-layout-v1',content_type:'service',geometry_locked:1,route_contract:'service-commerce-v2',card_contract:'camera-product-card-v1',article_contract:'service-detail-v2',lead_contract:'service-lead-v1',sidebars:[],sections:[sec('hero','section','Camera & giải pháp an ninh',{content_source:'none',bind_required:0}),sec('brands','section','Thương hiệu nổi bật',{content_source:'none',bind_required:0}),sec('indoor','category','Camera Wi-Fi trong nhà',{category:'Camera Wi-Fi trong nhà',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('outdoor','category','Camera ngoài trời',{category:'Camera ngoài trời',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('ai','category','Camera AI quay quét',{category:'Camera AI quay quét',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('pro','category','Camera IP & bộ giám sát',{category:'Camera IP & bộ giám sát',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('advice','section','Cẩm nang camera',{content_source:'none',bind_required:0}),sec('contact','section','Nhận tư vấn & báo giá',{content_source:'none',bind_required:0})]},
-  'game-1':{version:6,layout_contract:'universal-layout-v1',content_type:'game',geometry_locked:1,route_contract:'game-community-base-v1',card_contract:'game-base-card-v5',article_contract:'game-base-detail-v5',navigation_contract:'game-mobile-hamburger-v2',saved_contract:'local-first-saved-toast-v2',filter_contract:'mobile-compact-drawer-v2',mobile_cta_contract:'sticky-copy-v1',preference_contract:'remember-hall-v1',stats_contract:'cloudflare-d1-batch-v1',settings_contract:'template-personalization-v1',hero_contract:'daily-latest-skin-v1',settings_schema:[{key:'donate_url',label:'Link Donate / Buy Me a Coffee',type:'url',placeholder:'https://buymeacoffee.com/ten-cua-ban',default:'https://buymeacoffee.com/cocbase',help:'Nút Donate trên header, footer và nút nổi sẽ dùng link này.'},{key:'about_title',label:'Tiêu đề trang Thông tin',type:'text',default:'About COC Base Portal'},{key:'about_content',label:'Nội dung trang Thông tin',type:'textarea',default:'Thư viện base cộng đồng dành cho Town Hall, Builder Hall và Clan Capital.'},{key:'terms_title',label:'Tiêu đề trang Điều khoản',type:'text',default:'Điều khoản sử dụng'},{key:'terms_content',label:'Nội dung Điều khoản',type:'textarea',default:'Base được chia sẻ cho cộng đồng. Người dùng tự chịu trách nhiệm khi sử dụng liên kết bên thứ ba.'},{key:'footer_text',label:'Thông tin ngắn dưới Footer',type:'textarea',default:'Community Clash of Clans base sharing · Not affiliated with Supercell.'}],sidebars:[],sections:[sec('hero','section','Clash of Clans Community Base Portal',{content_source:'none',bind_required:0}),sec('filters','section','Bộ lọc Base',{content_source:'none',bind_required:0}),sec('town-hall','category','Town Hall',{category:'Town Hall',slots:17,slot_contract:'exact',desktop_columns:4,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1}),sec('builder-hall','category','Builder Hall',{category:'Builder Hall',slots:9,slot_contract:'exact',desktop_columns:4,tablet_columns:2,mobile_columns:2,fill_policy:'complete_rows',bind_required:1}),sec('clan-capital','category','Clan Capital',{category:'Clan Capital',slots:10,slot_contract:'exact',desktop_columns:4,tablet_columns:2,mobile_columns:2,fill_policy:'complete_rows',bind_required:1})]}
+  'game-1':{version:7,layout_contract:'universal-layout-v1',content_type:'game',geometry_locked:1,route_contract:'game-community-base-v1',card_contract:'game-base-card-v5',article_contract:'game-base-detail-v5',navigation_contract:'game-mobile-hamburger-v2',saved_contract:'local-first-saved-toast-v2',filter_contract:'multi-criteria-staged-drawer-v3',mobile_cta_contract:'sticky-copy-v1',preference_contract:'remember-hall-v1',stats_contract:'cloudflare-d1-batch-v1',settings_contract:'template-personalization-v1',hero_contract:'daily-latest-skin-v1',settings_schema:[{key:'donate_url',label:'Link Donate / Buy Me a Coffee',type:'url',placeholder:'https://buymeacoffee.com/ten-cua-ban',default:'https://buymeacoffee.com/cocbase',help:'Nút Donate trên header, footer và nút nổi sẽ dùng link này.'},{key:'about_title',label:'Tiêu đề trang Thông tin',type:'text',default:'About COC Base Portal'},{key:'about_content',label:'Nội dung trang Thông tin',type:'textarea',default:'Thư viện base cộng đồng dành cho Town Hall, Builder Hall và Clan Capital.'},{key:'terms_title',label:'Tiêu đề trang Điều khoản',type:'text',default:'Điều khoản sử dụng'},{key:'terms_content',label:'Nội dung Điều khoản',type:'textarea',default:'Base được chia sẻ cho cộng đồng. Người dùng tự chịu trách nhiệm khi sử dụng liên kết bên thứ ba.'},{key:'footer_text',label:'Thông tin ngắn dưới Footer',type:'textarea',default:'Community Clash of Clans base sharing · Not affiliated with Supercell.'}],sidebars:[],sections:[sec('hero','section','Clash of Clans Community Base Portal',{content_source:'none',bind_required:0}),sec('filters','section','Bộ lọc Base',{content_source:'none',bind_required:0}),sec('town-hall','category','Town Hall',{category:'Town Hall',slots:17,slot_contract:'exact',desktop_columns:4,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1}),sec('builder-hall','category','Builder Hall',{category:'Builder Hall',slots:9,slot_contract:'exact',desktop_columns:4,tablet_columns:2,mobile_columns:2,fill_policy:'complete_rows',bind_required:1}),sec('clan-capital','category','Clan Capital',{category:'Clan Capital',slots:10,slot_contract:'exact',desktop_columns:4,tablet_columns:2,mobile_columns:2,fill_policy:'complete_rows',bind_required:1})]}
  };
  return p[String(key||'')]||{version:5,content_type:'generic',geometry_locked:0,sidebars:[],sections:[]};
 }
@@ -3233,7 +3215,7 @@ if(route==='image'&&request.method==='GET'){
  return new Response(obj.body,{headers:h});
 }
 const site=await siteFor(env,request);if(!site)return json({error:'Website chưa được kích hoạt'},404);
-// V20.9.2 — Cloudflare-first CoC stats. Public, batched and non-blocking.
+// V20.9.1 — Cloudflare-first CoC stats. Public, batched and non-blocking.
 if(route==='game/stats'&&request.method==='GET'){
   await ensureGameStatsTables(env);
   const slugs=String(u.searchParams.get('slugs')||'').split(',').map(nrSlug).filter(Boolean).slice(0,60);
