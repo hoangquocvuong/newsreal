@@ -88,7 +88,7 @@ function stripDemoPath(path,demo){
 }
 function demoInject(html,demo,trialCtx=null){
  if(!demo||demo==='center')return html;
- html=html.replace(/\/assets\/style\.css\?v=[^\"'&<]+/g,'/assets/style.css?v=20.7.6').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.7.6');
+ html=html.replace(/\/assets\/style\.css\?v=[^\"'&<]+/g,'/assets/style.css?v=20.7.7').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.7.7');
  const preset=demo==='mau-1'?'newsreal':demo==='mau-2'?'estate_green':demo==='mau-3'?'estate_luxe_3':demo==='mau-4'?'estate_minimal_4':demo==='mau-5'?'estate_urban_5':demo==='tin-tuc-1'?'news_portal_1':demo==='tin-tuc-2'?'news_paper_2':demo==='tin-tuc-3'?'news_magazine_3':demo==='tin-tuc-4'?'news_minimal_4':demo==='dich-vu-1'?'service_fpt_1':demo==='dich-vu-2'?'service_vnpt_2':demo==='dich-vu-3'?'service_viettel_3':demo==='dich-vu-4'?'service_camera_store_4':'';
  let out=themedHtml(html,preset);
  const currentPath=typeof rawPath!=='undefined'?rawPath:'';
@@ -478,7 +478,7 @@ function demoCenterHtml(siteName,templates=[],category=''){
  <meta property="og:title" content="${isRoot?'Kho giao diện website':esc(catName)+' - Kho giao diện'} | HoangVuongTech">
  <meta property="og:description" content="Xem demo và chi phí trọn gói của từng mẫu website.">
  <meta property="og:url" content="https://hoangvuongtech.com/templates/${isRoot?'':esc(category)+'/'}">
- <link rel="stylesheet" href="/assets/style.css?v=20.7.6">  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+ <link rel="stylesheet" href="/assets/style.css?v=20.7.7">  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="theme-color" content="#ffffff">
 </head>

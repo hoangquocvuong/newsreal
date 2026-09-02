@@ -43,6 +43,67 @@ function nrDemoAdminUrl(templateKey='',tab=''){
 
 const pageTenant=new URLSearchParams(location.search).get('tenant')||'';function tenantApiUrl(path){return path+(pageTenant?(path.includes('?')?'&':'?')+'tenant='+encodeURIComponent(pageTenant):'')}
 
+// V20.7.7 — Fast demo navigation cache + predictive prefetch.
+// Showroom demo data is immutable during a browsing session, so it can be reused
+// across homepage/category/article navigations. Trial/client data is never cached here.
+const NR_FAST_NAV_VERSION='20.7.7';
+function nrFastDemoCacheEnabled(){
+  return !!window.NR_DEMO_THEME&&!window.NR_TRIAL_TOKEN&&!window.NR_CLIENT_SIM&&new URLSearchParams(location.search).get('nr_client')!=='1';
+}
+function nrFastCacheKey(kind,key=''){return `nrfast:${NR_FAST_NAV_VERSION}:${kind}:${String(window.NR_DEMO_THEME||'')}:${pageTenant}:${key}`}
+function nrFastCacheRead(kind,key='',ttl=300000){
+  if(!nrFastDemoCacheEnabled())return null;
+  try{const raw=sessionStorage.getItem(nrFastCacheKey(kind,key));if(!raw)return null;const x=JSON.parse(raw);if(!x||Date.now()-Number(x.t||0)>ttl){sessionStorage.removeItem(nrFastCacheKey(kind,key));return null}return x.d}catch(e){return null}
+}
+function nrFastCacheWrite(kind,key='',data){
+  if(!nrFastDemoCacheEnabled())return;
+  try{sessionStorage.setItem(nrFastCacheKey(kind,key),JSON.stringify({t:Date.now(),d:data}))}catch(e){}
+}
+async function nrFetchJsonCached(url,{kind='json',key='',ttl=300000,options={}}={}){
+  const cached=nrFastCacheRead(kind,key,ttl);if(cached)return cached;
+  const r=await fetch(url,options),d=await r.json();if(!r.ok)throw new Error(d?.error||'Không tải được dữ liệu');nrFastCacheWrite(kind,key,d);return d;
+}
+function nrInstallPredictivePrefetch(){
+  if(window.__nrPredictivePrefetchInstalled)return;window.__nrPredictivePrefetchInstalled=1;
+  const done=new Set();
+  const warm=(a)=>{try{if(!a||a.target==='_blank'||a.hasAttribute('download'))return;const u=new URL(a.href,location.href);if(u.origin!==location.origin||!u.pathname.startsWith('/demo/'))return;const k=u.pathname+u.search;if(done.has(k)||done.size>24)return;done.add(k);fetch(u.href,{method:'GET',credentials:'same-origin',cache:'force-cache',priority:'low'}).catch(()=>{})}catch(e){}};
+  document.addEventListener('pointerover',e=>warm(e.target?.closest?.('a[href]')),{passive:true});
+  document.addEventListener('touchstart',e=>warm(e.target?.closest?.('a[href]')),{passive:true});
+}
+
+// V20.7.7 — Smart Sidebar Follow Contract V2.
+// Sticky is applied to the grid ASIDE host (not a nested child). For a sidebar
+// taller than the viewport we use a negative sticky top so it scrolls until its
+// bottom becomes visible, then follows the article instead of looking abandoned.
+function nrActivateSidebarFollow(root=document){
+  if(innerWidth<=900)return;
+  const candidates=[...root.querySelectorAll('.news-sticky-sidebar,.news-home-sidebar,.news-article-sidebar,.np-home-sidebar,.n3-popular,.content-layout>.sidebar,.content-layout>.news-sidebar')];
+  const hosts=[];
+  candidates.forEach(node=>{
+    let host=node;
+    const aside=node.closest?.('aside');
+    if(aside&&aside.contains(node))host=aside;
+    host.classList.add('nr-sidebar-follow-host');
+    if(node!==host)node.classList.add('nr-sidebar-follow-inner');
+    if(!hosts.includes(host))hosts.push(host);
+  });
+  const measure=host=>{
+    if(innerWidth<=900){host.style.removeProperty('--nr-sidebar-sticky-top');return}
+    const header=92,gap=16,h=Math.ceil(host.getBoundingClientRect().height||0);
+    const top=h<=innerHeight-header-gap?header:Math.min(header,innerHeight-h-gap);
+    host.style.setProperty('--nr-sidebar-sticky-top',`${Math.floor(top)}px`);
+  };
+  hosts.forEach(measure);
+  if(!window.__nrSidebarResizeInstalled){
+    window.__nrSidebarResizeInstalled=1;
+    let raf=0;addEventListener('resize',()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>document.querySelectorAll('.nr-sidebar-follow-host').forEach(measure))},{passive:true});
+  }
+  if('ResizeObserver'in window){
+    window.__nrSidebarRO=window.__nrSidebarRO||new ResizeObserver(entries=>entries.forEach(e=>measure(e.target)));
+    hosts.forEach(h=>{try{window.__nrSidebarRO.observe(h)}catch(e){}});
+  }
+}
+
 function seoSlug(s=''){
  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/đ/g,'d').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,90)||'tin-bat-dong-san';
 }
@@ -1540,16 +1601,21 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
 
 (async()=>{
  try{
-   const r=await fetch(tenantApiUrl('/api/site')),d=await r.json(); if(!r.ok)throw new Error(d.error||'Không tải được dữ liệu');
+   const demoTemplateKey=window.NR_DEMO_THEME&&(/^tin-tuc-[1-4]$/.test(window.NR_DEMO_THEME)||/^mau-[1-5]$/.test(window.NR_DEMO_THEME)||/^dich-vu-\d+$/.test(window.NR_DEMO_THEME))?window.NR_DEMO_THEME:'';
+   // Demo route already tells us the template key, so site data and catalog profile
+   // are requested in parallel. Subsequent demo pages reuse session cache.
+   const sitePromise=nrFetchJsonCached(tenantApiUrl('/api/site'),{kind:'site',key:demoTemplateKey||'site',ttl:300000});
+   const demoCatalogPromise=demoTemplateKey?nrFetchJsonCached(tenantApiUrl('/api/template-catalog?key='+encodeURIComponent(demoTemplateKey)),{kind:'catalog',key:demoTemplateKey,ttl:1800000,options:{cache:'force-cache'}}):null;
+   const d=await sitePromise;
    SITE_DATA=d;
    const s=d.site;
    if(s?.favicon_url){let f=document.querySelector('link[rel=\"icon\"]');if(!f){f=document.createElement('link');f.rel='icon';document.head.appendChild(f)}f.href=s.favicon_url}
-   const demoTemplateKey=window.NR_DEMO_THEME&&(/^tin-tuc-[1-4]$/.test(window.NR_DEMO_THEME)||/^mau-[1-5]$/.test(window.NR_DEMO_THEME)||/^dich-vu-\d+$/.test(window.NR_DEMO_THEME))?window.NR_DEMO_THEME:'';
    const activeTemplateKey=demoTemplateKey||s.template_key||'';
    if(activeTemplateKey){
      try{
-       const tr=await fetch(tenantApiUrl('/api/template-catalog?key='+encodeURIComponent(activeTemplateKey)),{cache:'no-store'});
-       const td=await tr.json();
+       const td=(demoCatalogPromise&&activeTemplateKey===demoTemplateKey)
+         ?await demoCatalogPromise
+         :await nrFetchJsonCached(tenantApiUrl('/api/template-catalog?key='+encodeURIComponent(activeTemplateKey)),{kind:'catalog',key:activeTemplateKey,ttl:1800000,options:{cache:'force-cache'}});
        const t=td?.templates?.[0];
        if(t?.layout_profile){try{s.layout_profile=JSON.parse(t.layout_profile)}catch(e){s.layout_profile=t.layout_profile}}
        if(t?.editor_profile){try{s.editor_profile=JSON.parse(t.editor_profile)}catch(e){s.editor_profile=t.editor_profile}}
@@ -1644,6 +1710,8 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
    nrEnforceNewsRouteContract(document);
    nrInstallUnifiedNewsCategoryRouter();
    const mm=document.getElementById('mobileMenuBtn'), nav=document.querySelector('.header nav.nav'); if(mm&&nav){mm.setAttribute('aria-expanded','false');mm.onclick=(e)=>{e.stopPropagation();const on=nav.classList.toggle('mobile-open');mm.setAttribute('aria-expanded',String(on));};nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('mobile-open');mm.setAttribute('aria-expanded','false')}));document.addEventListener('click',e=>{if(!nav.contains(e.target)&&e.target!==mm){nav.classList.remove('mobile-open');mm.setAttribute('aria-expanded','false')}});}
+   nrActivateSidebarFollow(document);
+   nrInstallPredictivePrefetch();
  }catch(e){
    console.error(e);
    if(window.NR_DEMO_THEME==='tin-tuc-1'||document.body.classList.contains('theme-news-portal')){

@@ -1,7 +1,6 @@
-NEWSREAL V20.7.6 — SERVER BOOT GATE + SIDEBAR FOLLOW CONTRACT
-
-- Fixes the real source of the pre-render BĐS flash: the server function embedded INDEX_HTML now carries the same inline no-flash boot gate as public/index.html.
-- Demo asset cache-buster bumped to 20.7.6.
-- Adds Universal Sidebar Follow Contract V1 for homepage/article sidebars on desktop.
-- Removes the News M2 inner sidebar scroll behavior via final contract override; page scrolling owns sidebar motion.
-- No database migration.
+NEWSREAL V20.7.7 — Smart Sidebar Follow + Fast Navigation Contract
+- Sidebar sticky host fixed for article/home layouts, including tall sidebars.
+- Showroom demo /api/site + template catalog session cache.
+- Demo site/catalog requests run in parallel and internal demo links prefetch on intent.
+- Below-fold content-visibility optimization.
+- No DB migration.
