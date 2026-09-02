@@ -1,9 +1,12 @@
-NEWSREAL V20.8.1 — COCBASE VPS → CLOUDFLARE PUBLISHER BRIDGE
-- Adds authenticated Content Publisher Bridge V1 for the existing VPS auto-import pipeline.
-- POST /api/publisher/base creates/updates Game Clash of Clans posts in D1.
-- GET /api/publisher/check provides duplicate/idempotency lookup.
-- GET /api/publisher/health verifies publisher capability.
-- Stable external_key prevents duplicate posts during dual-publish migration.
-- Stable /base/<slug>.html production routes now match the Game showroom article contract.
-- Includes a VPS-side adapter reference without exposing publisher secrets to browser code.
-- Migration: 0038_content_publisher_bridge.sql
+NEWSREAL V20.8.3 — COC COMMUNITY SHARING + FAST FILTERS
+
+- Clash of Clans template is now community sharing only; Free/Premium removed.
+- Canonical archive route: /bases.
+- Hall homepage links directly to filtered base archive.
+- Fast filters update only base browser with History API; no whole-page reload.
+- Compact mobile article: image + vote/view/download + copy link.
+- Desktop article retains SEO description/context.
+- Real-estate footer hidden for Game template.
+- Legacy CoCBasePro navigation vocabulary restored.
+- Showroom uses curated real Atom feed base records.
+- Migration: 0039_game_community_free.sql.
