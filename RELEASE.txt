@@ -1,11 +1,7 @@
-NEWSREAL V20.7.5 — UNIVERSAL TEMPLATE BOOT / NO-FLASH CONTRACT
+NEWSREAL V20.7.6 — SERVER BOOT GATE + SIDEBAR FOLLOW CONTRACT
 
-- Fix gốc hiện tượng FOUC: HTML BĐS mặc định không còn được paint trước khi JS resolve đúng template.
-- public/index.html khởi động với nr-template-booting; toàn bộ transport shell bị ẩn trong lúc resolve tenant/template/route.
-- Chỉ hiển thị giao diện sau khi renderer + structure/order/geometry/sidebar/route contract hoàn tất và qua 2 animation frames.
-- Dùng một loader trung tính nền trắng; không dùng BĐS hay template nào làm fallback trong giai đoạn boot.
-- Nếu boot quá 12 giây, vẫn giữ shell sai bị ẩn và hiện thông báo tải lại trung tính.
-- Áp dụng chung cho showroom, trial và client vì cùng đi qua public/index.html.
-- Bổ sung smoke checks cho Universal Template Boot Contract.
-- Giữ nguyên Universal Template Layout Contract V20.7.0, Camera Store, News M1 3-column, News M3 Mosaic, trial/payment flow.
-- No DB migration.
+- Fixes the real source of the pre-render BĐS flash: the server function embedded INDEX_HTML now carries the same inline no-flash boot gate as public/index.html.
+- Demo asset cache-buster bumped to 20.7.6.
+- Adds Universal Sidebar Follow Contract V1 for homepage/article sidebars on desktop.
+- Removes the News M2 inner sidebar scroll behavior via final contract override; page scrolling owns sidebar motion.
+- No database migration.

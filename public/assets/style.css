@@ -3210,3 +3210,53 @@ body.theme-news-magazine .nm-mosaic>.nm-tile img{width:100%!important;height:100
  body.theme-news-magazine .nm-mosaic>.nm-tile.big{grid-column:auto!important;grid-row:auto!important;height:240px!important}
  body.theme-news-magazine .nm-mosaic>.nm-tile.big{height:320px!important}
 }
+
+
+/* ==========================================================
+   V20.7.6 — Universal Sidebar Follow Contract V1
+   A public homepage/article sidebar follows the taller content column on desktop.
+   The page scroll remains the only scroll container; no sidebar inner-scroll runway.
+   ========================================================== */
+@media(min-width:901px){
+  body[class*="theme-news-"] .news-home-sidebar,
+  body[class*="theme-news-"] .news-sticky-sidebar,
+  body[class*="theme-news-"] .news-article-sidebar,
+  body[class*="theme-news-"] .np-home-sidebar,
+  body[class*="theme-news-"] .n3-popular.news-home-sidebar{
+    position:sticky!important;
+    top:92px!important;
+    align-self:start!important;
+    height:max-content!important;
+    max-height:none!important;
+    overflow:visible!important;
+    overscroll-behavior:auto!important;
+    scrollbar-width:auto!important;
+  }
+  body.theme-news-paper .np-home-sidebar{
+    max-height:none!important;
+    overflow:visible!important;
+    padding-right:0!important;
+  }
+  .content-layout>.sidebar,
+  .content-layout>.news-sidebar{
+    position:sticky!important;
+    top:92px!important;
+    align-self:start!important;
+    height:max-content!important;
+    max-height:none!important;
+    overflow:visible!important;
+  }
+}
+@media(max-width:900px){
+  body[class*="theme-news-"] .news-home-sidebar,
+  body[class*="theme-news-"] .news-sticky-sidebar,
+  body[class*="theme-news-"] .news-article-sidebar,
+  body[class*="theme-news-"] .np-home-sidebar,
+  .content-layout>.sidebar,
+  .content-layout>.news-sidebar{
+    position:static!important;
+    top:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+  }
+}

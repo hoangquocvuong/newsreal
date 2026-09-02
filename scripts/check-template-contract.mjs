@@ -3,6 +3,7 @@ const site=fs.readFileSync('public/assets/site.js','utf8');
 const api=fs.readFileSync('functions/api/[[path]].js','utf8');
 const css=fs.readFileSync('public/assets/style.css','utf8');
 const index=fs.readFileSync('public/index.html','utf8');
+const fn=fs.readFileSync('functions/[[path]].js','utf8');
 const required=[
   ['site exact target','nrEnforceSlotHost'],
   ['site contract audit','NR_TEMPLATE_CONTRACT_REPORT'],
@@ -25,11 +26,16 @@ const required=[
   ['site universal boot ready','nrTemplateBootReady'],
   ['site boot finally','requestAnimationFrame(()=>requestAnimationFrame(nrTemplateBootReady))'],
   ['index boot gate','nr-template-booting'],
-  ['index neutral boot timeout','nr-template-boot-timeout']
+  ['index neutral boot timeout','nr-template-boot-timeout'],
+  ['function embedded index boot gate','class=\\"nr-template-booting\\"'],
+  ['function embedded boot timeout','__NR_BOOT_TIMEOUT__'],
+  ['sidebar follow contract CSS','Universal Sidebar Follow Contract V1'],
+  ['sidebar home sticky CSS','.news-home-sidebar'],
+  ['sidebar article sticky CSS','.news-article-sidebar']
 ];
 let failed=0;
 for(const [name,needle] of required){
-  const haystack=name.startsWith('index ')?index:name.includes('CSS')?css:name.startsWith('backend')?api:site;
+  const haystack=name.startsWith('index ')?index:name.startsWith('function embedded')?fn:name.includes('CSS')?css:name.startsWith('backend')?api:site;
   const ok=haystack.includes(needle)||(name.includes('VNPT')&&(api.includes(needle)||site.includes(needle)));
   console.log(`${ok?'OK':'FAIL'}  ${name}`);
   if(!ok)failed++;
