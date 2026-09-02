@@ -39,7 +39,7 @@ const required=[
   ['Game Clash preset',"'game-1':'game_clash_1'"],
   ['Game Clash renderer','renderGameClash1'],
   ['Game Town Hall level chooser',"GAME_LEVELS={th:Array.from({length:17}"],
-  ['Game structure profile',"'game-1':{version:5,layout_contract:'universal-layout-v1'"],
+  ['Game structure profile',"'game-1':{version:6,layout_contract:'universal-layout-v1'"],
   ['Game community archive route','/bases?'],
   ['Game fast filter binding','nrGameBindFastFilters'],
   ['Game mobile detail CSS','.coc-stats.big{display:flex!important'],
@@ -70,6 +70,11 @@ const required=[
   ['Publisher idempotency index','publisher_imports'],
   ['Publisher secret auth','CONTENT_PUBLISHER_SECRET'],
   ['Production game slug route','p.url=`/base/${slug}.html`'],
+  ['backend Game D1 batch stats',"stats_contract:'cloudflare-d1-batch-v1'"],
+  ['backend template personalization',"settings_contract:'template-personalization-v1'"],
+  ['Game stats batch hydration','nrGameHydrateStats'],
+  ['Game stats detail view dedupe','nrGameTrackDetailView'],
+  ['Game dynamic Donate setting','nrGameTemplateSettings'],
 ];
 let failed=0;
 for(const [name,needle] of required){

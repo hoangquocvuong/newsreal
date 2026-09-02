@@ -38,15 +38,46 @@ async function ensureSitePublicSettings(env){
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS site_public_settings(
     site_id INTEGER PRIMARY KEY,
     contact_email TEXT NOT NULL DEFAULT '',
+    settings_json TEXT NOT NULL DEFAULT '{}',
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(site_id) REFERENCES sites(id) ON DELETE CASCADE
   )`).run();
+  try{await env.DB.prepare(`ALTER TABLE site_public_settings ADD COLUMN settings_json TEXT NOT NULL DEFAULT '{}'`).run()}catch(e){}
 }
+async function ensureGameStatsTables(env){
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS game_base_stats(
+    site_id INTEGER NOT NULL,
+    slug TEXT NOT NULL,
+    views INTEGER NOT NULL DEFAULT 0,
+    vote_sum INTEGER NOT NULL DEFAULT 0,
+    vote_count INTEGER NOT NULL DEFAULT 0,
+    downloads INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(site_id,slug),
+    FOREIGN KEY(site_id) REFERENCES sites(id) ON DELETE CASCADE
+  )`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS game_base_votes(
+    site_id INTEGER NOT NULL,
+    slug TEXT NOT NULL,
+    voter_key TEXT NOT NULL,
+    vote INTEGER NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(site_id,slug,voter_key),
+    FOREIGN KEY(site_id) REFERENCES sites(id) ON DELETE CASCADE
+  )`).run();
+  try{await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_game_stats_site_updated ON game_base_stats(site_id,updated_at DESC)`).run()}catch(e){}
+}
+function nrGameStatsPublic(row){
+  const count=Number(row?.vote_count||0),sum=Number(row?.vote_sum||0);
+  return {views:Number(row?.views||0),downloads:Number(row?.downloads||0),vote_count:count,rating:count?Number((sum/count).toFixed(1)):0};
+}
+
 async function siteFor(env,req){
   await ensureSitePublicSettings(env);
   const h=host(req).replace(/^www\./,'').toLowerCase();
   const baseSql=`SELECT s.*,
     coalesce(ps.contact_email,'') contact_email,
+    coalesce(ps.settings_json,'{}') template_settings_json,
     coalesce(cp.phone,'') customer_phone,
     coalesce(cp.email,'') customer_email,
     coalesce((SELECT email FROM users u WHERE u.site_id=s.id AND u.role='admin' ORDER BY u.id LIMIT 1),'') admin_email
@@ -704,7 +735,7 @@ function defaultTemplateStructure(key){
   'dich-vu-2':{version:8,layout_contract:'universal-layout-v1',content_type:'service',geometry_locked:1,sidebars:[],sections:[sec('hero','section','Giải pháp VNPT',{content_source:'none',bind_required:0}),sec('needs','section','Chọn theo nhu cầu',{content_source:'none',bind_required:0}),sec('internet','category','Internet VNPT',{category:'Internet VNPT',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1,slot_hosts:[{selector:'.vnpt-feature-pack',slots:1},{selector:'.vnpt-pack-list',slots:5}]}),sec('tv','category','Truyền hình MyTV',{category:'Truyền hình MyTV',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('camera','category','Camera VNPT',{category:'Camera VNPT',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('combo','category','Combo VNPT',{category:'Combo VNPT',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('advice','section','Cẩm nang dịch vụ',{content_source:'none',bind_required:0}),sec('contact','section','Đăng ký tư vấn',{content_source:'none',bind_required:0})]},
   'dich-vu-3':{version:8,layout_contract:'universal-layout-v1',content_type:'service',geometry_locked:1,sidebars:[],sections:[sec('hero','section','Giải pháp Viettel',{content_source:'none',bind_required:0}),sec('needs','section','Chọn theo nhu cầu',{content_source:'none',bind_required:0}),sec('combo','category','Combo Viettel',{category:'Combo Viettel',slots:6,desktop_columns:2,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('internet','category','Internet Viettel',{category:'Internet Viettel',slots:6,desktop_columns:2,tablet_columns:1,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('tv','category','Truyền hình TV360',{category:'Truyền hình TV360',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('camera','category','Camera Viettel',{category:'Camera Viettel',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('advice','section','Cẩm nang dịch vụ',{content_source:'none',bind_required:0}),sec('contact','section','Đăng ký tư vấn',{content_source:'none',bind_required:0})]},
   'dich-vu-4':{version:9,layout_contract:'universal-layout-v1',content_type:'service',geometry_locked:1,route_contract:'service-commerce-v2',card_contract:'camera-product-card-v1',article_contract:'service-detail-v2',lead_contract:'service-lead-v1',sidebars:[],sections:[sec('hero','section','Camera & giải pháp an ninh',{content_source:'none',bind_required:0}),sec('brands','section','Thương hiệu nổi bật',{content_source:'none',bind_required:0}),sec('indoor','category','Camera Wi-Fi trong nhà',{category:'Camera Wi-Fi trong nhà',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('outdoor','category','Camera ngoài trời',{category:'Camera ngoài trời',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('ai','category','Camera AI quay quét',{category:'Camera AI quay quét',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('pro','category','Camera IP & bộ giám sát',{category:'Camera IP & bộ giám sát',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('advice','section','Cẩm nang camera',{content_source:'none',bind_required:0}),sec('contact','section','Nhận tư vấn & báo giá',{content_source:'none',bind_required:0})]},
-  'game-1':{version:5,layout_contract:'universal-layout-v1',content_type:'game',geometry_locked:1,route_contract:'game-community-base-v1',card_contract:'game-base-card-v4',article_contract:'game-base-detail-v4',navigation_contract:'game-mobile-hamburger-v2',saved_contract:'local-first-saved-toast-v2',filter_contract:'mobile-compact-drawer-v2',mobile_cta_contract:'sticky-copy-v1',preference_contract:'remember-hall-v1',stats_contract:'async-nonblocking-v1',hero_contract:'daily-latest-skin-v1',sidebars:[],sections:[sec('hero','section','Clash of Clans Community Base Portal',{content_source:'none',bind_required:0}),sec('filters','section','Bộ lọc Base',{content_source:'none',bind_required:0}),sec('town-hall','category','Town Hall',{category:'Town Hall',slots:17,slot_contract:'exact',desktop_columns:4,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1}),sec('builder-hall','category','Builder Hall',{category:'Builder Hall',slots:9,slot_contract:'exact',desktop_columns:4,tablet_columns:2,mobile_columns:2,fill_policy:'complete_rows',bind_required:1}),sec('clan-capital','category','Clan Capital',{category:'Clan Capital',slots:10,slot_contract:'exact',desktop_columns:4,tablet_columns:2,mobile_columns:2,fill_policy:'complete_rows',bind_required:1})]}
+  'game-1':{version:6,layout_contract:'universal-layout-v1',content_type:'game',geometry_locked:1,route_contract:'game-community-base-v1',card_contract:'game-base-card-v5',article_contract:'game-base-detail-v5',navigation_contract:'game-mobile-hamburger-v2',saved_contract:'local-first-saved-toast-v2',filter_contract:'mobile-compact-drawer-v2',mobile_cta_contract:'sticky-copy-v1',preference_contract:'remember-hall-v1',stats_contract:'cloudflare-d1-batch-v1',settings_contract:'template-personalization-v1',hero_contract:'daily-latest-skin-v1',settings_schema:[{key:'donate_url',label:'Link Donate / Buy Me a Coffee',type:'url',placeholder:'https://buymeacoffee.com/ten-cua-ban',default:'https://buymeacoffee.com/cocbase',help:'Nút Donate trên header, footer và nút nổi sẽ dùng link này.'},{key:'about_title',label:'Tiêu đề trang Thông tin',type:'text',default:'About COC Base Portal'},{key:'about_content',label:'Nội dung trang Thông tin',type:'textarea',default:'Thư viện base cộng đồng dành cho Town Hall, Builder Hall và Clan Capital.'},{key:'terms_title',label:'Tiêu đề trang Điều khoản',type:'text',default:'Điều khoản sử dụng'},{key:'terms_content',label:'Nội dung Điều khoản',type:'textarea',default:'Base được chia sẻ cho cộng đồng. Người dùng tự chịu trách nhiệm khi sử dụng liên kết bên thứ ba.'},{key:'footer_text',label:'Thông tin ngắn dưới Footer',type:'textarea',default:'Community Clash of Clans base sharing · Not affiliated with Supercell.'}],sidebars:[],sections:[sec('hero','section','Clash of Clans Community Base Portal',{content_source:'none',bind_required:0}),sec('filters','section','Bộ lọc Base',{content_source:'none',bind_required:0}),sec('town-hall','category','Town Hall',{category:'Town Hall',slots:17,slot_contract:'exact',desktop_columns:4,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1}),sec('builder-hall','category','Builder Hall',{category:'Builder Hall',slots:9,slot_contract:'exact',desktop_columns:4,tablet_columns:2,mobile_columns:2,fill_policy:'complete_rows',bind_required:1}),sec('clan-capital','category','Clan Capital',{category:'Clan Capital',slots:10,slot_contract:'exact',desktop_columns:4,tablet_columns:2,mobile_columns:2,fill_policy:'complete_rows',bind_required:1})]}
  };
  return p[String(key||'')]||{version:5,content_type:'generic',geometry_locked:0,sidebars:[],sections:[]};
 }
@@ -1658,6 +1689,7 @@ if(route==='publisher/base'&&request.method==='POST'){
     const r=await env.DB.prepare(`INSERT INTO posts(site_id,type,title,category,image,content,status,author_id,featured,verified,listing_code,views,is_sample,sample_key,extra_json) VALUES(?,?,?,?,?,?,'published',NULL,?,?,?,?,0,'',?)`).bind(target.id,'game',title,group,image,content,b.featured?1:0,1,`COC-${(await sha256(externalKey)).slice(0,12).toUpperCase()}`,Number(b.views||0),JSON.stringify(extra)).run();
     const postId=Number(r.meta.last_row_id);
     await env.DB.prepare(`INSERT INTO publisher_imports(site_id,post_id,external_key,slug,source_url,payload_hash) VALUES(?,?,?,?,?,?)`).bind(target.id,postId,externalKey,slug,sourceUrl,payloadHash).run();
+    try{await ensureGameStatsTables(env);await env.DB.prepare(`INSERT OR IGNORE INTO game_base_stats(site_id,slug,views) VALUES(?,?,?)`).bind(target.id,slug,Number(b.views||0)).run()}catch(e){}
     return json({ok:true,created:true,updated:false,duplicate:false,post_id:postId,slug,url:`https://${target.domain}/base/${slug}.html`},201);
   }
   const current=await env.DB.prepare(`SELECT id,extra_json FROM posts WHERE id=? AND site_id=? LIMIT 1`).bind(imp.post_id,target.id).first();
@@ -3183,6 +3215,43 @@ if(route==='image'&&request.method==='GET'){
  return new Response(obj.body,{headers:h});
 }
 const site=await siteFor(env,request);if(!site)return json({error:'Website chưa được kích hoạt'},404);
+// V20.9.1 — Cloudflare-first CoC stats. Public, batched and non-blocking.
+if(route==='game/stats'&&request.method==='GET'){
+  await ensureGameStatsTables(env);
+  const slugs=String(u.searchParams.get('slugs')||'').split(',').map(nrSlug).filter(Boolean).slice(0,60);
+  if(!slugs.length)return json({ok:true,stats:{}},200,publicCache(15,60));
+  const qs=slugs.map(()=>'?').join(',');
+  const {results}=await env.DB.prepare(`SELECT slug,views,vote_sum,vote_count,downloads FROM game_base_stats WHERE site_id=? AND slug IN (${qs})`).bind(site.id,...slugs).all();
+  const out={};for(const row of (results||[]))out[row.slug]=nrGameStatsPublic(row);
+  return json({ok:true,stats:out},200,publicCache(15,60));
+}
+if(route==='game/stats/action'&&request.method==='POST'){
+  await ensureGameStatsTables(env);
+  const b=await body(request),slug=nrSlug(b.slug||''),action=String(b.action||'').toLowerCase();
+  if(!slug||!['view','download','vote'].includes(action))return json({error:'Stats action không hợp lệ'},400);
+  await env.DB.prepare(`INSERT OR IGNORE INTO game_base_stats(site_id,slug) VALUES(?,?)`).bind(site.id,slug).run();
+  if(action==='view')await env.DB.prepare(`UPDATE game_base_stats SET views=views+1,updated_at=CURRENT_TIMESTAMP WHERE site_id=? AND slug=?`).bind(site.id,slug).run();
+  if(action==='download')await env.DB.prepare(`UPDATE game_base_stats SET downloads=downloads+1,updated_at=CURRENT_TIMESTAMP WHERE site_id=? AND slug=?`).bind(site.id,slug).run();
+  if(action==='vote'){
+    const vote=Math.max(1,Math.min(5,Number(b.value||0)));if(!Number.isFinite(vote))return json({error:'Vote phải từ 1 đến 5'},400);
+    const client=String(b.client_id||'').slice(0,160);if(client.length<8)return json({error:'Thiếu client id'},400);
+    const voterKey=await sha256(`coc-vote:${site.id}:${client}`);
+    const prev=await env.DB.prepare(`SELECT vote FROM game_base_votes WHERE site_id=? AND slug=? AND voter_key=?`).bind(site.id,slug,voterKey).first();
+    if(prev){
+      await env.DB.batch([
+        env.DB.prepare(`UPDATE game_base_votes SET vote=?,updated_at=CURRENT_TIMESTAMP WHERE site_id=? AND slug=? AND voter_key=?`).bind(vote,site.id,slug,voterKey),
+        env.DB.prepare(`UPDATE game_base_stats SET vote_sum=vote_sum+?,updated_at=CURRENT_TIMESTAMP WHERE site_id=? AND slug=?`).bind(vote-Number(prev.vote||0),site.id,slug)
+      ]);
+    }else{
+      await env.DB.batch([
+        env.DB.prepare(`INSERT INTO game_base_votes(site_id,slug,voter_key,vote) VALUES(?,?,?,?)`).bind(site.id,slug,voterKey,vote),
+        env.DB.prepare(`UPDATE game_base_stats SET vote_sum=vote_sum+?,vote_count=vote_count+1,updated_at=CURRENT_TIMESTAMP WHERE site_id=? AND slug=?`).bind(vote,site.id,slug)
+      ]);
+    }
+  }
+  const row=await env.DB.prepare(`SELECT slug,views,vote_sum,vote_count,downloads FROM game_base_stats WHERE site_id=? AND slug=?`).bind(site.id,slug).first();
+  return json({ok:true,slug,stats:nrGameStatsPublic(row)},200,{'Cache-Control':'no-store'});
+}
 await ensureTrialTables(env);
 let __siteTrial=null;try{__siteTrial=await env.DB.prepare(`SELECT * FROM website_trials WHERE site_id=? LIMIT 1`).bind(site.id).first()}catch(e){}
 if(__siteTrial){
@@ -3387,6 +3456,8 @@ if(route==='me'){
  let categoryStructure={};try{categoryStructure=tc?.structure_profile?JSON.parse(tc.structure_profile):defaultTemplateStructure(site.template_key||tc?.template_key||'')}catch(e){categoryStructure=defaultTemplateStructure(site.template_key||tc?.template_key||'')}
  if(!categoryStructure||!Array.isArray(categoryStructure.sections)||!categoryStructure.sections.length)categoryStructure=defaultTemplateStructure(site.template_key||tc?.template_key||'');
  content_profile=templateCategoryContract(categoryStructure,content_profile,profileType);
+ content_profile.settings_schema=Array.isArray(categoryStructure?.settings_schema)?categoryStructure.settings_schema:[];
+ try{site.template_settings=JSON.parse(String(site.template_settings_json||'{}'))}catch(e){site.template_settings={}}
  return json({user:{id:user.id,email:user.email,role:user.role},site,content_profile,stats:await stats(env,site.id)})
 }
 if(route==='service-info'&&request.method==='GET'){
@@ -3497,15 +3568,20 @@ if(route==='settings'&&request.method==='PUT'){
  const b=await body(request);
  const publicEmail=String(b.email||'').trim().toLowerCase();
  if(publicEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(publicEmail))return json({error:'Email liên hệ không hợp lệ'},400);
- await ensureSitePublicSettings(env);
+ await ensureSitePublicSettings(env);await ensureTemplateCatalog(env);
+ let structure=defaultTemplateStructure(site.template_key||'');
+ try{const tr=await env.DB.prepare(`SELECT structure_profile FROM template_catalog WHERE template_key=? LIMIT 1`).bind(site.template_key||'').first();if(tr?.structure_profile)structure=JSON.parse(tr.structure_profile)}catch(e){}
+ const schema=Array.isArray(structure?.settings_schema)?structure.settings_schema:[],allowed=new Map(schema.map(x=>[String(x.key||''),x]));
+ const incoming=b.template_settings&&typeof b.template_settings==='object'?b.template_settings:{},clean={};
+ for(const [key,def] of allowed){let v=String(incoming[key]??def.default??'').trim();const max=def.type==='textarea'?12000:1000;v=v.slice(0,max);if(def.type==='url'&&v&&!/^https?:\/\//i.test(v))return json({error:`${def.label||key}: link phải bắt đầu bằng http:// hoặc https://`},400);clean[key]=v}
  await env.DB.batch([
    env.DB.prepare(`UPDATE sites SET name=?,phone=?,zalo=?,facebook=? WHERE id=?`).bind(b.name||site.name,b.phone||'',b.zalo||'',b.facebook||'',site.id),
-   env.DB.prepare(`INSERT INTO site_public_settings(site_id,contact_email,updated_at) VALUES(?,?,CURRENT_TIMESTAMP)
-     ON CONFLICT(site_id) DO UPDATE SET contact_email=excluded.contact_email,updated_at=CURRENT_TIMESTAMP`).bind(site.id,publicEmail)
+   env.DB.prepare(`INSERT INTO site_public_settings(site_id,contact_email,settings_json,updated_at) VALUES(?,?,?,CURRENT_TIMESTAMP)
+     ON CONFLICT(site_id) DO UPDATE SET contact_email=excluded.contact_email,settings_json=excluded.settings_json,updated_at=CURRENT_TIMESTAMP`).bind(site.id,publicEmail,JSON.stringify(clean))
  ]);
  try{await env.DB.prepare(`ALTER TABLE sites ADD COLUMN email TEXT DEFAULT ''`).run()}catch(e){}
  try{await env.DB.prepare(`UPDATE sites SET email=? WHERE id=?`).bind(publicEmail,site.id).run()}catch(e){}
- return json({ok:true,email:publicEmail})
+ return json({ok:true,email:publicEmail,template_settings:clean})
 }
 if(route==='password'&&request.method==='PUT'){const b=await body(request),old=await sha256(b.old_password||'');if(old!==user.password_hash)return json({error:'Mật khẩu hiện tại không đúng'},400);if((b.new_password||'').length<8)return json({error:'Mật khẩu mới phải có ít nhất 8 ký tự'},400);await env.DB.prepare(`UPDATE users SET password_hash=? WHERE id=?`).bind(await sha256(b.new_password),user.id).run();return json({ok:true})}
 if(route==='stats'){const all=(await stats(env,site.id)).views,last7=(await env.DB.prepare(`SELECT count(*)c FROM pageviews WHERE site_id=? AND created_at>=datetime('now','-7 day')`).bind(site.id).first())?.c||0,last30=(await env.DB.prepare(`SELECT count(*)c FROM pageviews WHERE site_id=? AND created_at>=datetime('now','-30 day')`).bind(site.id).first())?.c||0;const {results}=await env.DB.prepare(`SELECT title,views FROM posts WHERE site_id=? ORDER BY views DESC LIMIT 10`).bind(site.id).all();return json({all,last7,last30,top:results})}
