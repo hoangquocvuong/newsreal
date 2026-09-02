@@ -1,9 +1,8 @@
-NEWSREAL V20.9.3 — CoC Hard Boot + Multi-Criteria Filter Recovery
+NEWSREAL V20.9.4 — COC BOOT + FILTER MOBILE HARDEN
 
-- Public /demo/game/clash-of-clans/ boots from its own local showroom package and never depends on the shared BDS tenant API.
-- Absolute anti-cross-template fallback: an API failure can never expose the BDS transport shell.
-- Asset/demo build cache-buster bumped to 20.9.3 and fast-nav session cache version bumped.
-- Mobile filter is staged multi-criteria: choose Group + Level + Purpose + Year + Sort, then press Xem N bases.
-- Desktop filter wraps cleanly and preserves all selected criteria.
-- Donate buttons use one green color with no hover color/transform; circular coffee icon is centered.
-- Keeps V20.9.1 stats/settings and V20.9.0 mobile-first contracts.
+- Fixes public Clash of Clans demo boot ordering: main boot now starts only after the entire site.js has initialized.
+- Hardens local showroom sample-post access and captures fatal game boot errors.
+- Prevents the old BDS shell or empty sample error from becoming the visible fallback.
+- Keeps multi-criteria staged filter workflow for TH/BH/CH + purpose + year + sort.
+- Preserves V20.9.1 production stats, dynamic template settings, Saved toast, mobile hamburger, Donate settings and sticky Copy Base.
+- Game structure profile v8; no new DB migration.
