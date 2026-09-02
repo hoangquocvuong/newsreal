@@ -1,8 +1,12 @@
-NEWSREAL V20.8.8 — CoC Mobile UX & Smart Navigation
+NEWSREAL V20.8.9 — CoC Local-first Saved, Hero Showcase & Donate UX
 
-- Based on V20.8.4 CoC community architecture.
-- Professional responsive Hall hero with high-resolution srcset and no crop.
-- New task-oriented desktop and mobile navigation.
-- Filter clicks focus the results block without full-page reload.
-- Persistent Buy Me a Coffee donate CTA.
-- Mobile touch-target, card, spacing and safe-area improvements.
+- Keeps the V20.8.8 CoC community architecture and universal template contracts.
+- Desktop menu now contains only functions backed by the new site: Home, Browse Bases, TH, BH, CH, Saved, Donate.
+- Mobile menu keeps Home, Bases, Saved, More and Donate; More only exposes TH/BH/CH/About/Privacy.
+- Admin and Donate header CTAs have the same height/visual weight.
+- Floating Donate is now a compact circular coffee button.
+- Hero visual loads a recent Hero Skin from the original CoC hero-skins data source, chooses from the latest year and rotates daily.
+- Saved Bases is local-first via browser localStorage; no Firebase dependency and no login requirement.
+- Base cards and detail pages expose Vote/View/Download/Saved UI; showroom uses deterministic demo stats while production stats remain non-blocking architecture.
+- Mobile article description is visible again.
+- No database migration required.
