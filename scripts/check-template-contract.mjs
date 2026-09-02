@@ -39,7 +39,7 @@ const required=[
   ['Game Clash preset',"'game-1':'game_clash_1'"],
   ['Game Clash renderer','renderGameClash1'],
   ['Game Town Hall level chooser',"GAME_LEVELS={th:Array.from({length:17}"],
-  ['Game structure profile',"'game-1':{version:11,layout_contract:'universal-layout-v1'"],
+  ['Game structure profile',"'game-1':{version:12,layout_contract:'universal-layout-v1'"],
   ['Game level card renderer symbol','function nrGameLevelCards(group,prefix'],
   ['backend Game renderer boot contract',"boot_contract:'game-route-runtime-complete-v2'"],
   ['Game community archive route','/bases?'],

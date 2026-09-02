@@ -1,11 +1,3 @@
-NEWSREAL V20.9.7 — COC SMART PROGRESSIVE FILTER V4
+NEWSREAL V20.9.8 - CoC Article Mobile Dock + Strict Related Fix
 
-- Replaced long row/drawer filters with one five-stage progressive filter shared by PC and mobile.
-- Group -> Level dependency is automatic; Level can be the stopping point for fast users.
-- Type/District, Year and Sort are optional refinements with subtle next-step guidance.
-- Dynamic group-specific Level and Type/District options.
-- Results update immediately without full page reload.
-- Added recent filters (last 3), compact active-filter feedback, and zero-result recovery actions.
-- Fixed desktop level wrapping by removing the long Level chip row entirely.
-- Game structure profile version 11; filter_contract smart-progressive-filter-v4.
-- No database migration.
+Mobile article action dock, duplicate CTA cleanup, strict same-level related bases, Saved menu icon cleanup, article width alignment.
