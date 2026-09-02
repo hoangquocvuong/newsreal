@@ -3097,7 +3097,7 @@ body.theme-news-minimal main .wrap{
 
 /* M1: latest cards must never become a 180px image + tiny text sliver. */
 body.theme-news-portal .n3-layout{grid-template-columns:minmax(0,1fr) 320px!important;gap:28px!important;align-items:start!important}
-body.theme-news-portal .n3-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:22px 18px!important;min-width:0!important}
+body.theme-news-portal .n3-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:22px 18px!important;min-width:0!important}
 body.theme-news-portal .n3-grid .n3-card{
  display:block!important;min-width:0!important;width:100%!important;overflow:hidden!important;
 }
@@ -3155,4 +3155,58 @@ body.theme-news-portal .n3-config-category-grid .n3-card h3{
  body.theme-news-portal .n3-grid{grid-template-columns:1fr!important}
  body.theme-news-magazine .nm-strip .wrap{grid-template-columns:1fr!important}
  body.theme-news-magazine .nm-strip .wrap>div{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+
+/* V20.7.4 — News M1 3-column density + M3 mosaic geometry preservation.
+   Universal Layout Contract controls slot COUNT. Complex editorial geometry may opt into
+   column_mode=computed/layout_variant so the template keeps its native mosaic shape. */
+body.theme-news-portal .n3-grid{
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:22px 18px!important;
+}
+body.theme-news-portal .n3-grid .n3-card img{aspect-ratio:16/9!important}
+body.theme-news-portal .n3-grid .n3-card h3{font-size:15px!important;line-height:1.36!important}
+
+/* M3 editors-pick must remain 1 featured tile + 4 supporting tiles in a 3-column / 2-row mosaic.
+   Do not let .nr-structure-grid flatten the hero into five equal columns. */
+body.theme-news-magazine .nm-mosaic{
+ display:grid!important;
+ grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr)!important;
+ grid-template-rows:245px 245px!important;
+ gap:14px!important;
+ align-items:stretch!important;
+}
+body.theme-news-magazine .nm-mosaic.nr-structure-grid{
+ grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr)!important;
+ grid-template-rows:245px 245px!important;
+}
+body.theme-news-magazine .nm-mosaic>.nm-tile{min-width:0!important;min-height:0!important;height:100%!important}
+body.theme-news-magazine .nm-mosaic>.nm-tile.big{grid-column:1!important;grid-row:1 / span 2!important}
+body.theme-news-magazine .nm-mosaic>.nm-tile:nth-child(2){grid-column:2!important;grid-row:1!important}
+body.theme-news-magazine .nm-mosaic>.nm-tile:nth-child(3){grid-column:3!important;grid-row:1!important}
+body.theme-news-magazine .nm-mosaic>.nm-tile:nth-child(4){grid-column:2!important;grid-row:2!important}
+body.theme-news-magazine .nm-mosaic>.nm-tile:nth-child(5){grid-column:3!important;grid-row:2!important}
+body.theme-news-magazine .nm-mosaic>.nm-tile img{width:100%!important;height:100%!important;object-fit:cover!important}
+
+@media(max-width:1000px){
+ body.theme-news-portal .n3-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ body.theme-news-magazine .nm-mosaic,
+ body.theme-news-magazine .nm-mosaic.nr-structure-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-rows:auto!important;
+ }
+ body.theme-news-magazine .nm-mosaic>.nm-tile,
+ body.theme-news-magazine .nm-mosaic>.nm-tile.big{
+  grid-column:auto!important;grid-row:auto!important;height:260px!important;
+ }
+ body.theme-news-magazine .nm-mosaic>.nm-tile.big{grid-column:1 / -1!important;height:360px!important}
+}
+@media(max-width:700px){
+ body.theme-news-portal .n3-grid{grid-template-columns:1fr!important}
+ body.theme-news-magazine .nm-mosaic,
+ body.theme-news-magazine .nm-mosaic.nr-structure-grid{grid-template-columns:1fr!important}
+ body.theme-news-magazine .nm-mosaic>.nm-tile,
+ body.theme-news-magazine .nm-mosaic>.nm-tile.big{grid-column:auto!important;grid-row:auto!important;height:240px!important}
+ body.theme-news-magazine .nm-mosaic>.nm-tile.big{height:320px!important}
 }

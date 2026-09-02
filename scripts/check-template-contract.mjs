@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 const site=fs.readFileSync('public/assets/site.js','utf8');
 const api=fs.readFileSync('functions/api/[[path]].js','utf8');
+const css=fs.readFileSync('public/assets/style.css','utf8');
 const required=[
   ['site exact target','nrEnforceSlotHost'],
   ['site contract audit','NR_TEMPLATE_CONTRACT_REPORT'],
@@ -16,11 +17,14 @@ const required=[
   ['Camera pro 6-slot renderer',"secSlots('pro',6)"],
   ['Camera showroom preset dispatch',"'dich-vu-4':'service_camera_store_4'"],
   ['Camera renderer dispatch',"effectivePreset==='service_camera_store_4'"],
-  ['Service demo template key contract',"/^dich-vu-\\d+$/.test(window.NR_DEMO_THEME)"]
+  ['Service demo template key contract',"/^dich-vu-\\d+$/.test(window.NR_DEMO_THEME)"],
+  ['backend News M1 latest 3-column contract',"desktop_columns:3,desktop_rows:4"],
+  ['backend News M3 mosaic computed contract',"layout_variant:'mosaic-featured-1-plus-4'"],
+  ['News M3 mosaic CSS','grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr)!important']
 ];
 let failed=0;
 for(const [name,needle] of required){
-  const haystack=name.startsWith('backend')?api:site;
+  const haystack=name.includes('CSS')?css:name.startsWith('backend')?api:site;
   const ok=haystack.includes(needle)||(name.includes('VNPT')&&(api.includes(needle)||site.includes(needle)));
   console.log(`${ok?'OK':'FAIL'}  ${name}`);
   if(!ok)failed++;

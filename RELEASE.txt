@@ -1,8 +1,8 @@
-NEWSREAL V20.7.3 — NEWS LAYOUT STABILITY FIX
+NEWSREAL V20.7.4 — NEWS M1 3-COLUMN + M3 MOSAIC FIX
 
-- Fix Tin tức Mẫu 1 card text bị co/vỡ cột trên desktop.
-- Fix Tin tức Mẫu 2 bị co khung và giảm khoảng trống dài do sidebar cao.
-- Fix Tin tức Mẫu 3 Trending bị cắt/overflow ngang.
-- News latest count now follows exact structure_profile slot count.
-- Preserve Universal Template Layout Contract V20.7.0 and Camera Store V20.7.2.
+- Tin tức Mẫu 1: chuyển khu Tin mới nhất từ 2 cột thành 3 cột Desktop để tăng mật độ tin nhưng vẫn giữ ảnh 16:9 và chữ dễ đọc.
+- Tin tức Mẫu 3: sửa gốc xung đột giữa Universal Layout Contract và mosaic hero; giữ đúng 5 slot nhưng bố cục 1 bài lớn + 4 bài phụ theo lưới 3 cột / 2 hàng.
+- M3 editors-pick dùng column_mode=computed + layout_variant=mosaic-featured-1-plus-4, vì contract khóa số slot chứ không ép mọi section phức tạp thành các cột bằng nhau.
+- Tăng version structure profile Tin tức Mẫu 1 -> 7 và Mẫu 3 -> 9 để catalog hiện có tự nhận profile mới khi ensureTemplateCatalog chạy.
+- Giữ nguyên Universal Template Layout Contract, Camera Store và toàn bộ trial/payment flow.
 - No DB migration.
