@@ -593,7 +593,7 @@ function newsLayoutProfile(site,variant=1){
      out.category_rows=Math.max(1,Number(sec.desktop_rows||Math.ceil(Number(sec.slots||cols)/cols)));
    }
    const latest=(st.sections||[]).find(x=>['latest','moi-nhat'].includes(String(x?.key||''))||String(x?.type||'')==='latest');
-   if(latest&&Number(latest.slots||0)>0)out.home_latest_count=Math.max(out.home_latest_count,Number(latest.slots));
+   if(latest&&Number(latest.slots||0)>0)out.home_latest_count=Math.max(1,Number(latest.slots));
  }catch(e){}
  return out;
 }

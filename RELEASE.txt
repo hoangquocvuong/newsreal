@@ -1,8 +1,8 @@
-NEWSREAL V20.7.1 — CAMERA STORE + REAL SERVICE PREVIEWS
+NEWSREAL V20.7.3 — NEWS LAYOUT STABILITY FIX
 
-- Adds Dịch vụ Mẫu 4: Camera Store with 4 x 6 exact product slots.
-- Uses Universal Template Layout Contract V1: showroom/trial/client share identical structure.
-- FPT/VNPT/Viettel catalog previews switched from synthetic SVG to real interface screenshots.
-- Template 1 display name normalized to FPT.
-- Camera Store has product images, price, short description, details/promotion modal and lead form.
-- Migration: 0036_camera_store_template.sql
+- Fix Tin tức Mẫu 1 card text bị co/vỡ cột trên desktop.
+- Fix Tin tức Mẫu 2 bị co khung và giảm khoảng trống dài do sidebar cao.
+- Fix Tin tức Mẫu 3 Trending bị cắt/overflow ngang.
+- News latest count now follows exact structure_profile slot count.
+- Preserve Universal Template Layout Contract V20.7.0 and Camera Store V20.7.2.
+- No DB migration.
