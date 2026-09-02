@@ -3439,3 +3439,101 @@ html.coc-popup-open,html.coc-popup-open body{overflow:hidden!important}
   .coc-card-body{padding:8px}.coc-base-actions{font-size:9px;gap:2px}.coc-base-actions .coc-stat-btn b,.coc-base-actions .coc-stat-item b{font-size:9px}.coc-bookmark-btn b{display:none}
   .coc-detail-copy{padding:14px!important}.coc-detail-copy .coc-tags{display:flex!important}.coc-detail-copy h1{display:block!important;font-size:22px!important;margin:12px 0!important}.coc-article-body{display:block!important;font-size:14px!important;line-height:1.65!important;margin-top:15px!important;color:#3a4d61!important}.coc-article-body h2{font-size:18px!important}.coc-detail-stats{display:flex!important;justify-content:space-around;padding:10px 7px}.coc-detail-side{margin-top:8px}.coc-detail-image{background:rgba(238,243,248,.96)!important}
 }
+
+
+/* =========================================================
+   V20.8.6 — COC ORIGINAL NAV/POPUP RUNTIME + VISIBLE BACKGROUND
+   Rebuilt from the original CocBasePro interaction model:
+   fixed global nav, separate More sheet, Simple popup and Donate center.
+   ========================================================= */
+body.theme-game-clash{
+  --coc-bg-url:url("https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhIwO-EL8F3pI5lD1NuyPbVYHlE6CuLw5DyozKzryTrMqnArxDz9_-z0DrY0RLhs5fsXVvJ8FAMghvALxLBanF1QOUA_xlbJtHjPXbWT11CJOePd-Eo8F___mzHpZe5NWmx4aGLEoLKtssWXzKRDDApOdLe9aZc0lvQwECEJOwGSom0XdxG2a2uaURWYMfs/s1600/o0830046714856186164.jpg");
+  background-color:#08111e!important;
+  background-image:linear-gradient(rgba(5,10,18,.34),rgba(5,10,18,.34)),var(--coc-bg-url)!important;
+  background-size:cover!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  background-attachment:fixed!important;
+}
+body.theme-game-clash::before{content:none!important;display:none!important}
+body.theme-game-clash main,
+body.theme-game-clash .coc-site,
+body.theme-game-clash .coc-browser,
+body.theme-game-clash .coc-community-section,
+body.theme-game-clash .coc-section,
+body.theme-game-clash .coc-section.coc-dark{
+  background:transparent!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+body.theme-game-clash .coc-hero{
+  background:linear-gradient(90deg,rgba(7,16,29,.72),rgba(12,31,52,.58))!important;
+  backdrop-filter:none!important;
+}
+body.theme-game-clash .coc-section>.coc-wrap,
+body.theme-game-clash .coc-browser>.coc-wrap,
+body.theme-game-clash .coc-community-section>.coc-wrap{
+  background:rgba(245,248,252,.84);
+  color:#172033;
+  padding:24px;
+  box-sizing:border-box;
+  box-shadow:0 18px 55px rgba(2,6,23,.12);
+}
+body.theme-game-clash .coc-section.coc-dark>.coc-wrap{
+  background:rgba(9,21,35,.84);
+  color:#fff;
+}
+body.theme-game-clash .coc-community-section{padding:48px 0}
+body.theme-game-clash .coc-footer-full{background:rgba(5,11,18,.94)!important;backdrop-filter:blur(5px)}
+
+/* Original global navigation behavior: desktop rail, mobile bottom bar. */
+#mobile-nav.coc-global-nav{position:fixed;z-index:999998;display:grid;box-sizing:border-box}
+#mobile-nav.coc-global-nav .nav-item{appearance:none;border:0;text-decoration:none;font:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#f8fafc;background:rgba(7,17,31,.90);border:1px solid rgba(255,255,255,.12);box-sizing:border-box;transition:background .15s ease,color .15s ease,transform .15s ease}
+#mobile-nav.coc-global-nav .nav-item:hover,#mobile-nav.coc-global-nav .nav-item.is-active{color:#facc15;background:rgba(7,17,31,.98)}
+#mobile-nav.coc-global-nav .nav-icon{width:20px;height:20px;flex:0 0 auto}
+@media(min-width:901px){
+  body.theme-game-clash{padding-left:82px!important}
+  #mobile-nav.coc-global-nav{left:12px;top:50%;bottom:auto;transform:translateY(-50%);width:58px;grid-template-rows:repeat(6,58px);gap:7px;background:transparent;border:0;box-shadow:none}
+  #mobile-nav.coc-global-nav .nav-item{width:58px;height:58px;border-radius:12px;flex-direction:column;gap:3px;padding:5px 2px;box-shadow:0 8px 22px rgba(0,0,0,.22)}
+  #mobile-nav.coc-global-nav .nav-item span{font-size:8px;font-weight:800;white-space:nowrap}
+}
+@media(max-width:900px){
+  body.theme-game-clash{padding-left:0!important;padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;background-attachment:scroll!important}
+  #mobile-nav.coc-global-nav{left:0;right:0;bottom:0;top:auto;width:100%;height:calc(58px + env(safe-area-inset-bottom));grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;padding:4px 3px calc(4px + env(safe-area-inset-bottom));background:rgba(7,17,31,.94);border-top:1px solid rgba(255,255,255,.12);box-shadow:0 -8px 24px rgba(0,0,0,.24);backdrop-filter:blur(12px)}
+  #mobile-nav.coc-global-nav .nav-item{min-width:0;height:48px;border:0;border-radius:9px;flex-direction:column;gap:1px;padding:3px 1px;background:transparent;box-shadow:none}
+  #mobile-nav.coc-global-nav .nav-item span{font-size:8px;font-weight:800;white-space:nowrap}
+  #mobile-nav.coc-global-nav .nav-icon{width:18px;height:18px}
+}
+html.mobile-menu-open #mobile-nav.coc-global-nav,#mobile-nav.coc-global-nav.menu-suppressed{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+
+/* More sheet follows the original code: desktop side panel, mobile bottom sheet. */
+#mobile-more-sheet.coc-more-sheet{position:fixed;inset:0;z-index:1000000;display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .22s ease,visibility .22s ease}
+#mobile-more-sheet.coc-more-sheet.show{opacity:1;visibility:visible;pointer-events:auto}
+#mobile-more-sheet .more-sheet-overlay{position:absolute;inset:0;border:0;background:rgba(2,6,23,.58);backdrop-filter:blur(5px)}
+#mobile-more-sheet .more-sheet-panel{position:relative;z-index:2;width:min(100%,760px);max-height:min(82vh,720px);overflow:auto;padding:10px 14px calc(18px + env(safe-area-inset-bottom));border-radius:24px 24px 0 0;background:#fff;color:#111827;box-shadow:0 -18px 60px rgba(2,6,23,.30);transform:translateY(105%);transition:transform .26s cubic-bezier(.2,.8,.2,1)}
+#mobile-more-sheet.show .more-sheet-panel{transform:translateY(0)}
+#mobile-more-sheet .more-sheet-handle{width:42px;height:5px;margin:2px auto 12px;border-radius:999px;background:#cbd5e1}
+#mobile-more-sheet .more-sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+#mobile-more-sheet .more-sheet-head h3{margin:0;font-size:18px}.more-sheet-close{width:36px;height:36px;border:0;border-radius:50%;background:#f1f5f9;font-size:22px;cursor:pointer}
+#mobile-more-sheet .more-sheet-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#mobile-more-sheet .more-sheet-item{min-height:72px;padding:8px 4px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc;color:#111827;text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;font:inherit;cursor:pointer}
+#mobile-more-sheet .more-sheet-item span{font-size:21px}#mobile-more-sheet .more-sheet-item b{font-size:10px}
+@media(min-width:901px){#mobile-more-sheet.coc-more-sheet{inset:0 auto 0 0;width:430px;align-items:center;justify-content:flex-start;padding-left:84px;background:transparent}#mobile-more-sheet .more-sheet-overlay{display:none}#mobile-more-sheet .more-sheet-panel{width:330px;max-height:88vh;padding:12px;border-radius:20px;transform:translateX(-24px) scale(.98)}#mobile-more-sheet.show .more-sheet-panel{transform:translateX(0) scale(1)}#mobile-more-sheet .more-sheet-handle{display:none}}
+@media(max-width:900px){#mobile-more-sheet.coc-more-sheet{padding-bottom:66px}#mobile-more-sheet .more-sheet-panel{width:min(calc(100% - 18px),390px);border-radius:18px;padding:9px 10px calc(12px + env(safe-area-inset-bottom))}}
+
+/* Separate Simple popup: News, Finder, Saved and More sub-tools. */
+#simple-popup.coc-simple-popup{position:fixed;inset:0;z-index:1000001;display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;visibility:hidden;pointer-events:none;transition:.2s ease}
+#simple-popup.coc-simple-popup.show{opacity:1;visibility:visible;pointer-events:auto}
+#simple-popup .overlay{position:absolute;inset:0;border:0;background:rgba(2,6,23,.64);backdrop-filter:blur(5px)}
+#simple-popup .box{position:relative;z-index:2;width:min(620px,100%);max-height:82vh;overflow:auto;background:#fff;color:#172033;border-radius:18px;padding:14px 16px 18px;box-shadow:0 28px 90px rgba(0,0,0,.38)}
+#simple-popup .close-btn{border:0;background:#edf2f7;width:38px;height:38px;border-radius:50%;font-size:23px;cursor:pointer;color:#172033}
+@media(max-width:900px){#simple-popup.coc-simple-popup{align-items:flex-end;padding:0 10px calc(66px + env(safe-area-inset-bottom))}#simple-popup .box{width:100%;max-height:72vh;border-radius:18px}}
+
+/* Dedicated community support popup, not a generic content dialog. */
+#cbp-support-popup.coc-support-popup{position:fixed;inset:0;z-index:1000002;display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;visibility:hidden;pointer-events:none;transition:.2s ease}
+#cbp-support-popup.coc-support-popup.show{opacity:1;visibility:visible;pointer-events:auto}
+#cbp-support-popup .cbp-support-overlay{position:absolute;inset:0;border:0;background:rgba(2,6,23,.72);backdrop-filter:blur(6px)}
+#cbp-support-popup .cbp-support-panel{position:relative;z-index:2;width:min(520px,100%);background:#fff;color:#172033;border-radius:22px;padding:24px;box-shadow:0 28px 90px rgba(0,0,0,.4)}
+#cbp-support-popup .cbp-support-close{position:absolute;right:14px;top:14px;width:38px;height:38px;border:0;border-radius:50%;background:#edf2f7;font-size:24px;cursor:pointer}
+#cbp-support-popup .cbp-support-header{display:flex;gap:13px;padding-right:36px}.cbp-support-heart{font-size:30px;color:#ef4444}.cbp-support-kicker{font-size:10px;font-weight:950;letter-spacing:.12em;color:#f97316}.cbp-support-header h3{margin:4px 0 5px;font-size:22px}.cbp-support-header p{margin:0;color:#64748b;line-height:1.5}.cbp-support-goal-card{margin-top:18px;padding:18px;border:1px solid #e2e8f0;background:#f8fafc;border-radius:14px}.cbp-support-goal-card small{display:block;color:#64748b}.cbp-support-goal-card strong{display:block;font-size:19px;margin:4px 0 8px}.cbp-support-goal-card p{margin:0;color:#64748b;line-height:1.6}
+html.coc-simple-open,html.coc-simple-open body,html.cbp-support-open,html.cbp-support-open body{overflow:hidden!important}

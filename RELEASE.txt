@@ -1,12 +1,11 @@
-NEWSREAL V20.8.5 — CoC Original Popup, 4-Metric Cards & Background Parity
+NEWSREAL V20.8.6 — CoC Original Menu Runtime & Visible Background Fix
 
-- Replaces plain desktop dropdown/menu links with the CocBasePro-style popup/bottom-sheet interaction model.
-- Main menu News / Find Source / Donate / Saved / More now open fast in-page popup panels without page reload.
-- More uses a compact 3x3 portal grid for Town Hall, Builder Hall, Events, Capital Hall, Rankings, Hero Skins, About, Privacy and Apps.
-- Base archive cards now show Vote, View, Download and Bookmark.
-- Base detail places the same four controls directly below the base image.
-- Bookmark works instantly via local storage in showroom; production can bind the same UI to Firebase/backend identity later.
-- Mobile base detail keeps the SEO description visible instead of hiding the article copy.
-- Restores the exact CocBasePro legacy global background image and overlay treatment behind the Game portal.
-- Game structure profile bumped to v4; card/detail contracts bumped to v3.
-- Fast filters remain History API + DOM-only updates.
+- Rebuilds the Game template navigation from the original CocBasePro runtime model instead of one generic popup layer.
+- Adds the original-style fixed #mobile-nav: desktop left rail and mobile bottom navigation with Home / News / Find Source / Donate / Saved / More.
+- More now uses its own #mobile-more-sheet with desktop side-panel and mobile bottom-sheet behavior, menu-open state, close-then-open handoff, Escape close, and nav suppression while open.
+- News / Find Source / Saved / Rankings / Hero Skins / Events / About / Apps / Privacy use a dedicated #simple-popup instead of sharing the More sheet.
+- Donate uses a dedicated #cbp-support-popup community support dialog.
+- Background is now attached directly to body.theme-game-clash using the exact CocBasePro artwork source; the previous opaque portal sections no longer cover the image.
+- Main Game wrappers are transparent; readable content areas use controlled translucent panels instead of 94% opaque full-width backgrounds.
+- Existing fast filter, four metrics, bookmark, related posts, mobile description and community-free model remain unchanged.
+- Asset build bumped to 20.8.6.
