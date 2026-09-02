@@ -3263,7 +3263,7 @@ body.theme-news-magazine .nm-mosaic>.nm-tile img{width:100%!important;height:100
 
 
 /* ==========================================================
-   V20.7.7 — Smart Sidebar Follow Contract V2
+   V20.7.8 — Smart Sidebar Follow Contract V2
    Sticky lives on the grid host. Nested sticky children are made static so the
    parent provides the full article runway. A JS-computed negative top supports
    sidebars taller than the viewport.
@@ -3294,4 +3294,32 @@ body.theme-news-magazine .nm-mosaic>.nm-tile img{width:100%!important;height:100
 @supports(content-visibility:auto){
   body[class*="theme-news-"] main>section:nth-of-type(n+4),
   body[class*="theme-service-"] main>section:nth-of-type(n+4){content-visibility:auto;contain-intrinsic-size:700px}
+}
+
+
+/* ==========================================================
+   V20.7.8 — Sidebar Follow Contract V3
+   JS owns the vertical travel. This intentionally disables position:sticky on
+   the host so tall sidebars never freeze and never start underneath headers.
+   ========================================================== */
+@media(min-width:901px){
+  .nr-sidebar-follow-host{
+    position:relative!important;
+    top:auto!important;bottom:auto!important;
+    align-self:start!important;
+    height:max-content!important;
+    max-height:none!important;
+    overflow:visible!important;
+    transform:translate3d(0,var(--nr-sidebar-follow-y,0px),0)!important;
+    will-change:transform;
+  }
+  .nr-sidebar-follow-host>.nr-sidebar-follow-inner,
+  .nr-sidebar-follow-host>.news-sticky-sidebar{
+    position:static!important;top:auto!important;bottom:auto!important;
+    transform:none!important;max-height:none!important;overflow:visible!important;
+  }
+  .nr-sidebar-follow-host .n3-aside-title{position:relative;z-index:1}
+}
+@media(max-width:900px){
+  .nr-sidebar-follow-host{transform:none!important;will-change:auto!important}
 }

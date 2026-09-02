@@ -1,6 +1,5 @@
-NEWSREAL V20.7.7 — Smart Sidebar Follow + Fast Navigation Contract
-- Sidebar sticky host fixed for article/home layouts, including tall sidebars.
-- Showroom demo /api/site + template catalog session cache.
-- Demo site/catalog requests run in parallel and internal demo links prefetch on intent.
-- Below-fold content-visibility optimization.
-- No DB migration.
+NEWSREAL V20.7.8 — Sidebar Follow V3
+- Replaces fragile tall-sidebar CSS sticky with scroll-synchronised article-runway follow.
+- Sidebar title is never pre-shifted under the header.
+- Short sidebars pin below the actual sticky header stack; tall sidebars scroll naturally then hold their bottom.
+- No private sidebar scrollbar.

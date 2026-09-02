@@ -43,7 +43,7 @@ function nrDemoAdminUrl(templateKey='',tab=''){
 
 const pageTenant=new URLSearchParams(location.search).get('tenant')||'';function tenantApiUrl(path){return path+(pageTenant?(path.includes('?')?'&':'?')+'tenant='+encodeURIComponent(pageTenant):'')}
 
-// V20.7.7 — Fast demo navigation cache + predictive prefetch.
+// V20.7.8 — Fast demo navigation cache + predictive prefetch.
 // Showroom demo data is immutable during a browsing session, so it can be reused
 // across homepage/category/article navigations. Trial/client data is never cached here.
 const NR_FAST_NAV_VERSION='20.7.7';
@@ -71,11 +71,26 @@ function nrInstallPredictivePrefetch(){
   document.addEventListener('touchstart',e=>warm(e.target?.closest?.('a[href]')),{passive:true});
 }
 
-// V20.7.7 — Smart Sidebar Follow Contract V2.
-// Sticky is applied to the grid ASIDE host (not a nested child). For a sidebar
-// taller than the viewport we use a negative sticky top so it scrolls until its
-// bottom becomes visible, then follows the article instead of looking abandoned.
+// V20.7.8 — Sidebar Follow Contract V3.
+// Do not rely on CSS sticky for tall sidebars: a sticky element taller than the
+// usable viewport can either appear frozen or start with its heading hidden.
+// Instead the sidebar follows the article runway with a scroll-synchronised
+// transform. Short sidebars pin below the real sticky header stack. Tall
+// sidebars scroll naturally until their bottom reaches the viewport, then stay
+// with the article. No nested/private sidebar scrollbar is introduced.
+function nrStickyHeaderOffset(){
+  let bottom=0;
+  const sels=['.demo-showroom-header','.demo-customer-bar','.demo-preview-bar','.topbar','.header','.n3-nav','.np-header','.nmin-nav','.tel-nav'];
+  document.querySelectorAll(sels.join(',')).forEach(el=>{
+    const cs=getComputedStyle(el),r=el.getBoundingClientRect();
+    if((cs.position==='sticky'||cs.position==='fixed')&&r.bottom>0&&r.top<=3)bottom=Math.max(bottom,r.bottom);
+  });
+  return Math.max(16,Math.ceil(bottom+12));
+}
+function nrDocTop(el){let y=0,n=el;while(n){y+=Number(n.offsetTop||0);n=n.offsetParent}return y}
 function nrActivateSidebarFollow(root=document){
+  const old=[...document.querySelectorAll('.nr-sidebar-follow-host')];
+  old.forEach(h=>{h.style.removeProperty('--nr-sidebar-follow-y');h.classList.remove('nr-sidebar-follow-host','nr-sidebar-follow-short','nr-sidebar-follow-tall')});
   if(innerWidth<=900)return;
   const candidates=[...root.querySelectorAll('.news-sticky-sidebar,.news-home-sidebar,.news-article-sidebar,.np-home-sidebar,.n3-popular,.content-layout>.sidebar,.content-layout>.news-sidebar')];
   const hosts=[];
@@ -83,25 +98,54 @@ function nrActivateSidebarFollow(root=document){
     let host=node;
     const aside=node.closest?.('aside');
     if(aside&&aside.contains(node))host=aside;
+    if(!hosts.includes(host))hosts.push(host);
     host.classList.add('nr-sidebar-follow-host');
     if(node!==host)node.classList.add('nr-sidebar-follow-inner');
-    if(!hosts.includes(host))hosts.push(host);
   });
-  const measure=host=>{
-    if(innerWidth<=900){host.style.removeProperty('--nr-sidebar-sticky-top');return}
-    const header=92,gap=16,h=Math.ceil(host.getBoundingClientRect().height||0);
-    const top=h<=innerHeight-header-gap?header:Math.min(header,innerHeight-h-gap);
-    host.style.setProperty('--nr-sidebar-sticky-top',`${Math.floor(top)}px`);
+  if(!hosts.length)return;
+  window.__nrSidebarFollowHosts=hosts;
+  let raf=0;
+  const update=()=>{
+    raf=0;
+    if(innerWidth<=900){hosts.forEach(h=>h.style.removeProperty('--nr-sidebar-follow-y'));return}
+    const headerTop=nrStickyHeaderOffset(),bottomGap=16,sy=window.scrollY||document.documentElement.scrollTop||0;
+    hosts.forEach(host=>{
+      const container=host.parentElement;if(!container)return;
+      const h=Math.ceil(host.offsetHeight||host.getBoundingClientRect().height||0);
+      const naturalDocTop=nrDocTop(host),containerDocTop=nrDocTop(container);
+      const naturalViewportTop=naturalDocTop-sy;
+      const available=Math.max(180,innerHeight-headerTop-bottomGap);
+      let desiredViewportTop=naturalViewportTop;
+      if(h<=available){
+        host.classList.add('nr-sidebar-follow-short');host.classList.remove('nr-sidebar-follow-tall');
+        desiredViewportTop=Math.max(headerTop,naturalViewportTop);
+      }else{
+        host.classList.add('nr-sidebar-follow-tall');host.classList.remove('nr-sidebar-follow-short');
+        // Let the top/title leave the viewport naturally. Only once the whole
+        // sidebar has travelled enough for its bottom to be visible do we hold
+        // that bottom in view. This avoids the "missing sidebar title" bug.
+        const bottomStickTop=innerHeight-h-bottomGap;
+        desiredViewportTop=Math.max(bottomStickTop,naturalViewportTop);
+      }
+      let dy=Math.max(0,desiredViewportTop-naturalViewportTop);
+      const localTop=Math.max(0,naturalDocTop-containerDocTop);
+      const maxDy=Math.max(0,(container.offsetHeight||0)-localTop-h);
+      dy=Math.min(dy,maxDy);
+      host.style.setProperty('--nr-sidebar-follow-y',`${Math.round(dy)}px`);
+    });
   };
-  hosts.forEach(measure);
-  if(!window.__nrSidebarResizeInstalled){
-    window.__nrSidebarResizeInstalled=1;
-    let raf=0;addEventListener('resize',()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>document.querySelectorAll('.nr-sidebar-follow-host').forEach(measure))},{passive:true});
+  const schedule=()=>{if(!raf)raf=requestAnimationFrame(update)};
+  // Replace the previous listener contract with one shared passive listener.
+  if(!window.__nrSidebarFollowScrollInstalled){
+    window.__nrSidebarFollowScrollInstalled=1;
+    addEventListener('scroll',()=>{const hs=window.__nrSidebarFollowHosts||[];if(hs.length)schedule()},{passive:true});
+    addEventListener('resize',schedule,{passive:true});
   }
   if('ResizeObserver'in window){
-    window.__nrSidebarRO=window.__nrSidebarRO||new ResizeObserver(entries=>entries.forEach(e=>measure(e.target)));
-    hosts.forEach(h=>{try{window.__nrSidebarRO.observe(h)}catch(e){}});
+    window.__nrSidebarFollowRO=window.__nrSidebarFollowRO||new ResizeObserver(schedule);
+    hosts.forEach(h=>{try{window.__nrSidebarFollowRO.observe(h);if(h.parentElement)window.__nrSidebarFollowRO.observe(h.parentElement)}catch(e){}});
   }
+  requestAnimationFrame(update);
 }
 
 function seoSlug(s=''){
