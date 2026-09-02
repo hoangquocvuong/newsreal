@@ -1,3 +1,10 @@
-NEWSREAL V20.9.8 - CoC Article Mobile Dock + Strict Related Fix
+NEWSREAL V20.9.9 — CoC Mobile 2-Column Results, Pagination, Related Visibility
+
+- 12 filtered bases per page with URL-preserving pagination.
+- Mobile filtered results: 2 columns.
+- Related Bases visible on mobile: 2 columns, max 6, strict same Hall level.
+- Filter changes reset pagination to page 1.
+
+NEWSREAL V20.9.9 - CoC Article Mobile Dock + Strict Related Fix
 
 Mobile article action dock, duplicate CTA cleanup, strict same-level related bases, Saved menu icon cleanup, article width alignment.
