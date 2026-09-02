@@ -1,9 +1,21 @@
-NEWSREAL V20.9.10 — CoC Rich Sticky Article Sidebar
+NEWSREAL V20.9.11 - COC RUNTIME RECOVERY + DAILY HERO ROTATION
 
-- Fix desktop article sidebar being covered by sticky navigation while scrolling.
-- Sidebar now sticks below the CoC header with a safe offset.
-- Expand sidebar with Base Information and Quick Guide sections so the column is useful instead of ending after one CTA.
-- Keep the mobile article clean: desktop sidebar is hidden; mobile retains the fixed Copy Base + Donate dock from V20.9.8.
-- Preserve strict same-group + same-level related bases and V20.9.9 pagination.
-- Game structure profile version 14; article sidebar contract game-rich-sticky-sidebar-v1.
-- No database migration.
+FIXES
+- Restores nrGameRememberFilter(), removed accidentally during later refactors.
+- Restores nrGameScrollResults(), required by filtered routes, pagination, and #base-results deep links.
+- Removes stale nrGameSetFilterOpen() call from Escape handling and uses progressive-filter close logic.
+- Prevents /bases routes from falling into the emergency Game recovery screen.
+
+HERO SHOWCASE
+- Hero skin showcase is now a true calendar-day rotation.
+- Uses the browser's LOCAL calendar date, not UTC date.
+- Builds a stable pool from the newest available skin year for each hero.
+- Selects one deterministic skin per day, so consecutive days move to the next skin in the pool.
+- Stores only that day's cached skin and refreshes automatically on the next day.
+
+CONTRACT
+- game-1 structure profile version 15.
+- boot_contract: game-runtime-symbol-complete-v3
+- hero_contract: daily-hero-skin-rotation-v2
+
+NO NEW DATABASE MIGRATION.
