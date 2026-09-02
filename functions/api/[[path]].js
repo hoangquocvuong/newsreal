@@ -673,7 +673,8 @@ function defaultTemplateStructure(key){
   'dich-vu-1':{version:8,layout_contract:'universal-layout-v1',content_type:'service',geometry_locked:1,sidebars:[],sections:[sec('hero','section','Giải pháp FPT',{content_source:'none',bind_required:0}),sec('needs','section','Chọn theo nhu cầu',{content_source:'none',bind_required:0}),sec('internet','category','Internet FPT',{category:'Internet FPT',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('tv','category','Truyền hình FPT',{category:'Truyền hình FPT',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('camera','category','Camera FPT',{category:'Camera FPT',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('combo','category','Combo FPT',{category:'Combo FPT',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('advice','section','Cẩm nang dịch vụ',{content_source:'none',bind_required:0}),sec('contact','section','Đăng ký tư vấn',{content_source:'none',bind_required:0})]},
   'dich-vu-2':{version:8,layout_contract:'universal-layout-v1',content_type:'service',geometry_locked:1,sidebars:[],sections:[sec('hero','section','Giải pháp VNPT',{content_source:'none',bind_required:0}),sec('needs','section','Chọn theo nhu cầu',{content_source:'none',bind_required:0}),sec('internet','category','Internet VNPT',{category:'Internet VNPT',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1,slot_hosts:[{selector:'.vnpt-feature-pack',slots:1},{selector:'.vnpt-pack-list',slots:5}]}),sec('tv','category','Truyền hình MyTV',{category:'Truyền hình MyTV',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('camera','category','Camera VNPT',{category:'Camera VNPT',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('combo','category','Combo VNPT',{category:'Combo VNPT',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('advice','section','Cẩm nang dịch vụ',{content_source:'none',bind_required:0}),sec('contact','section','Đăng ký tư vấn',{content_source:'none',bind_required:0})]},
   'dich-vu-3':{version:8,layout_contract:'universal-layout-v1',content_type:'service',geometry_locked:1,sidebars:[],sections:[sec('hero','section','Giải pháp Viettel',{content_source:'none',bind_required:0}),sec('needs','section','Chọn theo nhu cầu',{content_source:'none',bind_required:0}),sec('combo','category','Combo Viettel',{category:'Combo Viettel',slots:6,desktop_columns:2,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('internet','category','Internet Viettel',{category:'Internet Viettel',slots:6,desktop_columns:2,tablet_columns:1,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('tv','category','Truyền hình TV360',{category:'Truyền hình TV360',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('camera','category','Camera Viettel',{category:'Camera Viettel',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('advice','section','Cẩm nang dịch vụ',{content_source:'none',bind_required:0}),sec('contact','section','Đăng ký tư vấn',{content_source:'none',bind_required:0})]},
-  'dich-vu-4':{version:9,layout_contract:'universal-layout-v1',content_type:'service',geometry_locked:1,route_contract:'service-commerce-v2',card_contract:'camera-product-card-v1',article_contract:'service-detail-v2',lead_contract:'service-lead-v1',sidebars:[],sections:[sec('hero','section','Camera & giải pháp an ninh',{content_source:'none',bind_required:0}),sec('brands','section','Thương hiệu nổi bật',{content_source:'none',bind_required:0}),sec('indoor','category','Camera Wi-Fi trong nhà',{category:'Camera Wi-Fi trong nhà',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('outdoor','category','Camera ngoài trời',{category:'Camera ngoài trời',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('ai','category','Camera AI quay quét',{category:'Camera AI quay quét',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('pro','category','Camera IP & bộ giám sát',{category:'Camera IP & bộ giám sát',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('advice','section','Cẩm nang camera',{content_source:'none',bind_required:0}),sec('contact','section','Nhận tư vấn & báo giá',{content_source:'none',bind_required:0})]}
+  'dich-vu-4':{version:9,layout_contract:'universal-layout-v1',content_type:'service',geometry_locked:1,route_contract:'service-commerce-v2',card_contract:'camera-product-card-v1',article_contract:'service-detail-v2',lead_contract:'service-lead-v1',sidebars:[],sections:[sec('hero','section','Camera & giải pháp an ninh',{content_source:'none',bind_required:0}),sec('brands','section','Thương hiệu nổi bật',{content_source:'none',bind_required:0}),sec('indoor','category','Camera Wi-Fi trong nhà',{category:'Camera Wi-Fi trong nhà',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('outdoor','category','Camera ngoài trời',{category:'Camera ngoài trời',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('ai','category','Camera AI quay quét',{category:'Camera AI quay quét',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('pro','category','Camera IP & bộ giám sát',{category:'Camera IP & bộ giám sát',slots:6,slot_contract:'exact',desktop_columns:3,tablet_columns:2,mobile_columns:1,fill_policy:'complete_rows',bind_required:1}),sec('advice','section','Cẩm nang camera',{content_source:'none',bind_required:0}),sec('contact','section','Nhận tư vấn & báo giá',{content_source:'none',bind_required:0})]},
+  'game-1':{version:1,layout_contract:'universal-layout-v1',content_type:'game',geometry_locked:1,route_contract:'game-base-v1',card_contract:'game-base-card-v1',article_contract:'game-base-detail-v1',sidebars:[],sections:[sec('hero','section','Clash of Clans Base Portal',{content_source:'none',bind_required:0}),sec('filters','section','Bộ lọc Base',{content_source:'none',bind_required:0}),sec('town-hall','category','Town Hall',{category:'Town Hall',slots:12,slot_contract:'exact',desktop_columns:4,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1}),sec('builder-hall','category','Builder Hall',{category:'Builder Hall',slots:8,slot_contract:'exact',desktop_columns:4,tablet_columns:2,mobile_columns:2,fill_policy:'complete_rows',bind_required:1}),sec('clan-capital','category','Clan Capital',{category:'Clan Capital',slots:8,slot_contract:'exact',desktop_columns:4,tablet_columns:2,mobile_columns:2,fill_policy:'complete_rows',bind_required:1}),sec('access','section','Free & Premium',{content_source:'none',bind_required:0})]}
  };
  return p[String(key||'')]||{version:5,content_type:'generic',geometry_locked:0,sidebars:[],sections:[]};
 }
@@ -826,6 +827,12 @@ async function ensureTemplateCatalog(env){
     sample_count INTEGER NOT NULL DEFAULT 12,
     layout_profile TEXT NOT NULL DEFAULT '',
     structure_profile TEXT NOT NULL DEFAULT '',
+    seo_title TEXT NOT NULL DEFAULT '',
+    seo_slug TEXT NOT NULL DEFAULT '',
+    primary_keyword TEXT NOT NULL DEFAULT '',
+    secondary_keywords TEXT NOT NULL DEFAULT '',
+    meta_description TEXT NOT NULL DEFAULT '',
+    internal_anchor TEXT NOT NULL DEFAULT '',
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`).run();
 
@@ -840,7 +847,13 @@ async function ensureTemplateCatalog(env){
     `ALTER TABLE template_catalog ADD COLUMN sample_enabled INTEGER NOT NULL DEFAULT 0`,
     `ALTER TABLE template_catalog ADD COLUMN sample_count INTEGER NOT NULL DEFAULT 12`,
     `ALTER TABLE template_catalog ADD COLUMN layout_profile TEXT NOT NULL DEFAULT ''`,
-    `ALTER TABLE template_catalog ADD COLUMN structure_profile TEXT NOT NULL DEFAULT ''`
+    `ALTER TABLE template_catalog ADD COLUMN structure_profile TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE template_catalog ADD COLUMN seo_title TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE template_catalog ADD COLUMN seo_slug TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE template_catalog ADD COLUMN primary_keyword TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE template_catalog ADD COLUMN secondary_keywords TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE template_catalog ADD COLUMN meta_description TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE template_catalog ADD COLUMN internal_anchor TEXT NOT NULL DEFAULT ''`
   ];
   for(const q of alters){try{await env.DB.prepare(q).run()}catch(e){}}
 
@@ -856,6 +869,7 @@ async function ensureTemplateCatalog(env){
     {key:'dich-vu-2',name:'VNPT',category:'dich-vu',preset:'service_vnpt_2',price:1499000,renewal:1999000,sort:2,image:'/assets/demo/dich-vu-2-preview.png',demo:'/demo/dich-vu/mau-2/',badge:'VNPT',description:'Website VNPT Home với Home Internet, MyTV, Home Cam và combo gia đình.',features:'Home Internet\nMyTV\nHome Cam\nCombo gia đình',accent:'blue'},
     {key:'dich-vu-3',name:'Viettel',category:'dich-vu',preset:'service_viettel_3',price:1499000,renewal:1999000,sort:3,image:'/assets/demo/dich-vu-3-preview.png',demo:'/demo/dich-vu/mau-3/',badge:'VIETTEL',description:'Website Viettel với Internet Wi-Fi 6, TV360, Camera và combo trọn gói.',features:'Internet Viettel\nTV360\nCamera Cloud\nCombo trọn gói',accent:'red'},
     {key:'dich-vu-4',name:'Camera Store',category:'dich-vu',preset:'service_camera_store_4',price:1499000,renewal:1999000,sort:4,image:'/assets/demo/dich-vu-4-preview.png',demo:'/demo/dich-vu/mau-4/',badge:'CAMERA',description:'Website trưng bày camera đa thương hiệu với sản phẩm, thông số, giá, khuyến mãi và tư vấn.',features:'Camera trong nhà\nCamera ngoài trời\nCamera AI quay quét\nCamera IP / bộ giám sát',accent:'green'},
+    {key:'game-1',name:'Template website Clash of Clans · Base Portal',category:'game',preset:'game_clash_1',price:1699000,renewal:2199000,sort:1,image:'/assets/demo/game-clash-1-preview.svg',demo:'/demo/game/clash-of-clans/',badge:'CLASH OF CLANS',description:'Mẫu website game chuyên đăng và bán base Clash of Clans với TH/BH/CH, Free/Premium, bộ lọc và trang chi tiết base.',features:'Town Hall TH2–TH18\nBuilder Hall BH2–BH10\nClan Capital CH1–CH10\nFree / Premium + Copy Link',accent:'orange'},
     {key:'tin-tuc-1',name:'Tin tức Mẫu 1 · Tạp chí hiện đại',category:'tin-tuc',preset:'news_portal_1',price:1499000,renewal:1999000,sort:1,image:'/assets/demo/tin-tuc-1-preview-v2.png',demo:'/demo/tin-tuc/mau-1/',badge:'MỚI',description:'Giao diện tin tức hiện đại, tập trung bài nổi bật, dòng tin mới, chuyên mục và nội dung đọc nhiều.',features:'Trang chủ kiểu tạp chí\nTin nổi bật + đọc nhiều\nChuyên mục tự động theo bài viết\nTối ưu nội dung & mobile',accent:'red'},
     {key:'tin-tuc-2',name:'Tin tức Mẫu 2 · Báo điện tử',category:'tin-tuc',preset:'news_paper_2',price:1399000,renewal:1899000,sort:2,image:'/assets/demo/tin-tuc-2-preview.png',demo:'/demo/tin-tuc/mau-2/',badge:'BÁO ĐIỆN TỬ',description:'Bố cục tin dày, headline lớn, danh sách cập nhật liên tục và khu đọc nhiều kiểu báo điện tử.',features:'Headline + tin cạnh bên\nDanh sách tin dày\nĐọc nhiều + chuyên mục\nTối ưu website tin tổng hợp',accent:'red'},
     {key:'tin-tuc-3',name:'Tin tức Mẫu 3 · Magazine hiện đại',category:'tin-tuc',preset:'news_magazine_3',price:1599000,renewal:1999000,sort:3,image:'/assets/demo/tin-tuc-3-preview.png',demo:'/demo/tin-tuc/mau-3/',badge:'MAGAZINE',description:'Giao diện tạp chí hình ảnh nổi bật, hero mosaic, card hiện đại và nhiều khối biên tập.',features:'Hero mosaic nhiều ảnh\nEditor Pick + Trending\nCard tạp chí hiện đại\nPhù hợp lifestyle/công nghệ',accent:'orange'},
@@ -973,8 +987,24 @@ async function ensureTemplateCatalog(env){
     try{await env.DB.prepare(`UPDATE template_catalog SET editor_profile=?,structure_profile=? WHERE template_key=?`).bind(JSON.stringify(ep),JSON.stringify(sp),key).run()}catch(e){}
   }
 
+  // V20.8.0 — Game / Clash of Clans content contract.
+  try{
+    const gameEditor={id:'game-base',label:'Clash of Clans Base',content_type:'game',categories:['Town Hall','Builder Hall','Clan Capital'],contentLabel:'Nội dung / chiến thuật base',contentHelp:'Mô tả cách base hoạt động, mục tiêu phòng thủ, meta phù hợp và hướng dẫn copy.',custom_fields:[
+      {key:'game_group',label:'Nhóm Base',type:'select',options:['Town Hall','Builder Hall','Clan Capital']},
+      {key:'game_level',label:'Level',type:'text',placeholder:'TH18 / BH10 / CH10'},
+      {key:'game_purpose',label:'Purpose',type:'select',options:['War','Farming','Hybrid','Trophy','Legend','CWL','Troll']},
+      {key:'game_style',label:'Style',type:'select',options:['Diamond','Ring','Box','Compact','Spread']},
+      {key:'game_defense',label:'Defense',type:'select',options:['Anti 3 Star','Anti 2 Star','Anti Everything']},
+      {key:'access_tier',label:'Quyền truy cập',type:'select',options:['Free','Premium']},
+      {key:'copy_link',label:'Copy Link',type:'url',placeholder:'https://link.clashofclans.com/...'},
+      {key:'premium_link',label:'Premium Link',type:'url',placeholder:'Link thanh toán/quyền truy cập'},
+      {key:'game_year',label:'Năm',type:'text',placeholder:'2026'}
+    ]};
+    await env.DB.prepare(`UPDATE template_catalog SET editor_profile=?,structure_profile=? WHERE template_key='game-1'`).bind(JSON.stringify(gameEditor),JSON.stringify(defaultTemplateStructure('game-1'))).run();
+  }catch(e){}
+
   // V15.2: backfill đúng khung riêng cho 9 template hiện tại.
-  for(const k of ['mau-1','mau-2','mau-3','mau-4','mau-5','tin-tuc-1','tin-tuc-2','tin-tuc-3','tin-tuc-4','dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4']){try{const row=await env.DB.prepare(`SELECT structure_profile FROM template_catalog WHERE template_key=?`).bind(k).first();let cur={};try{cur=JSON.parse(String(row?.structure_profile||'{}'))}catch(e){}const def=defaultTemplateStructure(k);const requiredVersion=Math.max(1,Number(def?.version||1));if(!row?.structure_profile||Number(cur?.version||0)<requiredVersion||!Array.isArray(cur?.sections)||!cur.sections.some(x=>Number(x?.slots||0)>0)){await env.DB.prepare(`UPDATE template_catalog SET structure_profile=? WHERE template_key=?`).bind(JSON.stringify(def),k).run()}}catch(e){}}
+  for(const k of ['mau-1','mau-2','mau-3','mau-4','mau-5','tin-tuc-1','tin-tuc-2','tin-tuc-3','tin-tuc-4','dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4','game-1']){try{const row=await env.DB.prepare(`SELECT structure_profile FROM template_catalog WHERE template_key=?`).bind(k).first();let cur={};try{cur=JSON.parse(String(row?.structure_profile||'{}'))}catch(e){}const def=defaultTemplateStructure(k);const requiredVersion=Math.max(1,Number(def?.version||1));if(!row?.structure_profile||Number(cur?.version||0)<requiredVersion||!Array.isArray(cur?.sections)||!cur.sections.some(x=>Number(x?.slots||0)>0)){await env.DB.prepare(`UPDATE template_catalog SET structure_profile=? WHERE template_key=?`).bind(JSON.stringify(def),k).run()}}catch(e){}}
 
 
 }
@@ -1287,6 +1317,25 @@ async function buildTemplatePreviewBlueprint(env,templateKey,site={}){
       demo_url:newsDemoBase?`${newsDemoBase}/${slugifyDemo(x[1])}.html`:'',
       is_sample:1,sample_key:`${key||'news'}:${x[0]}`,__nr_blueprint:1
     }));
+  }else if(contentType==='game'){
+    const groups=[['Town Hall','town-hall',12],['Builder Hall','builder-hall',8],['Clan Capital','clan-capital',8]];
+    const imgs={
+      TH18:'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj3uXRRSSucOwlCPaoJSv4XPqTAR-s4SHVTJWpurkKLFH3cXyvohLv33sXpzq58mRiTZ7PR9aI-lJvSJKoCJcVpJimUrunFPbHAXoKxyIh8EzcdgrzJR7fipf6CUToq7ibCmUoiht-v74iHihZLCeoO7VTTYLDXODjTL1DmcSm2EaTb3yrm0BJi1nOP2rG7/s600/th18_coc.webp',
+      TH17:'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhJtm5GbeDyNy9urRtDBa9NcRpHmNhKqvqCHF46317xeKn6pp3YfycZH2g6vmaQnzzKiFG7D0D8ZgozccrJZ3DXeyc8pw_I9-bFzpDKxRjY64MkQSwTOeikJCvb0bDf1W0ewXUmoOC5YzSgySe0xC-7ReJ6PRSEOkliaBHx8NrXJHjWow-VbSTTsgEtlsU9/s400/th17_coc.jpg',
+      TH16:'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhCdTCaRil9IY_W-rNX711VaHAhJNjjOtAXgOVP1encGhR8xMFphnPCGqG38HdjI9NckADJBNLdIIeyusee62Tws19DdZGJZZLDU5aypHG_iICQrGmRM7CdxxzsUojv2Xw7Pd1nFw1Qkh1mXbHEYcezZv9eEIHQGM2gMYNYACvM8GAcnm_xccqJ64FJ0I3U/s400/th16_min.jpg',
+      BH10:'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhebxJQQZOV6GRSR_hHw82twIMi35fdd6cpa8UPSNhQrjzLHY6do0xh258qQd08fT9-Xl6bmIdwDqDLfzMqS4L0D_o28_bs2G1YWfipFxUtPuXOXCldYenAPk91lV1cHD1MOwITfBradygsmJg8N6FJs1Gv6baKlu2hTkKJQBgZeBp52XrA1kGZMqTZ0aBn/s400/bh10_min.jpg',
+      CH10:'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj1JvIJLGPBJbMokfsAMHLojAaUuRSTqccAC4mSWjBatPVAwFh9y3vcHhiiReED2d4S9XpfjjuwtvFv4dO2G1aEgIaI4xm3qSxEkb7uNzoyoQziorJr2w2-SzOHx14ECOLgZnMIPlVRjI0FNYxMU7ELxrKTWnZwlUH6ughJvTDv3nWbDQbSvkbY93cK9LU/s400/capitall-hall-10.webp'
+    };
+    const purposes=['War','Farming','Hybrid','Trophy','Legend','CWL','Troll'],styles=['Compact','Ring','Box','Diamond','Spread'],defs=['Anti 3 Star','Anti 2 Star','Anti Everything'];
+    posts=[];let id=930000;
+    for(const [group,secKey,fallback] of groups){
+      const sec=(sp.sections||[]).find(x=>x.key===secKey);const need=Math.max(1,Number(sec?.slots||fallback))*2;
+      for(let i=0;i<need;i++){
+        const level=group==='Town Hall'?['TH18','TH17','TH16'][i%3]:group==='Builder Hall'?'BH10':'CH10';
+        const purpose=purposes[i%purposes.length],style=styles[i%styles.length],defense=defs[i%defs.length],access=i%2===0?'Premium':'Free';
+        {const title=`${level} ${purpose} Base Layout ${String(i+1).padStart(2,'0')}`,slug=title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');posts.push({id:id++,type:'game',title,category:group,image:imgs[level]||imgs.TH18,content:`<p>${level} ${purpose} base mẫu dành cho showroom. Nội dung chiến thuật, copy link và quyền truy cập có thể chỉnh trong Admin.</p><h2>Base overview</h2><p>Layout được trình bày với level, purpose, style và defense rõ ràng để người xem quyết định nhanh trước khi copy hoặc mở quyền Premium.</p>`,status:'published',featured:i===0?1:0,verified:1,views:850+i*113,rating:4.6+(i%4)*.1,downloads:160+i*17,demo_url:`/demo/game/clash-of-clans/base/${slug}.html`,extra_json:JSON.stringify({game_group:group,game_level:level,game_purpose:purpose,game_style:style,game_defense:defense,access_tier:access,copy_link:'#',premium_link:'#',game_year:'2026'}),is_sample:1,sample_key:`game-1:${group}:${i+1}`,__nr_blueprint:1});}
+      }
+    }
   }else if(contentType==='property'){
     const propertyContent='<p>Bài mẫu dùng làm khung bố cục xem trước.</p>';
     const sections=Array.isArray(sp?.sections)?sp.sections:[];

@@ -35,16 +35,21 @@ const required=[
   ['homepage sidebar balance helper','nrSidebarBalancedTarget'],
   ['homepage sidebar reserve helper','nrNewsHomeLatestRenderCount'],
   ['backend sidebar balance contract','homepage_sidebar_balance'],
-  ['backend sidebar-balanced slots',"slot_contract:'sidebar-balanced'"]
+  ['backend sidebar-balanced slots',"slot_contract:'sidebar-balanced'"],
+  ['Game Clash preset',"'game-1':'game_clash_1'"],
+  ['Game Clash renderer','renderGameClash1'],
+  ['Game Town Hall exact slots',"nrGameSectionSlots(site,key,n)"],
+  ['Game structure profile',"'game-1':{version:1,layout_contract:'universal-layout-v1'"],
+  ['Marketplace SEO fields','primary_keyword'],
 ];
 let failed=0;
 for(const [name,needle] of required){
-  const haystack=name.startsWith('index ')?index:name.startsWith('function embedded')?fn:name.includes('CSS')?css:name.startsWith('backend')?api:site;
+  const haystack=name.startsWith('index ')?index:name.startsWith('function embedded')?fn:name.includes('Marketplace')?fn:name.includes('structure profile')?api:name.includes('CSS')?css:name.startsWith('backend')?api:site;
   const ok=haystack.includes(needle)||(name.includes('VNPT')&&(api.includes(needle)||site.includes(needle)));
   console.log(`${ok?'OK':'FAIL'}  ${name}`);
   if(!ok)failed++;
 }
-for(const key of ['dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4']){
+for(const key of ['dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4','game-1']){
   const ok=api.includes(`'${key}'`);
   console.log(`${ok?'OK':'FAIL'}  profile ${key}`);
   if(!ok)failed++;

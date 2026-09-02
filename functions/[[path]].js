@@ -49,7 +49,7 @@ function htmlNoCache(body,status=200){
 }
 
 function themedHtml(html,preset){
- const cls=preset==='newsreal'?'theme-estate-default':preset==='estate_green'?'theme-estate-green':preset==='estate_luxe_3'?'theme-estate-luxe':preset==='estate_minimal_4'?'theme-estate-minimal':preset==='estate_urban_5'?'theme-estate-urban':preset==='news_portal_1'?'theme-news-portal':preset==='service_fpt_1'?'theme-service-fpt':preset==='service_vnpt_2'?'theme-service-vnpt':preset==='service_viettel_3'?'theme-service-viettel':preset==='service_camera_store_4'?'theme-service-camera-store':'';
+ const cls=preset==='newsreal'?'theme-estate-default':preset==='estate_green'?'theme-estate-green':preset==='estate_luxe_3'?'theme-estate-luxe':preset==='estate_minimal_4'?'theme-estate-minimal':preset==='estate_urban_5'?'theme-estate-urban':preset==='news_portal_1'?'theme-news-portal':preset==='service_fpt_1'?'theme-service-fpt':preset==='service_vnpt_2'?'theme-service-vnpt':preset==='service_viettel_3'?'theme-service-viettel':preset==='service_camera_store_4'?'theme-service-camera-store':preset==='game_clash_1'?'theme-game-clash':'';
  return cls?html.replace('<body>',`<body class="${cls}">`):html;
 }
 
@@ -70,12 +70,15 @@ function demoThemeFromPath(path){
  if(news)return 'tin-tuc-'+news[1];
  const service=path.match(/^\/demo\/dich-vu\/mau-([1-9]\d*)(?:\/|$)/i);
  if(service)return 'dich-vu-'+service[1];
+ const game=path.match(/^\/demo\/game\/clash-of-clans(?:\/|$)/i);
+ if(game)return 'game-1';
  return '';
 }
 function demoPrefixForPath(path,demo){
  if(!demo||demo==='marketplace'||demo==='legacy-center')return '';
  if(/^tin-tuc-[1-4]$/.test(demo))return '/demo/tin-tuc/mau-'+demo.split('-').pop();
  if(/^dich-vu-\d+$/.test(demo))return '/demo/dich-vu/mau-'+demo.split('-').pop();
+ if(demo==='game-1')return '/demo/game/clash-of-clans';
  if(/^mau-[1-5]$/.test(demo))return '/demo/bat-dong-san/'+demo;
  return '';
 }
@@ -88,12 +91,12 @@ function stripDemoPath(path,demo){
 }
 function demoInject(html,demo,trialCtx=null){
  if(!demo||demo==='center')return html;
- html=html.replace(/\/assets\/style\.css\?v=[^\"'&<]+/g,'/assets/style.css?v=20.7.9').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.7.9');
- const preset=demo==='mau-1'?'newsreal':demo==='mau-2'?'estate_green':demo==='mau-3'?'estate_luxe_3':demo==='mau-4'?'estate_minimal_4':demo==='mau-5'?'estate_urban_5':demo==='tin-tuc-1'?'news_portal_1':demo==='tin-tuc-2'?'news_paper_2':demo==='tin-tuc-3'?'news_magazine_3':demo==='tin-tuc-4'?'news_minimal_4':demo==='dich-vu-1'?'service_fpt_1':demo==='dich-vu-2'?'service_vnpt_2':demo==='dich-vu-3'?'service_viettel_3':demo==='dich-vu-4'?'service_camera_store_4':'';
+ html=html.replace(/\/assets\/style\.css\?v=[^\"'&<]+/g,'/assets/style.css?v=20.8.0').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.8.0');
+ const preset=demo==='mau-1'?'newsreal':demo==='mau-2'?'estate_green':demo==='mau-3'?'estate_luxe_3':demo==='mau-4'?'estate_minimal_4':demo==='mau-5'?'estate_urban_5':demo==='tin-tuc-1'?'news_portal_1':demo==='tin-tuc-2'?'news_paper_2':demo==='tin-tuc-3'?'news_magazine_3':demo==='tin-tuc-4'?'news_minimal_4':demo==='dich-vu-1'?'service_fpt_1':demo==='dich-vu-2'?'service_vnpt_2':demo==='dich-vu-3'?'service_viettel_3':demo==='dich-vu-4'?'service_camera_store_4':demo==='game-1'?'game_clash_1':'';
  let out=themedHtml(html,preset);
  const currentPath=typeof rawPath!=='undefined'?rawPath:'';
  const prefix=demoPrefixForPath(currentPath,demo);
- const boot=`<meta name="robots" content="noindex,follow"><meta name="newsreal-demo-build" content="20.7.6"><script>window.NR_DEMO_THEME=${JSON.stringify(demo)};window.NR_DEMO_PREFIX=${JSON.stringify(prefix)};window.NR_TRIAL_TOKEN=${JSON.stringify(trialCtx?.trial_token||'')};window.NR_TRIAL_TENANT=${JSON.stringify(trialCtx?.domain||'')};window.NR_DEMO_TENANT=window.NR_TRIAL_TENANT||'batdongsan2027.org.uk';
+ const boot=`<meta name="robots" content="noindex,follow"><meta name="newsreal-demo-build" content="20.8.0"><script>window.NR_DEMO_THEME=${JSON.stringify(demo)};window.NR_DEMO_PREFIX=${JSON.stringify(prefix)};window.NR_TRIAL_TOKEN=${JSON.stringify(trialCtx?.trial_token||'')};window.NR_TRIAL_TENANT=${JSON.stringify(trialCtx?.domain||'')};window.NR_DEMO_TENANT=window.NR_TRIAL_TENANT||'batdongsan2027.org.uk';
 window.nrTrialUrl=function(raw){
  if(!window.NR_TRIAL_TOKEN||!raw||typeof raw!=='string'||raw==='#'||/^mailto:|^tel:|^javascript:/i.test(raw))return raw;
  try{const x=new URL(raw,location.origin);if(x.origin!==location.origin)return raw;if(x.pathname.startsWith('/api/')||x.pathname.startsWith('/assets/')||x.pathname.startsWith('/admin')||x.pathname.startsWith('/control-center'))return raw;x.searchParams.set('nr_trial',window.NR_TRIAL_TOKEN);return x.pathname+x.search+x.hash}catch(e){return raw}
@@ -113,7 +116,7 @@ window.NR_ESTATE_CORE={
 window.NR_DEMO_TITLE_LABELS={
  'mau-1':'BĐS Mẫu 1','mau-2':'BĐS Mẫu 2','mau-3':'BĐS Mẫu 3','mau-4':'BĐS Mẫu 4','mau-5':'BĐS Mẫu 5',
  'tin-tuc-1':'Tin tức Mẫu 1','tin-tuc-2':'Tin tức Mẫu 2','tin-tuc-3':'Tin tức Mẫu 3','tin-tuc-4':'Tin tức Mẫu 4',
- 'dich-vu-1':'FPT','dich-vu-2':'VNPT','dich-vu-3':'Viettel','dich-vu-4':'Camera Store'
+ 'dich-vu-1':'FPT','dich-vu-2':'VNPT','dich-vu-3':'Viettel','dich-vu-4':'Camera Store','game-1':'Clash of Clans · Base Portal'
 };
 window.nrApplyDemoTitle=function(){
  const key=String(window.NR_DEMO_THEME||''),base=window.NR_DEMO_TITLE_LABELS[key];
@@ -326,10 +329,11 @@ document.addEventListener('DOMContentLoaded',()=>{
 </script>`;
  const newsNum=/^tin-tuc-([1-4])$/.exec(demo)?.[1]||'';
  const serviceNum=/^dich-vu-(\d+)$/.exec(demo)?.[1]||'';
+ const isGameDemo=demo==='game-1';
  const newsNames={'1':'Tin tức Mẫu 1 · Tạp chí hiện đại','2':'Tin tức Mẫu 2 · Báo điện tử','3':'Tin tức Mẫu 3 · Magazine hiện đại','4':'Tin tức Mẫu 4 · Minimal SEO'};
  const estateNames={'mau-1':'Mẫu 1 · Tin tức & BĐS','mau-2':'Mẫu 2 · BĐS hiện đại','mau-3':'Mẫu 3 · BĐS Luxury','mau-4':'Mẫu 4 · BĐS Minimal','mau-5':'Mẫu 5 · BĐS Urban'};
  const serviceNames={'1':'FPT','2':'VNPT','3':'Viettel','4':'Camera Store'};
- const demoLabel=newsNum?newsNames[newsNum]:(serviceNum?(serviceNames[serviceNum]||`Dịch vụ Mẫu ${serviceNum}`):(estateNames[demo]||'Mẫu bất động sản'));
+ const demoLabel=isGameDemo?'Template website Clash of Clans · Base Portal':(newsNum?newsNames[newsNum]:(serviceNum?(serviceNames[serviceNum]||`Dịch vụ Mẫu ${serviceNum}`):(estateNames[demo]||'Mẫu bất động sản')));
  const isNewsDemo=!!newsNum;
  const isServiceDemo=!!serviceNum;
  // V16.9 — Demo browser title must follow the selected template, never the
@@ -337,10 +341,10 @@ document.addEventListener('DOMContentLoaded',()=>{
  const relativeDemoPath=prefix&&currentPath.startsWith(prefix)?(currentPath.slice(prefix.length)||'/'):currentPath;
  const isDemoArticle=/\.html$/i.test(relativeDemoPath)||/\-p\d+\/?$/i.test(relativeDemoPath);
  if(!isDemoArticle){
-   const tabTitle=isNewsDemo?`Tin tức Mẫu ${newsNum} · Demo | HoangVuongTech`:isServiceDemo?`Dịch vụ Mẫu ${serviceNum} · Demo | HoangVuongTech`:`BĐS ${demo==='mau-1'?'Mẫu 1':demo==='mau-2'?'Mẫu 2':demo==='mau-3'?'Mẫu 3':demo==='mau-4'?'Mẫu 4':'Mẫu 5'} · Demo | HoangVuongTech`;
+   const tabTitle=isGameDemo?'Template website Clash of Clans · Demo | HoangVuongTech':isNewsDemo?`Tin tức Mẫu ${newsNum} · Demo | HoangVuongTech`:isServiceDemo?`Dịch vụ Mẫu ${serviceNum} · Demo | HoangVuongTech`:`BĐS ${demo==='mau-1'?'Mẫu 1':demo==='mau-2'?'Mẫu 2':demo==='mau-3'?'Mẫu 3':demo==='mau-4'?'Mẫu 4':'Mẫu 5'} · Demo | HoangVuongTech`;
    out=out.replace(/<title>[\s\S]*?<\/title>/i,`<title>${tabTitle}</title>`);
  }
- const bar=`<div class="nr-demo-bar"><div class="nr-demo-inner"><b>ĐANG XEM ${isNewsDemo?'TIN TỨC · MẪU '+newsNum:isServiceDemo?'DỊCH VỤ · MẪU '+serviceNum:'BẤT ĐỘNG SẢN · '+(demo==='mau-1'?'MẪU 1':demo==='mau-2'?'MẪU 2':demo==='mau-3'?'MẪU 3':demo==='mau-4'?'MẪU 4':'MẪU 5')}</b><span>Chọn giao diện phù hợp với bạn</span><div class="nr-demo-actions"><div class="nr-demo-devices" aria-label="Xem trên thiết bị"><button type="button" class="active" data-demo-device="desktop" title="Xem trên PC">▰ <span>PC</span></button><button type="button" data-demo-device="tablet" title="Xem trên máy tính bảng">▯ <span>Tablet</span></button><button type="button" data-demo-device="mobile" title="Xem trên điện thoại">▯ <span>Mobile</span></button></div><a href="${isNewsDemo?'/templates/tin-tuc/':isServiceDemo?'/templates/dich-vu/':'/templates/bat-dong-san/'}">Kho mẫu</a><a class="nr-demo-cta" data-demo-external="1" href="https://hoangvuongtech.com/?template=${encodeURIComponent(demo)}&name=${encodeURIComponent(demoLabel)}#dang-ky" target="_blank" rel="noopener">Chọn mẫu này</a></div></div></div>`;
+ const bar=`<div class="nr-demo-bar"><div class="nr-demo-inner"><b>ĐANG XEM ${isGameDemo?'GAME · CLASH OF CLANS':isNewsDemo?'TIN TỨC · MẪU '+newsNum:isServiceDemo?'DỊCH VỤ · MẪU '+serviceNum:'BẤT ĐỘNG SẢN · '+(demo==='mau-1'?'MẪU 1':demo==='mau-2'?'MẪU 2':demo==='mau-3'?'MẪU 3':demo==='mau-4'?'MẪU 4':'MẪU 5')}</b><span>Chọn giao diện phù hợp với bạn</span><div class="nr-demo-actions"><div class="nr-demo-devices" aria-label="Xem trên thiết bị"><button type="button" class="active" data-demo-device="desktop" title="Xem trên PC">▰ <span>PC</span></button><button type="button" data-demo-device="tablet" title="Xem trên máy tính bảng">▯ <span>Tablet</span></button><button type="button" data-demo-device="mobile" title="Xem trên điện thoại">▯ <span>Mobile</span></button></div><a href="${isGameDemo?'/templates/game/':isNewsDemo?'/templates/tin-tuc/':isServiceDemo?'/templates/dich-vu/':'/templates/bat-dong-san/'}">Kho mẫu</a><a class="nr-demo-cta" data-demo-external="1" href="https://hoangvuongtech.com/?template=${encodeURIComponent(demo)}&name=${encodeURIComponent(demoLabel)}#dang-ky" target="_blank" rel="noopener">Chọn mẫu này</a></div></div></div>`;
  return out.replace('</head>',boot+'</head>').replace(/<body([^>]*)>/i,`<body$1>${bar}`);
 }
 
@@ -350,6 +354,7 @@ const TEMPLATE_CATALOG_DEFAULTS=[
  {template_key:'dich-vu-2',name:'VNPT',category:'dich-vu',preset:'service_vnpt_2',price:1499000,renewal_price:1999000,is_active:1,sort_order:2,image_url:'/assets/demo/dich-vu-2-preview.png',demo_url:'/demo/dich-vu/mau-2/',badge:'VNPT',description:'Website VNPT Home với Home Internet, MyTV, Home Cam và combo gia đình.',features:'Home Internet\nMyTV\nHome Cam\nCombo gia đình',accent:'blue'},
  {template_key:'dich-vu-3',name:'Viettel',category:'dich-vu',preset:'service_viettel_3',price:1499000,renewal_price:1999000,is_active:1,sort_order:3,image_url:'/assets/demo/dich-vu-3-preview.png',demo_url:'/demo/dich-vu/mau-3/',badge:'VIETTEL',description:'Website Viettel với Internet Wi-Fi 6, TV360, Camera và combo trọn gói.',features:'Internet Viettel\nTV360\nCamera Cloud\nCombo trọn gói',accent:'red'},
  {template_key:'dich-vu-4',name:'Camera Store',category:'dich-vu',preset:'service_camera_store_4',price:1499000,renewal_price:1999000,is_active:1,sort_order:4,image_url:'/assets/demo/dich-vu-4-preview.png',demo_url:'/demo/dich-vu/mau-4/',badge:'CAMERA',description:'Website trưng bày và tư vấn camera đa thương hiệu với sản phẩm, giá, thông số, khuyến mãi và form lead.',features:'Camera trong nhà\nCamera ngoài trời\nCamera AI quay quét\nCamera IP / bộ giám sát',accent:'green'},
+ {template_key:'game-1',name:'Template website Clash of Clans · Base Portal',category:'game',preset:'game_clash_1',price:1699000,renewal_price:2199000,is_active:1,sort_order:1,image_url:'/assets/demo/game-clash-1-preview.svg',demo_url:'/demo/game/clash-of-clans/',badge:'CLASH OF CLANS',description:'Mẫu website game chuyên đăng và bán base Clash of Clans với TH/BH/CH, Free/Premium, bộ lọc và trang chi tiết base.',features:'Town Hall TH2–TH18\nBuilder Hall BH2–BH10\nClan Capital CH1–CH10\nFree / Premium + Copy Link',accent:'orange',seo_title:'Template website Clash of Clans – Bán base TH/BH/CH',seo_slug:'clash-of-clans-base',primary_keyword:'template website Clash of Clans',secondary_keywords:'mẫu website game, website bán base Clash of Clans, template game Clash of Clans',meta_description:'Template website Clash of Clans chuyên đăng và bán base Town Hall, Builder Hall, Clan Capital, hỗ trợ Free/Premium, bộ lọc và trang chi tiết base.',internal_anchor:'template website Clash of Clans'},
  {template_key:'tin-tuc-1',name:'Tin tức Mẫu 1 · Tạp chí hiện đại',category:'tin-tuc',preset:'news_portal_1',price:1499000,renewal_price:1999000,is_active:1,sort_order:1,image_url:'/assets/demo/tin-tuc-1-preview-v2.png',demo_url:'/demo/tin-tuc/mau-1/',badge:'MỚI',description:'Giao diện tin tức hiện đại, tập trung bài nổi bật, dòng tin mới, chuyên mục và nội dung đọc nhiều.',features:'Trang chủ kiểu tạp chí\nTin nổi bật + đọc nhiều\nChuyên mục tự động theo bài viết\nTối ưu nội dung & mobile',accent:'red'},
  {template_key:'mau-2',name:'Mẫu 2 · BĐS hiện đại',category:'bat-dong-san',preset:'estate_green',price:1799000,renewal_price:2299000,is_active:1,sort_order:2,image_url:'/assets/demo/mau-2-preview.png',demo_url:'/demo/bat-dong-san/mau-2/',badge:'ĐỀ XUẤT',description:'Phong cách portal bất động sản hiện đại, hero tìm kiếm lớn và tập trung mạnh vào chuyển đổi khách hàng.',features:'Bộ lọc tìm kiếm nổi bật\nCard bất động sản hiện đại\nTối ưu trải nghiệm mobile',accent:'green'}
 ];
@@ -361,7 +366,7 @@ async function ensureMarketCatalog(env){
     preset TEXT NOT NULL DEFAULT '',price INTEGER NOT NULL DEFAULT 0,renewal_price INTEGER NOT NULL DEFAULT 0,
     is_active INTEGER NOT NULL DEFAULT 1,sort_order INTEGER NOT NULL DEFAULT 0,image_url TEXT NOT NULL DEFAULT '',
     demo_url TEXT NOT NULL DEFAULT '',badge TEXT NOT NULL DEFAULT '',description TEXT NOT NULL DEFAULT '',
-    features TEXT NOT NULL DEFAULT '',accent TEXT NOT NULL DEFAULT 'blue',updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    features TEXT NOT NULL DEFAULT '',accent TEXT NOT NULL DEFAULT 'blue',seo_title TEXT NOT NULL DEFAULT '',seo_slug TEXT NOT NULL DEFAULT '',primary_keyword TEXT NOT NULL DEFAULT '',secondary_keywords TEXT NOT NULL DEFAULT '',meta_description TEXT NOT NULL DEFAULT '',internal_anchor TEXT NOT NULL DEFAULT '',updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`).run();
   const alters=[
    `ALTER TABLE template_catalog ADD COLUMN image_url TEXT NOT NULL DEFAULT ''`,
@@ -369,7 +374,13 @@ async function ensureMarketCatalog(env){
    `ALTER TABLE template_catalog ADD COLUMN badge TEXT NOT NULL DEFAULT ''`,
    `ALTER TABLE template_catalog ADD COLUMN description TEXT NOT NULL DEFAULT ''`,
    `ALTER TABLE template_catalog ADD COLUMN features TEXT NOT NULL DEFAULT ''`,
-   `ALTER TABLE template_catalog ADD COLUMN accent TEXT NOT NULL DEFAULT 'blue'`
+   `ALTER TABLE template_catalog ADD COLUMN accent TEXT NOT NULL DEFAULT 'blue'`,
+   `ALTER TABLE template_catalog ADD COLUMN seo_title TEXT NOT NULL DEFAULT ''`,
+   `ALTER TABLE template_catalog ADD COLUMN seo_slug TEXT NOT NULL DEFAULT ''`,
+   `ALTER TABLE template_catalog ADD COLUMN primary_keyword TEXT NOT NULL DEFAULT ''`,
+   `ALTER TABLE template_catalog ADD COLUMN secondary_keywords TEXT NOT NULL DEFAULT ''`,
+   `ALTER TABLE template_catalog ADD COLUMN meta_description TEXT NOT NULL DEFAULT ''`,
+   `ALTER TABLE template_catalog ADD COLUMN internal_anchor TEXT NOT NULL DEFAULT ''`
   ];
   for(const q of alters){try{await env.DB.prepare(q).run()}catch(e){}}
   for(const d of TEMPLATE_CATALOG_DEFAULTS){
@@ -384,6 +395,7 @@ async function ensureMarketCatalog(env){
     accent=CASE WHEN coalesce(accent,'')='' THEN ? ELSE accent END
     WHERE template_key=?`).bind(d.image_url,d.demo_url,d.badge,d.description,d.features,d.accent,d.template_key).run();
   }
+  try{await env.DB.prepare(`UPDATE template_catalog SET seo_title='Template website Clash of Clans – Bán base TH/BH/CH',seo_slug='clash-of-clans-base',primary_keyword='template website Clash of Clans',secondary_keywords='mẫu website game, website bán base Clash of Clans, template game Clash of Clans',meta_description='Template website Clash of Clans chuyên đăng và bán base Town Hall, Builder Hall, Clan Capital, hỗ trợ Free/Premium, bộ lọc và trang chi tiết base.',internal_anchor='template website Clash of Clans' WHERE template_key='game-1'`).run()}catch(e){}
   const serviceRefresh=[['dich-vu-1','FPT','/assets/demo/dich-vu-1-preview.png'],['dich-vu-2','VNPT','/assets/demo/dich-vu-2-preview.png'],['dich-vu-3','Viettel','/assets/demo/dich-vu-3-preview.png'],['dich-vu-4','Camera Store','/assets/demo/dich-vu-4-preview.png']];
   for(const [k,n,img] of serviceRefresh){try{await env.DB.prepare(`UPDATE template_catalog SET name=?,image_url=?,updated_at=CURRENT_TIMESTAMP WHERE template_key=?`).bind(n,img,k).run()}catch(e){}}
  }catch(e){}
@@ -396,26 +408,33 @@ async function loadTemplateCatalog(env,category=''){
   await ensureMarketCatalog(env);
   if(!category){
    const {results}=await env.DB.prepare(`SELECT template_key,name,category,preset,price,renewal_price,is_active,sort_order,
-    image_url,demo_url,badge,description,features,accent FROM template_catalog
+    image_url,demo_url,badge,description,features,accent,seo_title,seo_slug,primary_keyword,secondary_keywords,meta_description,internal_anchor FROM template_catalog
     WHERE is_active=1 ORDER BY category,sort_order,template_key`).all();
    return results||[];
   }
   const {results}=await env.DB.prepare(`SELECT template_key,name,category,preset,price,renewal_price,is_active,sort_order,
-   image_url,demo_url,badge,description,features,accent FROM template_catalog
+   image_url,demo_url,badge,description,features,accent,seo_title,seo_slug,primary_keyword,secondary_keywords,meta_description,internal_anchor FROM template_catalog
    WHERE category=? AND is_active=1 ORDER BY sort_order,template_key`).bind(category).all();
   return results||[];
  }catch(e){return category?TEMPLATE_CATALOG_DEFAULTS.filter(x=>x.category===category):TEMPLATE_CATALOG_DEFAULTS.filter(x=>x.is_active!==0)}
 }
 const CATEGORY_NAMES={
- 'bat-dong-san':'Bất động sản','tin-tuc':'Tin tức','ban-hang':'Bán hàng','landing-page':'Landing Page','dich-vu':'Dịch vụ'
+ 'bat-dong-san':'Bất động sản','tin-tuc':'Tin tức','ban-hang':'Bán hàng','landing-page':'Landing Page','dich-vu':'Dịch vụ','game':'Game'
 };
 function marketCategoryFromPath(path){
  const m=String(path||'').match(/^\/templates\/([^/]+)/);
  return m?m[1]:'';
 }
+function templateSeoDetailHtml(t){
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const key=String(t?.template_key||''),slug=String(t?.seo_slug||'').trim(),url=`https://hoangvuongtech.com/templates/${esc(t?.category||'game')}/${esc(slug)}/`,demo=t?.demo_url||'',title=t?.seo_title||t?.name||'Template website',desc=t?.meta_description||t?.description||'',keywords=[t?.primary_keyword,...String(t?.secondary_keywords||'').split(',')].map(x=>String(x||'').trim()).filter(Boolean);
+ const features=String(t?.features||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
+ return `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} | HoangVuongTech</title><meta name="description" content="${esc(desc)}"><meta name="keywords" content="${esc(keywords.join(', '))}"><link rel="canonical" href="${url}"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="product"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="https://hoangvuongtech.com${esc(t?.image_url||'/assets/demo/game-clash-1-preview.svg')}"><link rel="stylesheet" href="/assets/style.css?v=20.8.0"><script type="application/ld+json">${JSON.stringify({'@context':'https://schema.org','@type':'Product','name':title,'description':desc,'category':'Website Template','brand':{'@type':'Brand','name':'HoangVuongTech'},'url':url,'offers':{'@type':'Offer','priceCurrency':'VND','price':String(Number(t?.price||0)),'availability':'https://schema.org/InStock'}})}</script></head><body class="template-seo-detail"><header class="demo-showroom-header"><div class="demo-showroom-nav"><a class="demo-brand" href="/templates/"><b>HOANGVUONGTECH · TEMPLATES</b></a><div><a href="/templates/${esc(t?.category||'game')}/">Kho ${esc(CATEGORY_NAMES[t?.category]||'template')}</a><a class="demo-contact-btn" href="/#dang-ky">Tư vấn</a></div></div></header><main class="template-detail-wrap"><nav class="template-detail-crumb"><a href="/templates/">Kho giao diện</a> / <a href="/templates/${esc(t?.category||'game')}/">${esc(CATEGORY_NAMES[t?.category]||'Game')}</a> / ${esc(t?.name||title)}</nav><section class="template-detail-hero"><div><span>${esc(t?.badge||'TEMPLATE')}</span><h1>${esc(title)}</h1><p>${esc(desc)}</p><div class="market-keywords">${keywords.slice(0,4).map(x=>`<span>${esc(x)}</span>`).join('')}</div><div class="template-detail-actions">${demo?`<a class="primary" href="${esc(demo)}" target="_blank" rel="noopener">Xem demo trực tiếp</a>`:''}<a href="/?template=${encodeURIComponent(key)}&name=${encodeURIComponent(t?.name||key)}#dang-ky">Đăng ký mẫu này</a></div></div><img src="${esc(t?.image_url||'/assets/demo/game-clash-1-preview.svg')}" alt="${esc(title)}"></section><section class="template-detail-grid"><article><h2>Giao diện được thiết kế cho đúng nhu cầu</h2><p>Template này tuân thủ Universal Layout Contract của HoangVuongTech: showroom có dữ liệu mẫu đầy đủ, còn trial/client giữ nguyên cấu trúc 1:1 và chỉ thay đổi payload nội dung.</p><div class="template-detail-features">${features.map(x=>`<span>✓ ${esc(x)}</span>`).join('')}</div><h2>SEO & cấu trúc nội dung</h2><p>Từ khóa chính: <b>${esc(t?.primary_keyword||'')}</b>. Cấu trúc category, archive, bài chi tiết và internal link được đồng bộ với Trang quản trị để hỗ trợ SEO dài hạn.</p></article><aside><small>GÓI WEBSITE TRỌN GÓI</small><strong>${moneyVN(Number(t?.price||0))}</strong><span>Năm đầu · tên miền + hosting + giao diện + quản trị</span><hr><small>DUY TRÌ TỪ NĂM 2</small><b>${moneyVN(Number(t?.renewal_price||0))} / 12 tháng</b></aside></section></main></body></html>`;
+}
 function demoCenterHtml(siteName,templates=[],category=''){
  const isRoot=!category;
  const catName=isRoot?'Tất cả giao diện':(CATEGORY_NAMES[category]||category);
+ const categorySeo=category==='game'?{title:'Template website game – Clash of Clans & Game Portal',desc:'Kho template website game chuyên nghiệp. Xem mẫu website Clash of Clans, website bán base TH/BH/CH, Free/Premium và giao diện game tối ưu SEO.'}:category==='dich-vu'?{title:'Template website dịch vụ – Internet, Camera, Viễn thông',desc:'Kho template website dịch vụ chuyên nghiệp cho FPT, VNPT, Viettel, camera và các mô hình tư vấn dịch vụ.'}:null;
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const cards=templates.map((t,idx)=>{
    const key=String(t.template_key||'');
@@ -432,7 +451,7 @@ function demoCenterHtml(siteName,templates=[],category=''){
      ${demo?`<div class="demo-pro-hover"><a href="${esc(demo)}" target="_blank" rel="noopener">Xem demo trực tiếp</a></div>`:''}
     </div>
     <div class="demo-pro-body commercial-card">
-     <div class="demo-pro-title-row"><h2>${esc(t.name)}</h2><span>Website trọn gói</span></div>
+     <div class="demo-pro-title-row"><h2>${t.seo_slug?`<a class="market-title-link" href="/templates/${esc(t.category)}/${esc(t.seo_slug)}/">${esc(t.seo_title||t.name)}</a>`:esc(t.seo_title||t.name)}</h2><span>Website trọn gói</span></div>${t.description?`<p class="market-seo-desc">${esc(t.description)}</p>`:''}${t.primary_keyword?`<div class="market-keywords"><span>${esc(t.primary_keyword)}</span>${String(t.secondary_keywords||'').split(',').slice(0,2).map(x=>`<span>${esc(x.trim())}</span>`).join('')}</div>`:''}
 
      <div class="commercial-pricing">
        <div class="commercial-price-main">
@@ -472,13 +491,13 @@ function demoCenterHtml(siteName,templates=[],category=''){
   ?`<a class="active" href="/templates/${k}/">${n} <b>${counts[k]||templates.length}</b></a>`
   :`<a href="/templates/${k}/">${n}${isRoot&&counts[k]?` <b>${counts[k]}</b>`:''}</a>`).join('');
  return `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
- <title>${isRoot?'Kho giao diện website':esc(catName)+' - Kho giao diện website'} | HoangVuongTech</title>
- <meta name="description" content="${isRoot?'Kho giao diện website HoangVuongTech: chọn nhóm giao diện rồi xem demo, giá năm đầu và chi phí gia hạn.':'Kho giao diện website '+esc(catName)+' trọn gói. Xem demo, giá năm đầu, chi phí gia hạn và chọn mẫu trực tiếp.'}">
+ <title>${categorySeo?esc(categorySeo.title):(isRoot?'Kho giao diện website':esc(catName)+' - Kho giao diện website')} | HoangVuongTech</title>
+ <meta name="description" content="${categorySeo?esc(categorySeo.desc):(isRoot?'Kho giao diện website HoangVuongTech: chọn nhóm giao diện rồi xem demo, giá năm đầu và chi phí gia hạn.':'Kho giao diện website '+esc(catName)+' trọn gói. Xem demo, giá năm đầu, chi phí gia hạn và chọn mẫu trực tiếp.')}">
  <link rel="canonical" href="https://hoangvuongtech.com/templates/${isRoot?'':esc(category)+'/'}">
  <meta property="og:title" content="${isRoot?'Kho giao diện website':esc(catName)+' - Kho giao diện'} | HoangVuongTech">
  <meta property="og:description" content="Xem demo và chi phí trọn gói của từng mẫu website.">
  <meta property="og:url" content="https://hoangvuongtech.com/templates/${isRoot?'':esc(category)+'/'}">
- <link rel="stylesheet" href="/assets/style.css?v=20.7.9">  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+ <link rel="stylesheet" href="/assets/style.css?v=20.8.0">  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="theme-color" content="#ffffff">
 </head>
@@ -613,7 +632,9 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
     ['https://hoangvuongtech.com/templates/','0.9'],
     ['https://hoangvuongtech.com/templates/bat-dong-san/','0.85'],
     ['https://hoangvuongtech.com/templates/tin-tuc/','0.85'],
-    ['https://hoangvuongtech.com/templates/dich-vu/','0.85']
+    ['https://hoangvuongtech.com/templates/dich-vu/','0.85'],
+    ['https://hoangvuongtech.com/templates/game/','0.85'],
+    ['https://hoangvuongtech.com/templates/game/clash-of-clans-base/','0.90']
    ];
    const xml=`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(([loc,p])=>`<url><loc>${loc}</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>${p}</priority></url>`).join('')}</urlset>`;
@@ -639,6 +660,7 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
    return Response.redirect('https://hoangvuongtech.com/templates/',302);
  }
  if(marketHost && demo==='marketplace'){
+   if(/^\/templates\/game\/clash-of-clans-base\/?$/i.test(rawPath)){const all=await loadTemplateCatalog(env,'game');const t=all.find(x=>x.template_key==='game-1');if(t)return htmlNoCache(templateSeoDetailHtml(t));}
    // V20.0.1: render both /templates and /templates/ directly. Do NOT redirect
    // between slash/no-slash because Cloudflare Pages may normalize the other
    // direction and create ERR_TOO_MANY_REDIRECTS.
@@ -673,7 +695,7 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
 
  let site,trialCtx=null;
  const trialToken=String(u.searchParams.get('nr_trial')||'');
- if(marketHost&&trialToken&&(/^mau-[1-5]$/.test(demo)||/^tin-tuc-[1-4]$/.test(demo)||/^dich-vu-\d+$/.test(demo))){
+ if(marketHost&&trialToken&&(/^mau-[1-5]$/.test(demo)||/^tin-tuc-[1-4]$/.test(demo)||/^dich-vu-\d+$/.test(demo)||demo==='game-1')){
    try{trialCtx=await env.DB.prepare(`SELECT wt.*,s.domain,s.name,s.preset,s.template_key FROM website_trials wt JOIN sites s ON s.id=wt.site_id WHERE wt.trial_token=? LIMIT 1`).bind(trialToken).first()}catch(e){}
    if(trialCtx&&trialCtx.status!=='pending_activation'){
      const expired=Date.parse(String(trialCtx.expires_at).replace(' ','T')+'Z')<=Date.now()||trialCtx.status==='expired';
@@ -681,7 +703,7 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
      site=await env.DB.prepare(`SELECT * FROM sites WHERE id=? AND status='active'`).bind(trialCtx.site_id).first();
    }
  }
- if(!site && marketHost && (/^mau-[1-5]$/.test(demo)||/^tin-tuc-[1-4]$/.test(demo)||/^dich-vu-\d+$/.test(demo))){
+ if(!site && marketHost && (/^mau-[1-5]$/.test(demo)||/^tin-tuc-[1-4]$/.test(demo)||/^dich-vu-\d+$/.test(demo)||demo==='game-1')){
    // Every marketplace demo uses the same isolated demo tenant unless nr_trial selects a real trial tenant.
    const demoReq=new Request('https://batdongsan2027.org.uk'+path+u.search,request);
    site=await siteFor(env,demoReq);
@@ -702,6 +724,16 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
    }));
    html=html.replace('</head>','<meta name="robots" content="noindex,follow"></head>');
    return htmlNoCache(demoInject(html,demo,trialCtx));
+ }
+ if((demo==='game-1'||site.preset==='game_clash_1') && (path==='/free-bases'||path==='/premium-bases'||/^\/base\/[^/]+\.html$/i.test(path))){
+   const article=/^\/base\/[^/]+\.html$/i.test(path);
+   const slug=article?path.split('/').pop().replace(/\.html$/i,''):'';
+   const nice=slug?slug.split('-').filter(Boolean).map(x=>x.charAt(0).toUpperCase()+x.slice(1)).join(' '):'';
+   const title=article?`${nice} | Clash of Clans Base`:path==='/premium-bases'?'Premium Clash of Clans Bases | Game Base Portal':'Free Clash of Clans Bases | Game Base Portal';
+   const desc=article?`Chi tiết ${nice}: level, purpose, style, defense và copy/premium link.`:`${path==='/premium-bases'?'Premium':'Free'} Clash of Clans bases cho Town Hall, Builder Hall và Clan Capital.`;
+   let html=inject(INDEX_HTML,metaTags({title,description:desc,image:'/assets/demo/game-clash-1-preview.svg',url:demo?origin+rawPath:origin+path,type:article?'article':'website'}));
+   if(demo)html=html.replace('</head>','<meta name="robots" content="noindex,follow"></head>');
+   return htmlNoCache(demo?demoInject(html,demo,trialCtx):themedHtml(html,site.preset));
  }
  if(path==='/'){
    const hero=await env.DB.prepare(`SELECT * FROM posts WHERE site_id=? AND status='published' AND image<>'' ORDER BY featured DESC,id DESC LIMIT 1`).bind(site.id).first();

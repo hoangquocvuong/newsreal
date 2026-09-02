@@ -1,1 +1,9 @@
-NEWSREAL V20.7.9 — Homepage Sidebar Balance Contract V1
+NEWSREAL V20.8.0 — GAME PORTAL & MARKETPLACE SEO CONTRACT
+- Adds Game / Clash of Clans Base Portal template.
+- Home + Free/Premium + base detail routes.
+- Exact structure slots for Town Hall / Builder Hall / Clan Capital.
+- Game-specific Admin content profile (level/purpose/style/defense/access/copy links).
+- Complete virtual showroom sample package with images and Free/Premium records.
+- Adds Marketplace SEO fields and keyword-aware template cards/category landing pages.
+- Adds indexable Clash of Clans template SEO detail landing page.
+- Migration: 0037_game_portal_marketplace_seo.sql
