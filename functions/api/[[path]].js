@@ -73,9 +73,13 @@ function nrGameStatsPublic(row){
 }
 
 async function siteFor(env,req){
-  await ensureSitePublicSettings(env);
   const h=host(req).replace(/^www\./,'').toLowerCase();
-  const baseSql=`SELECT s.*,
+  // V20.9.2: public site boot must never depend on optional personalization schema.
+  // Try the enriched query first; if a newly deployed DB has not run migration 0040 yet,
+  // immediately fall back to the core sites/customer query so demo/client pages still boot.
+  let settingsReady=true;
+  try{await ensureSitePublicSettings(env)}catch(e){settingsReady=false;console.log('site public settings ensure:',e?.message||e)}
+  const richSql=`SELECT s.*,
     coalesce(ps.contact_email,'') contact_email,
     coalesce(ps.settings_json,'{}') template_settings_json,
     coalesce(cp.phone,'') customer_phone,
@@ -84,14 +88,28 @@ async function siteFor(env,req){
     FROM sites s
     LEFT JOIN site_public_settings ps ON ps.site_id=s.id
     LEFT JOIN customer_profiles cp ON cp.site_id=s.id`;
-  let s=await env.DB.prepare(baseSql+` WHERE lower(s.domain)=? AND s.status='active'`).bind(h).first();
-  if(!s&&(h==='localhost'||h.endsWith('.pages.dev')))s=await env.DB.prepare(baseSql+` WHERE s.status='active' ORDER BY s.id LIMIT 1`).first();
+  const coreSql=`SELECT s.*,
+    '' contact_email,
+    '{}' template_settings_json,
+    coalesce(cp.phone,'') customer_phone,
+    coalesce(cp.email,'') customer_email,
+    coalesce((SELECT email FROM users u WHERE u.site_id=s.id AND u.role='admin' ORDER BY u.id LIMIT 1),'') admin_email
+    FROM sites s
+    LEFT JOIN customer_profiles cp ON cp.site_id=s.id`;
+  const query=async(base)=>{
+    let row=await env.DB.prepare(base+` WHERE lower(s.domain)=? AND s.status='active'`).bind(h).first();
+    if(!row&&(h==='localhost'||h.endsWith('.pages.dev')))row=await env.DB.prepare(base+` WHERE s.status='active' ORDER BY s.id LIMIT 1`).first();
+    return row;
+  };
+  let s=null;
+  if(settingsReady){try{s=await query(richSql)}catch(e){console.log('site rich query fallback:',e?.message||e)}}
+  if(!s)s=await query(coreSql);
   if(s){
-    // Sites created before V9.3.5 also get useful defaults automatically.
     s.phone=String(s.phone||s.customer_phone||'');
     s.zalo=String(s.zalo||s.customer_phone||'');
     s.email=String(s.contact_email||s.email||s.customer_email||s.admin_email||'');
     s.contact_email=s.email;
+    if(!s.template_settings_json)s.template_settings_json='{}';
   }
   return s
 }
@@ -3215,7 +3233,7 @@ if(route==='image'&&request.method==='GET'){
  return new Response(obj.body,{headers:h});
 }
 const site=await siteFor(env,request);if(!site)return json({error:'Website chưa được kích hoạt'},404);
-// V20.9.1 — Cloudflare-first CoC stats. Public, batched and non-blocking.
+// V20.9.2 — Cloudflare-first CoC stats. Public, batched and non-blocking.
 if(route==='game/stats'&&request.method==='GET'){
   await ensureGameStatsTables(env);
   const slugs=String(u.searchParams.get('slugs')||'').split(',').map(nrSlug).filter(Boolean).slice(0,60);

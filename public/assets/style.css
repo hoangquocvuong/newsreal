@@ -3567,5 +3567,63 @@ html.coc-saved-open,html.coc-saved-open body{overflow:hidden}
  .theme-game-clash .coc-result-grid .coc-card{grid-template-columns:124px 1fr}
 }
 
-/* V20.9.1 — CoC real stats + personalized info pages */
+/* V20.9.2 — CoC real stats + personalized info pages */
 .coc-vote-btn{appearance:none;border:0;background:transparent;color:inherit;font:inherit;font-weight:800;padding:0;cursor:pointer}.coc-vote-popover{position:fixed;z-index:10050;left:50%;bottom:24px;transform:translateX(-50%);background:#0b1d31;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:14px 16px;box-shadow:0 18px 60px rgba(0,0,0,.35);text-align:center}.coc-vote-popover>b{display:block;margin-bottom:9px}.coc-vote-popover div{display:flex;gap:7px}.coc-vote-popover button{border:0;border-radius:10px;padding:9px 10px;background:#fff;color:#0b1d31;font-weight:900;cursor:pointer}.coc-info-page{padding-top:36px;padding-bottom:70px;min-height:65vh}.coc-info-page article{max-width:850px;margin:22px auto;background:rgba(255,255,255,.94);border-radius:20px;padding:clamp(22px,5vw,46px);box-shadow:0 18px 50px rgba(0,0,0,.14)}.coc-info-page article small{color:#f5a400;font-weight:900;letter-spacing:.08em}.coc-info-page article h1{font-size:clamp(30px,6vw,52px);margin:8px 0 20px}.coc-info-content{font-size:17px;line-height:1.85;color:#26374a}.template-settings-panel{margin-top:18px;padding-top:14px;border-top:1px solid #e5e7eb}.template-settings-panel.hidden{display:none}.template-settings-head{margin-bottom:12px}.template-settings-panel textarea{width:100%;resize:vertical;min-height:110px}
+
+
+/* V20.9.2 — CoC combo-filter + donate consistency recovery */
+.theme-game-clash .coc-donate-top,
+.theme-game-clash .coc-donate-float,
+.theme-game-clash .coc-footer a[href*="buymeacoffee"],
+.theme-game-clash .coc-mobile-menu a[href*="buymeacoffee"]{
+  background:#2563eb!important;
+  color:#fff!important;
+  border-color:#2563eb!important;
+  box-shadow:none!important;
+  transform:none!important;
+}
+.theme-game-clash .coc-donate-top:hover,
+.theme-game-clash .coc-donate-float:hover,
+.theme-game-clash .coc-footer a[href*="buymeacoffee"]:hover,
+.theme-game-clash .coc-mobile-menu a[href*="buymeacoffee"]:hover{
+  background:#2563eb!important;
+  color:#fff!important;
+  transform:none!important;
+  box-shadow:none!important;
+}
+.theme-game-clash .coc-donate-float{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:0!important;
+}
+.theme-game-clash .coc-donate-float>span{
+  display:block!important;
+  width:1em!important;
+  height:1em!important;
+  line-height:1!important;
+  text-align:center!important;
+  margin:0!important;
+  transform:none!important;
+}
+.theme-game-clash .coc-filter-panel{overflow:visible}
+.theme-game-clash .coc-filter-row{align-items:start}
+.theme-game-clash .coc-filter-row b{padding-top:9px}
+.theme-game-clash .coc-filter-row a.active{outline:2px solid rgba(37,99,235,.15);outline-offset:1px}
+@media(min-width:821px){
+  .theme-game-clash .coc-filter-panel{display:grid;grid-template-columns:1fr;gap:0;padding:16px 18px!important}
+  .theme-game-clash .coc-filter-scroll{display:grid;grid-template-columns:1fr;gap:0}
+  .theme-game-clash .coc-filter-row{display:grid!important;grid-template-columns:110px repeat(auto-fit,minmax(90px,max-content));gap:8px!important;align-items:center;padding:10px 0!important}
+  .theme-game-clash .coc-filter-row b{width:auto!important;padding:0!important;align-self:center}
+  .theme-game-clash .coc-filter-row a{min-width:88px;white-space:nowrap}
+}
+@media(max-width:820px){
+  .theme-game-clash .coc-filter-panel{top:68px!important;left:8px!important;right:8px!important;max-height:78dvh!important}
+  .theme-game-clash .coc-filter-scroll{padding:4px 10px 8px!important}
+  .theme-game-clash .coc-filter-row{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  .theme-game-clash .coc-filter-row b{grid-column:1/-1!important;padding:2px 0 0!important}
+  .theme-game-clash .coc-filter-row a{width:100%!important;min-height:42px!important;white-space:normal!important;line-height:1.2!important}
+  .theme-game-clash .coc-filter-mobile-actions{position:sticky;bottom:0;z-index:2}
+  .theme-game-clash .coc-donate-float{width:44px!important;height:44px!important;right:12px!important;bottom:14px!important}
+  .theme-game-clash .coc-donate-float>span{font-size:20px!important}
+}

@@ -1,9 +1,9 @@
-NEWSREAL V20.9.1 — CoC Production Stats + Dynamic Template Settings
+NEWSREAL V20.9.2 — CoC Filter Combo + Boot Recovery
 
-- Cloudflare/D1 production stats engine: batched View, Vote, Download.
-- No direct Firebase dependency in the new CoC web frontend.
-- Saved remains local-first.
-- Admin Client now has template-driven personalization fields.
-- Game settings: Donate URL, About page, Terms page, Footer text.
-- Future templates can define their own settings_schema and Admin renders it automatically.
-- Migration: 0040_game_stats_template_settings.sql
+Fixes:
+- Recovery from V20.9.1 public site boot failure caused by optional settings schema dependency.
+- Multi-criteria CoC filters work as a cumulative combination (e.g. TH12 + Farming + 2026 + Vote).
+- Mobile filter drawer stays open while choosing criteria and applies/scrolls only when the user taps the result button.
+- Desktop filter is reorganized for clearer combined criteria.
+- All Donate controls use one blue color, no hover styling, and the floating coffee icon is centered.
+- Preserves V20.9.1 Cloudflare/D1 stats and dynamic template settings.
