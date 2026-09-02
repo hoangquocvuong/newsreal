@@ -1,8 +1,11 @@
-NEWSREAL V20.9.6 — COC ROUTE + FILTER RUNTIME FIX
+NEWSREAL V20.9.7 — COC SMART PROGRESSIVE FILTER V4
 
-- Fixes Game About/Terms demo routes so they always serve the Game shell, never the BĐS static fallback.
-- Restores missing nrGameFilterTypes() runtime helper that crashed /bases filter rendering in V20.9.5.
-- Keeps multi-criteria filters: Hall + Level + Purpose/District + Year + Sort.
-- Keeps mobile drawer, Saved toast, Donate consistency, D1 stats and dynamic template settings.
-- Demo/static asset build bumped to 20.9.6.
-- Game contract bumped to version 10 / game-route-runtime-complete-v2.
+- Replaced long row/drawer filters with one five-stage progressive filter shared by PC and mobile.
+- Group -> Level dependency is automatic; Level can be the stopping point for fast users.
+- Type/District, Year and Sort are optional refinements with subtle next-step guidance.
+- Dynamic group-specific Level and Type/District options.
+- Results update immediately without full page reload.
+- Added recent filters (last 3), compact active-filter feedback, and zero-result recovery actions.
+- Fixed desktop level wrapping by removing the long Level chip row entirely.
+- Game structure profile version 11; filter_contract smart-progressive-filter-v4.
+- No database migration.
