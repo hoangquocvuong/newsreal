@@ -1517,6 +1517,18 @@ function renderTheme2Home(site,props){
 
 // V15.2: V15.1 post-blueprint stripping removed. Empty state is rendered from structure_profile.
 
+// V20.7.5 — Universal Template Boot / No-Flash Contract.
+// The static index is only a transport shell. It must remain invisible until the
+// selected template + route + structure have finished rendering.
+function nrTemplateBootReady(){
+  const root=document.documentElement;
+  try{if(window.__NR_BOOT_TIMEOUT__)clearTimeout(window.__NR_BOOT_TIMEOUT__)}catch(e){}
+  root.classList.remove('nr-template-booting','nr-template-boot-timeout');
+  root.classList.add('nr-template-ready');
+  root.dataset.nrTemplateReady='1';
+  try{window.dispatchEvent(new CustomEvent('nr:template-ready'))}catch(e){}
+}
+
 function fillSearch(props){
   const ps=[...new Set(props.map(x=>x.province).filter(Boolean))];
   searchProvince.innerHTML='<option value="">Tỉnh / Thành phố</option>'+ps.map(x=>`<option>${esc(x)}</option>`).join('');
@@ -1638,6 +1650,9 @@ searchBtn.onclick=()=>{const p=new URLSearchParams();if(searchQ.value)p.set('q',
      const main=document.querySelector('main');
      if(main)main.innerHTML='<section class="n3-section"><div class="wrap"><div class="empty">Không tải được dữ liệu demo tin tức.</div></div></section>';
    }else if(typeof heroSlides!=='undefined'&&heroSlides)heroSlides.innerHTML='<div class="empty">Không tải được dữ liệu trang chủ.</div>';
+ }finally{
+   // Two animation frames ensure the real template DOM/classes are committed before paint.
+   requestAnimationFrame(()=>requestAnimationFrame(nrTemplateBootReady));
  }
 })();
 

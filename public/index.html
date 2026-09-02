@@ -1,8 +1,18 @@
 <!doctype html>
-<html lang="vi">
+<html lang="vi" class="nr-template-booting">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- V20.7.5 Universal Template Boot Contract: never paint the default BĐS shell before the selected template is resolved. -->
+<style id="nrTemplateBootStyle">
+html.nr-template-booting{background:#fff}
+html.nr-template-booting body{visibility:hidden!important}
+html.nr-template-booting::before{content:"";position:fixed;inset:0;background:#fff;z-index:2147483646}
+html.nr-template-booting::after{content:"";position:fixed;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border:3px solid #e2e8f0;border-top-color:#1463ff;border-radius:50%;animation:nrTemplateBootSpin .75s linear infinite;z-index:2147483647}
+html.nr-template-booting.nr-template-boot-timeout::after{content:"Không tải được giao diện. Vui lòng tải lại trang.";width:min(420px,calc(100vw - 40px));height:auto;margin:0;transform:translate(-50%,-50%);border:0;border-radius:12px;animation:none;text-align:center;color:#334155;font:700 15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+@keyframes nrTemplateBootSpin{to{transform:rotate(360deg)}}
+</style>
+<script>window.__NR_BOOT_TIMEOUT__=setTimeout(function(){var r=document.documentElement;if(r.classList.contains('nr-template-booting'))r.classList.add('nr-template-boot-timeout')},12000);</script>
 <title>NewsReal</title>
 <meta name="description" content="Cổng thông tin bất động sản và tin tức thị trường">
 <link rel="stylesheet" href="/assets/style.css?v=20.1.0">
@@ -161,6 +171,6 @@
   <div><h4>Thông tin & hỗ trợ</h4><p class="footer-note">Cần tư vấn đăng tin hoặc tìm bất động sản phù hợp? Liên hệ trực tiếp để được hỗ trợ.</p><a href="/admin">Quản trị website</a><a href="https://www.facebook.com/groups/batdongsanhaiphong2021" target="_blank" rel="noopener">Cộng đồng Facebook ↗</a></div>
 </div><div class="footer-bottom"><div class="wrap"><span>© 2026 <b data-footer-brand>NEWSREAL</b>. Nội dung thuộc website.</span><span>Powered by NEWSREAL · HOÀNG VƯƠNG TECH</span></div></div></footer>
 
-<script src="/assets/site.js?v=20.4.2"></script>
+<script src="/assets/site.js?v=20.7.5"></script>
 </body>
 </html>
