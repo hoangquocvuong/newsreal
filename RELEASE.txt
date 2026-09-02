@@ -1,4 +1,4 @@
-NEWSREAL V20.8.7 — CoC Original Menu Runtime & Visible Background Fix
+NEWSREAL V20.8.6 — CoC Original Menu Runtime & Visible Background Fix
 
 - Rebuilds the Game template navigation from the original CocBasePro runtime model instead of one generic popup layer.
 - Adds the original-style fixed #mobile-nav: desktop left rail and mobile bottom navigation with Home / News / Find Source / Donate / Saved / More.
@@ -8,6 +8,4 @@ NEWSREAL V20.8.7 — CoC Original Menu Runtime & Visible Background Fix
 - Background is now attached directly to body.theme-game-clash using the exact CocBasePro artwork source; the previous opaque portal sections no longer cover the image.
 - Main Game wrappers are transparent; readable content areas use controlled translucent panels instead of 94% opaque full-width backgrounds.
 - Existing fast filter, four metrics, bookmark, related posts, mobile description and community-free model remain unchanged.
-- Asset build bumped to 20.8.7.
-
-V20.8.7 - CoC Original UI Port: preserve original CSS/runtime behavior while removing Blogger template language from the Game renderer.
+- Asset build bumped to 20.8.6.
