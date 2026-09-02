@@ -1,11 +1,8 @@
-NEWSREAL V20.8.6 — CoC Original Menu Runtime & Visible Background Fix
+NEWSREAL V20.8.4 — CoC Menu, Related Content, Footer & Sharp Hero
 
-- Rebuilds the Game template navigation from the original CocBasePro runtime model instead of one generic popup layer.
-- Adds the original-style fixed #mobile-nav: desktop left rail and mobile bottom navigation with Home / News / Find Source / Donate / Saved / More.
-- More now uses its own #mobile-more-sheet with desktop side-panel and mobile bottom-sheet behavior, menu-open state, close-then-open handoff, Escape close, and nav suppression while open.
-- News / Find Source / Saved / Rankings / Hero Skins / Events / About / Apps / Privacy use a dedicated #simple-popup instead of sharing the More sheet.
-- Donate uses a dedicated #cbp-support-popup community support dialog.
-- Background is now attached directly to body.theme-game-clash using the exact CocBasePro artwork source; the previous opaque portal sections no longer cover the image.
-- Main Game wrappers are transparent; readable content areas use controlled translucent panels instead of 94% opaque full-width backgrounds.
-- Existing fast filter, four metrics, bookmark, related posts, mobile description and community-free model remain unchanged.
-- Asset build bumped to 20.8.6.
+- CoC main/More menu links now navigate to real sections/routes.
+- Related bases added to desktop detail pages.
+- CoC-specific full footer replaces empty/foreign footer.
+- Hero Hall image uses high-resolution source and contain fit; no crop.
+- Mobile detail remains compact: image + stats + copy link; related/footer hidden there.
+- Fast archive filters remain History API/DOM-only without full page reload.
