@@ -1,12 +1,16 @@
-NEWSREAL V20.8.9 — CoC Local-first Saved, Hero Showcase & Donate UX
+NEWSREAL V20.9.0 — CoC Mobile-first UX V2
 
-- Keeps the V20.8.8 CoC community architecture and universal template contracts.
-- Desktop menu now contains only functions backed by the new site: Home, Browse Bases, TH, BH, CH, Saved, Donate.
-- Mobile menu keeps Home, Bases, Saved, More and Donate; More only exposes TH/BH/CH/About/Privacy.
-- Admin and Donate header CTAs have the same height/visual weight.
-- Floating Donate is now a compact circular coffee button.
-- Hero visual loads a recent Hero Skin from the original CoC hero-skins data source, chooses from the latest year and rotates daily.
-- Saved Bases is local-first via browser localStorage; no Firebase dependency and no login requirement.
-- Base cards and detail pages expose Vote/View/Download/Saved UI; showroom uses deterministic demo stats while production stats remain non-blocking architecture.
-- Mobile article description is visible again.
+- Keeps the V20.8.9 CoC community architecture, hero showcase, local-first Saved and universal template contracts.
+- Removes the fixed mobile bottom navigation completely.
+- Adds a compact sticky mobile header with a three-line hamburger menu that drops down from the top without covering the full screen.
+- Mobile menu only exposes working routes/actions: Home, Browse Bases, TH, BH, CH, Saved, About and Privacy.
+- Donate header CTA now uses a clearly different green treatment from the orange Add Base CTA.
+- Floating Donate remains a compact circular coffee button.
+- Mobile base filters collapse to a one-line active-filter summary and open in a compact 74vh drawer with independent scrolling, Reset and View Results actions.
+- Filter changes continue to use History API and now return focus directly to the Results section.
+- Last Hall/filter preference is stored locally and used by Browse Bases on the next visit.
+- Mobile result cards use a single-column list layout with larger image area and clearer tap targets.
+- Mobile detail adds a persistent Copy Base dock while keeping article description visible.
+- Saving a base now shows a short accessible toast: “Base đã được lưu”; removing shows “Base đã được bỏ khỏi Saved”.
+- Saved state remains local-first and requires no Firebase connection.
 - No database migration required.

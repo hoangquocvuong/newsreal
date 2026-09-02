@@ -3503,3 +3503,66 @@ html.coc-saved-open,html.coc-saved-open body{overflow:hidden}
   .theme-game-clash .coc-skin-stage{min-height:240px}.theme-game-clash .coc-skin-stage img{max-height:252px!important}
   .theme-game-clash .coc-card-stats{gap:1px}.theme-game-clash .coc-card-stats>span{font-size:8.5px}
 }
+
+
+/* =========================================================
+   V20.9.0 — CoC Mobile-first navigation, compact filters, Saved feedback
+========================================================= */
+.theme-game-clash .coc-donate-top{background:#22c55e!important;color:#052e16!important;border:1px solid #34d399!important;box-shadow:0 8px 20px rgba(34,197,94,.16)!important}
+.theme-game-clash .coc-donate-top:hover{background:#34d399!important}
+.theme-game-clash .coc-menu-toggle{display:none;width:42px;height:40px;padding:9px;border:1px solid rgba(255,255,255,.16);border-radius:10px;background:#13283f;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.theme-game-clash .coc-menu-toggle span{display:block;width:18px;height:2px;background:#f4f8fc;border-radius:2px;transition:transform .18s ease,opacity .18s ease}
+.theme-game-clash .coc-menu-toggle.is-open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.theme-game-clash .coc-menu-toggle.is-open span:nth-child(2){opacity:0}
+.theme-game-clash .coc-menu-toggle.is-open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.theme-game-clash .coc-mobile-menu{display:none}
+.theme-game-clash .coc-mobile-filter-summary,.theme-game-clash .coc-filter-mobile-head,.theme-game-clash .coc-filter-mobile-actions{display:none}
+.theme-game-clash .coc-toast-region{position:fixed;left:50%;bottom:24px;z-index:1200;transform:translateX(-50%);display:grid;gap:8px;width:min(92vw,420px);pointer-events:none}
+.theme-game-clash .coc-toast{display:flex;align-items:center;gap:9px;margin:auto;padding:11px 14px;border-radius:12px;background:#0d1f31;color:#fff;border:1px solid rgba(255,255,255,.12);box-shadow:0 16px 42px rgba(0,0,0,.34);opacity:0;transform:translateY(12px) scale(.98);transition:.2s ease;font-size:12px}
+.theme-game-clash .coc-toast.show{opacity:1;transform:none}.theme-game-clash .coc-toast>span{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#22c55e;color:#052e16;font-weight:950}.theme-game-clash .coc-toast.removed>span{background:#e2e8f0;color:#334155}
+.theme-game-clash .coc-mobile-copy-dock{display:none}
+@media(max-width:820px){
+ body.theme-game-clash{padding-bottom:0!important}
+ .theme-game-clash .coc-nav-wrap{min-height:58px!important;gap:8px!important}
+ .theme-game-clash .coc-brand{flex:0 0 auto}.theme-game-clash .coc-brand span{max-width:44px;line-height:1.05}
+ .theme-game-clash .coc-desktop-nav,.theme-game-clash .coc-mobile-nav{display:none!important}
+ .theme-game-clash .coc-nav-actions{margin-left:auto;gap:6px}
+ .theme-game-clash .coc-nav-actions .coc-admin{display:inline-flex!important;align-items:center;justify-content:center;gap:4px;min-height:40px!important;height:40px!important;padding:0 10px!important;border-radius:10px!important;font-size:10px!important;white-space:nowrap}
+ .theme-game-clash .coc-nav-actions .coc-admin b{font-size:10px}.theme-game-clash .coc-nav-actions .coc-admin span{font-size:15px}
+ .theme-game-clash .coc-nav-actions .coc-donate-top{display:inline-flex!important;min-height:40px!important;height:40px!important;padding:0 10px!important;border-radius:10px!important;font-size:10px!important;white-space:nowrap}
+ .theme-game-clash .coc-menu-toggle{display:flex}
+ .theme-game-clash .coc-mobile-menu{display:block;position:absolute;left:0;right:0;top:100%;z-index:930;background:rgba(7,19,33,.985);border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.12);box-shadow:0 18px 38px rgba(0,0,0,.3);opacity:0;visibility:hidden;transform:translateY(-8px);transition:.18s ease}
+ .theme-game-clash .coc-mobile-menu.show{opacity:1;visibility:visible;transform:none}
+ .theme-game-clash .coc-mobile-menu>.coc-wrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:10px 0 12px}
+ .theme-game-clash .coc-mobile-menu a,.theme-game-clash .coc-mobile-menu button{display:flex;align-items:center;min-height:42px;padding:9px 11px;border:1px solid rgba(255,255,255,.09);border-radius:9px;background:#10263d;color:#e9f1fa!important;text-decoration:none;font:inherit;font-size:11px;font-weight:850;text-align:left;cursor:pointer}
+ .theme-game-clash .coc-donate-float{width:44px!important;height:44px!important;right:12px!important;bottom:14px!important;padding:0!important;border-radius:50%!important;background:#22c55e!important;color:#052e16!important;display:grid!important;place-items:center!important;box-shadow:0 12px 28px rgba(0,0,0,.28)!important}
+ .theme-game-clash .coc-donate-float>span{font-size:20px!important;grid-row:auto!important}
+ .theme-game-clash .coc-mobile-filter-summary{display:block;margin:0 0 10px}
+ .theme-game-clash .coc-filter-open{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border:1px solid #d9e2eb;border-radius:12px;background:#fff;color:#14283d;box-shadow:0 7px 18px rgba(23,42,62,.06);text-align:left}
+ .theme-game-clash .coc-filter-open span{min-width:0}.theme-game-clash .coc-filter-open small{display:block;font-size:8px;letter-spacing:.12em;color:#d17d00;font-weight:950}.theme-game-clash .coc-filter-open b{display:block;margin-top:3px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.theme-game-clash .coc-filter-open i{font-style:normal;font-size:19px}
+ .theme-game-clash .coc-filter-panel{position:fixed;left:10px;right:10px;top:72px;bottom:auto;z-index:1100;max-height:min(74vh,600px);display:flex!important;flex-direction:column;margin:0!important;padding:0!important;border-radius:16px!important;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.35)!important;opacity:0;visibility:hidden;transform:translateY(-10px) scale(.985);transition:.18s ease;overflow:hidden}
+ .theme-game-clash .coc-filter-panel.is-mobile-open{opacity:1;visibility:visible;transform:none}
+ .theme-game-clash .coc-filter-mobile-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 13px;border-bottom:1px solid #e5ebf0}.theme-game-clash .coc-filter-mobile-head small{display:block;font-size:8px;letter-spacing:.12em;color:#d17d00;font-weight:950}.theme-game-clash .coc-filter-mobile-head strong{font-size:13px}.theme-game-clash .coc-filter-mobile-head button{width:34px;height:34px;border:0;border-radius:50%;background:#edf2f7;font-size:21px;color:#23364b}
+ .theme-game-clash .coc-filter-scroll{overflow-y:auto;overscroll-behavior:contain;padding:4px 12px 8px}
+ .theme-game-clash .coc-filter-row{display:grid!important;grid-template-columns:1fr 1fr!important;gap:7px!important;overflow:visible!important;padding:10px 0!important}
+ .theme-game-clash .coc-filter-row b{position:static!important;grid-column:1/-1;width:auto!important;flex:auto!important;padding:0!important;background:transparent!important;font-size:10px!important;text-transform:uppercase;letter-spacing:.07em;color:#5c6f82!important}
+ .theme-game-clash .coc-filter-row a{min-height:38px!important;padding:8px 9px!important;border:1px solid #d7e0e9!important;background:#fff!important;color:#31475d!important;font-size:10px!important;text-align:center!important}
+ .theme-game-clash .coc-filter-row a.active{background:#10243a!important;color:#fff!important;border-color:#10243a!important;box-shadow:none!important}
+ .theme-game-clash .coc-filter-mobile-actions{display:grid;grid-template-columns:88px 1fr;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid #e5ebf0;background:#fff}
+ .theme-game-clash .coc-filter-mobile-actions .reset,.theme-game-clash .coc-filter-mobile-actions button{min-height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;text-decoration:none}.theme-game-clash .coc-filter-mobile-actions .reset{background:#eef2f6;color:#33475b}.theme-game-clash .coc-filter-mobile-actions button{border:0;background:#ffb000;color:#17110a}
+ .theme-game-clash .coc-browser-head{margin-bottom:12px}.theme-game-clash .coc-browser-head p{display:none}
+ .theme-game-clash .coc-results-toolbar{position:sticky;top:66px;z-index:40;margin:8px 0 10px;padding:10px 11px;border-radius:11px}.theme-game-clash .coc-results-toolbar>a{display:none}
+ .theme-game-clash .coc-result-grid{grid-template-columns:1fr!important;gap:12px!important}
+ .theme-game-clash .coc-result-grid .coc-card{display:grid;grid-template-columns:minmax(132px,42%) 1fr;min-height:132px}.theme-game-clash .coc-result-grid .coc-thumb{height:100%!important;aspect-ratio:auto!important}.theme-game-clash .coc-result-grid .coc-card-body{padding:10px!important}.theme-game-clash .coc-result-grid .coc-card-body h3{font-size:13px!important}.theme-game-clash .coc-result-grid .coc-card-stats{margin-top:8px}
+ .theme-game-clash .coc-toast-region{bottom:18px;width:min(94vw,380px)}
+ .theme-game-clash .coc-mobile-copy-dock{display:block;position:fixed;left:10px;right:10px;bottom:10px;z-index:820;pointer-events:none}.theme-game-clash .coc-mobile-copy-dock a{pointer-events:auto;display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:13px;background:#ffb000;color:#13100a!important;text-decoration:none;font-size:14px;font-weight:950;box-shadow:0 14px 34px rgba(0,0,0,.3)}
+ .theme-game-clash .coc-detail{padding-bottom:72px!important}.theme-game-clash .coc-detail .coc-donate-float{bottom:74px!important}
+}
+@media(max-width:430px){
+ .theme-game-clash .coc-brand b{font-size:20px!important}.theme-game-clash .coc-brand span{font-size:8px!important}
+ .theme-game-clash .coc-nav-actions .coc-admin b{display:none}.theme-game-clash .coc-nav-actions .coc-admin{width:40px!important;padding:0!important}.theme-game-clash .coc-nav-actions .coc-admin span{font-size:18px}
+ .theme-game-clash .coc-nav-actions .coc-donate-top b{font-size:9px}
+ .theme-game-clash .coc-mobile-menu>.coc-wrap{grid-template-columns:1fr 1fr}
+ .theme-game-clash .coc-filter-panel{left:7px;right:7px;top:66px;max-height:76vh}
+ .theme-game-clash .coc-result-grid .coc-card{grid-template-columns:124px 1fr}
+}
