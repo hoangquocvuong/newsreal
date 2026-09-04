@@ -78,7 +78,7 @@ const BUILTIN_CONTENT_PROFILES={
    {key:'game_style',label:'Style',type:'select',options:[]},
    {key:'game_defense',label:'Defense',type:'select',options:[]},
    {key:'copy_link',label:'Copy Base Link',type:'url',placeholder:'https://link.clashofclans.com/...'},
-   {key:'game_year',label:'Năm',type:'select',options:['2026','2025']}
+   {key:'game_year',label:'Năm',type:'select',options:Array.from({length:6},(_,i)=>String(new Date().getFullYear()-i))}
   ]
  }
 };
@@ -146,7 +146,7 @@ function gameAdminFields(values={}){
    {key:'game_style',label:'Style',type:'select',options:tax.styles},
    {key:'game_defense',label:'Defense',type:'select',options:tax.defenses},
    {key:'copy_link',label:'Copy Base Link',type:'url',placeholder:'https://link.clashofclans.com/...'},
-   {key:'game_year',label:'Năm',type:'select',options:['2026','2025']}
+   {key:'game_year',label:'Năm',type:'select',options:Array.from({length:6},(_,i)=>String(new Date().getFullYear()-i))}
  ];
 }
 function renderProfileFields(values={}){

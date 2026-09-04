@@ -1,3 +1,10 @@
+V20.9.20.1 - DYNAMIC GAME YEAR ONLY (V20.9.20 BASELINE)
+- Baseline remains V20.9.20; no V20.9.21/V20.9.22 filter-architecture changes are included.
+- Game Admin year options are generated from the runtime year instead of fixed 2026/2025.
+- Public Game Year filter remains inside the existing 5-column / 5-step filter and derives years from the current year plus years present in post data.
+- Existing V20.9.20 TH/BH/CH taxonomy, Builder Hall strategy options and Game Admin menu behavior remain unchanged.
+- No migration required.
+
 V20.9.19 - GAME ADMIN FILTER TAXONOMY SYNC
 - Removes duplicated game Group field; category is the single TH/BH/CH source.
 - Admin Level + Type/District options now follow the same progressive taxonomy as the public filter.

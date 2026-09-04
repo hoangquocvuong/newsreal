@@ -1056,7 +1056,7 @@ async function ensureTemplateCatalog(env){
       {key:'game_style',label:'Style',type:'select',options:[]},
       {key:'game_defense',label:'Defense',type:'select',options:[]},
       {key:'copy_link',label:'Copy Base Link',type:'url',placeholder:'https://link.clashofclans.com/...'},
-      {key:'game_year',label:'Năm',type:'select',options:['2026','2025']}
+      {key:'game_year',label:'Năm',type:'select',options:Array.from({length:6},(_,i)=>String(new Date().getUTCFullYear()-i))}
     ]};
     await env.DB.prepare(`UPDATE template_catalog SET editor_profile=?,structure_profile=? WHERE template_key='game-1'`).bind(JSON.stringify(gameEditor),JSON.stringify(defaultTemplateStructure('game-1'))).run();
   }catch(e){}
