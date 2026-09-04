@@ -780,7 +780,19 @@ function tmValidateStructure(raw){
  return {profile:p,ok:!errors.length,errors,warnings};
 }
 function tmRenderStructureHealth(){
- const box=document.getElementById('teStructureProfile'),out=document.getElementById('teStructureHealth');if(!box||!out)return;let raw={};try{raw=JSON.parse(box.value||'{}')}catch(e){out.className='tm-structure-health bad';out.textContent='✕ JSON không hợp lệ';return}const v=tmValidateStructure(raw);out.className='tm-structure-health '+(v.ok?'ok':'bad');out.innerHTML=v.ok?`✓ Universal Layout Contract hợp lệ · ${v.profile.sections.length} section${v.warnings.length?` · ${v.warnings.length} cảnh báo`:''}`:`✕ ${v.errors.length} lỗi: ${v.errors.slice(0,2).join(' · ')}`;
+ const box=document.getElementById('teStructureProfile'),out=document.getElementById('teStructureHealth');if(!box||!out)return;
+ let raw={};try{raw=JSON.parse(box.value||'{}')}catch(e){out.className='tm-structure-health bad';out.textContent='✕ JSON không hợp lệ';return}
+ const key=String(document.getElementById('teKey')?.value||'').trim();
+ const current=tmData.find(x=>String(x?.template_key||'')===key);
+ const stored=current?tmStructureProfile(current):null;
+ const legacyLocked=!!current&&Number(stored?.geometry_locked||0)===1;
+ if(legacyLocked){
+  const count=Array.isArray(stored?.sections)?stored.sections.length:0;
+  out.className='tm-structure-health ok';
+  out.innerHTML=`✓ Cấu trúc template hiện tại đã được khóa · Legacy contract${count?` · ${count} section`:''} · Không yêu cầu migrate`;
+  return;
+ }
+ const v=tmValidateStructure(raw);out.className='tm-structure-health '+(v.ok?'ok':'bad');out.innerHTML=v.ok?`✓ Universal Layout Contract hợp lệ · ${v.profile.sections.length} section${v.warnings.length?` · ${v.warnings.length} cảnh báo`:''}`:`✕ ${v.errors.length} lỗi: ${v.errors.slice(0,2).join(' · ')}`;
 }
 
 // V10.2 — Scientific Template Manager
