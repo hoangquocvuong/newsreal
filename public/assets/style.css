@@ -3843,3 +3843,9 @@ html.coc-saved-open,html.coc-saved-open body{overflow:hidden}
 .market-game-preview.is-detail{height:340px;border:1px solid #dce5ef;border-radius:16px;box-shadow:0 12px 30px rgba(13,39,67,.1)}
 .market-game-preview.is-detail .mgp-nav{height:54px;font-size:8px}.market-game-preview.is-detail .mgp-nav b{font-size:12px}.market-game-preview.is-detail .mgp-main{padding:16px 18px}.market-game-preview.is-detail .mgp-hero{min-height:132px}.market-game-preview.is-detail .mgp-hero img{min-height:132px}.market-game-preview.is-detail .mgp-hero strong{font-size:18px}.market-game-preview.is-detail .mgp-levels article{height:63px}
 @media(max-width:720px){.market-game-preview .mgp-nav span:nth-of-type(n+3){display:none}.market-game-preview .mgp-nav{gap:10px}.market-game-preview .mgp-hero{grid-template-columns:1.2fr .8fr}.market-game-preview.is-detail{height:300px}.market-game-preview.is-detail .mgp-browser{display:none}}
+
+/* V20.9.20.7 — voucher CTA communicates discounted selection price */
+.demo-choose[data-market-choose]{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.15;text-align:center}
+.demo-choose[data-market-choose] small{display:block;font-size:9px;font-weight:750;line-height:1.2;opacity:.9}
+.demo-choose[data-market-choose] small[hidden]{display:none!important}
+.voucher-applied .demo-choose[data-market-choose]{background:#eaf9f0;color:#07834a;border-color:#9fdfba}
