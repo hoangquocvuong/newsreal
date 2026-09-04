@@ -1,3 +1,10 @@
+V20.9.17 — GAME REAL PREVIEW + TH18 SHOWROOM FIX
+
+- Game showroom always uses packaged real Atom sample posts; 8 TH18 posts are guaranteed in the public demo filter.
+- Trial/client remain content-clean and never inherit showroom samples.
+- Game marketplace preview replaced with a real screenshot of the running Clash of Clans demo.
+- Preserves the unified 1:1 template layout/empty-slot contracts.
+
 NEWSREAL V20.9.15 — MARKETPLACE SIMPLE PRICE + NEW-CUSTOMER VOUCHER + TH18 REAL SAMPLES
 
 - Marketplace uses one annual list price instead of Year 1 / Year 2 price boxes.
