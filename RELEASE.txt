@@ -1,3 +1,11 @@
+V20.9.20.2 - GAME HALL CARD IMAGE NORMALIZATION
+- Baseline remains V20.9.20.1. No Game filter/Admin/year architecture changes.
+- Town Hall, Builder Hall and Clan Capital level-card artwork now shares the same pale image stage.
+- Near-white baked JPG/WEBP backgrounds are visually blended into the card stage with mix-blend-mode and light color normalization.
+- Layout, Hall artwork URLs, card dimensions and template 1:1 structure remain unchanged.
+- CSS cache bumped to V20.9.20.2 in both static index and embedded fallback index.
+- No migration required.
+
 V20.9.20.1 - DYNAMIC GAME YEAR ONLY (V20.9.20 BASELINE)
 - Baseline remains V20.9.20; no V20.9.21/V20.9.22 filter-architecture changes are included.
 - Game Admin year options are generated from the runtime year instead of fixed 2026/2025.
