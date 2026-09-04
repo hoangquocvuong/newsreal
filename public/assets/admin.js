@@ -118,10 +118,12 @@ function safeProfileId(v=''){return String(v).replace(/[^a-z0-9_-]/gi,'').slice(
 function gameAdminTaxonomy(category='Town Hall'){
  const group=String(category||'Town Hall');
  if(group==='Builder Hall')return {
-   prefix:'BH',levels:Array.from({length:9},(_,i)=>'BH'+(i+2)),typeLabel:'Type',
-   types:['Anti Air','Anti Ground','Anti Baby Dragon','Anti Minion','Anti Giant','Builder Base'],
-   styles:['Compact','Box','Ring','Spread','Original'],
-   defenses:['Anti Air','Anti Ground','Balanced Defense']
+   prefix:'BH',levels:Array.from({length:9},(_,i)=>'BH'+(i+2)),typeLabel:'Purpose',
+   // Purpose = mục đích sử dụng của layout; Defense = kiểu chiến thuật phòng thủ.
+   // Hai nhóm cố ý tách nghĩa để Admin không lặp lựa chọn như bản cũ.
+   types:['Trophy Push','Farming / Resource','Versus Battle','Balanced','Anti 2-Star','Anti 3-Star','Anti 6-Star','Progress Base','Compact Defense','Open / Tricky Pathing'],
+   styles:['Compact','Box','Ring','Diamond','Offset Core','Multi-Compartment','Open Core','Spread','Original'],
+   defenses:['Anti Air','Anti Ground','Anti Baby Dragon','Anti Night Witch','Anti Power P.E.K.K.A','Anti Cannon Cart','Anti Hog Glider','Anti Drop Ship','Anti Bomber','Anti Giant','Anti Hero Push','Anti 6-Star','Time Fail','Balanced Defense']
  };
  if(group==='Clan Capital')return {
    prefix:'CH',levels:Array.from({length:10},(_,i)=>'CH'+(i+1)),typeLabel:'District',
@@ -178,7 +180,7 @@ function isGameTemplate(){
  return CLIENT_TEMPLATE_KEY==='game-1'||CLIENT_CATEGORY==='game'||CLIENT_PROFILE?.content_type==='game'||CLIENT_PROFILE?.id==='game-base'||String(CLIENT_PRESET||'').startsWith('game_');
 }
 function configureAdminForTemplate(){
- const news=isNewsTemplate(),service=isServiceTemplate(),game=isGameTemplate();
+ const game=isGameTemplate(),news=!game&&isNewsTemplate(),service=!game&&isServiceTemplate();
  document.body.classList.toggle('admin-template-news',news);
  document.body.classList.toggle('admin-template-game',game);
  document.getElementById('menuServiceLeads')?.classList.add('hidden');
@@ -193,6 +195,8 @@ function configureAdminForTemplate(){
  if(editorHelp)editorHelp.textContent=profile.contentHelp||'Soạn và định dạng nội dung.';
  renderProfileFields();
  if(game){
+   // Gaming không có workflow lead/tư vấn. Xóa hẳn menu khỏi DOM để code khác không thể bật lại.
+   document.getElementById('menuServiceLeads')?.remove();
    postType.value='game';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
    if(menuNew)menuNew.textContent='Đăng base mới';if(menuPosts)menuPosts.textContent='Quản lý base';if(overviewBtn)overviewBtn.textContent='＋ Đăng base mới';
    if(postTitle)postTitle.placeholder='Ví dụ: TH18 War Base Link – Anti 3 Stars';
