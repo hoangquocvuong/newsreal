@@ -107,7 +107,7 @@ const required=[
   ['Product showroom self-contained',"isPublicProductDemo=demoTemplateKey==='san-pham-1'"],
   ['Product showroom hard anti-cross-template fallback',"window.NR_DEMO_THEME==='san-pham-1'"],
   ['Marketplace Product category route',"isProductDemo?'/templates/ban-hang/'"],
-  ['Marketplace Product real preview PNG','/assets/demo/san-pham-1-preview-v2.png'],
+  ['Marketplace Product real preview WebP','/assets/demo/san-pham-1-preview-real.webp'],
 ];
 let failed=0;
 for(const [name,needle] of required){
