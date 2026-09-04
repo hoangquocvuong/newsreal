@@ -1,7 +1,2 @@
-NEWSREAL V20.9.20.6 - CODED GAME TEMPLATE PREVIEW
-
-- Game marketplace preview is now rendered as a coded miniature of the real Clash of Clans template instead of an illustration/screenshot.
-- Preview mirrors the real Game template language: dark navigation, hero, Town Hall chooser and five-stage filter row.
-- Game template SEO detail page also uses the coded preview.
-- News, Real Estate and Service template previews are unchanged.
-- Universal template contracts remain unchanged.
+NEWSREAL V20.9.22.0 — HOANGVUONGTECH COMPLETE SEO FOUNDATION
+Baseline V20.9.21.1. Finalizes the template-sales SEO layer: canonical/index rules, robots exclusions, clean sitemap lastmod behavior, category/detail social metadata, CollectionPage/Product/Breadcrumb structured data, 404 noindex behavior, and noindex on private/transactional pages. Preserves template/layout/trial/voucher/checkout contracts.

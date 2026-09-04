@@ -236,9 +236,9 @@ let websiteSettingsSnapshot=null,CLIENT_TEMPLATE_SETTINGS={};
 function templateSettingsSchema(){return Array.isArray(CLIENT_PROFILE?.settings_schema)?CLIENT_PROFILE.settings_schema:[]}
 function renderTemplateSettingsFields(values={}){const panel=document.getElementById('templateSettingsPanel'),host=document.getElementById('templateSettingsFields'),schema=templateSettingsSchema();if(!panel||!host)return;panel.classList.toggle('hidden',!schema.length);host.innerHTML=schema.map(def=>{const key=String(def.key||''),type=String(def.type||'text'),val=String(values[key]??def.default??''),help=def.help?`<small class="field-help">${def.help}</small>`:'';if(type==='textarea')return `<label>${def.label||key}<textarea data-template-setting="${key}" rows="5" disabled>${val.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</textarea>${help}</label>`;return `<label>${def.label||key}<input data-template-setting="${key}" type="${type==='url'?'url':'text'}" value="${val.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" placeholder="${String(def.placeholder||'').replace(/"/g,'&quot;')}" disabled>${help}</label>`}).join('')}
 function collectTemplateSettings(){const out={};document.querySelectorAll('[data-template-setting]').forEach(el=>out[el.dataset.templateSetting]=el.value||'');return out}
-function captureWebsiteSettings(){return {name:setName.value,phone:setPhone.value,zalo:setZalo.value,email:setEmail.value,facebook:setFacebook.value,template_settings:collectTemplateSettings()}}
+function captureWebsiteSettings(){return {name:setName.value,phone:setPhone.value,zalo:setZalo.value,email:setEmail.value,facebook:setFacebook.value,seo_title:setSeoTitle?.value||'',seo_description:setSeoDescription?.value||'',seo_og_image:setSeoOgImage?.value||'',seo_index:!!setSeoIndex?.checked,template_settings:collectTemplateSettings()}}
 function setWebsiteSettingsEditing(editing){
- [setName,setPhone,setZalo,setEmail,setFacebook].forEach(el=>{if(el)el.disabled=!editing});document.querySelectorAll('[data-template-setting]').forEach(el=>el.disabled=!editing);
+ [setName,setPhone,setZalo,setEmail,setFacebook,setSeoTitle,setSeoDescription,setSeoOgImage,setSeoIndex].forEach(el=>{if(el)el.disabled=!editing});document.querySelectorAll('[data-template-setting]').forEach(el=>el.disabled=!editing);
  settingsForm?.classList.toggle('settings-readonly',!editing);
  settingsEditActions?.classList.toggle('hidden',!editing);
  editWebsiteSettings?.classList.toggle('hidden',editing);
@@ -255,7 +255,7 @@ async function boot(){try{
  welcome.textContent=siteDisplayName;kpiPosts.textContent=d.stats.posts;kpiViews.textContent=d.stats.views;kpiToday.textContent=d.stats.today;
  const adminBrand=document.querySelector('.admin-top .brand');if(adminBrand)adminBrand.textContent=isGameTemplate()?'COC BASE PORTAL':siteDisplayName;
  document.title='Trang quản trị · '+siteDisplayName;
- setName.value=cleanSiteName(d.site.name||'');setPhone.value=d.site.phone||'';setZalo.value=d.site.zalo||'';setEmail.value=d.site.email||'';setFacebook.value=d.site.facebook||'';
+ setName.value=cleanSiteName(d.site.name||'');setPhone.value=d.site.phone||'';setZalo.value=d.site.zalo||'';setEmail.value=d.site.email||'';setFacebook.value=d.site.facebook||'';if(setSeoTitle)setSeoTitle.value=d.site.seo_title||'';if(setSeoDescription)setSeoDescription.value=d.site.seo_description||'';if(setSeoOgImage)setSeoOgImage.value=d.site.seo_og_image||'';if(setSeoIndex)setSeoIndex.checked=Number(d.site.seo_index??1)!==0;
  CLIENT_TEMPLATE_SETTINGS=d.site.template_settings&&typeof d.site.template_settings==='object'?d.site.template_settings:(()=>{try{return JSON.parse(d.site.template_settings_json||'{}')}catch(e){return {}}})();renderTemplateSettingsFields(CLIENT_TEMPLATE_SETTINGS);
  websiteSettingsSnapshot=captureWebsiteSettings();setWebsiteSettingsEditing(false);
  configureAdminForTemplate();
@@ -621,6 +621,7 @@ cancelWebsiteSettings?.addEventListener('click',()=>{
   setZalo.value=websiteSettingsSnapshot.zalo||'';
   setEmail.value=websiteSettingsSnapshot.email||'';
   setFacebook.value=websiteSettingsSnapshot.facebook||'';
+  if(setSeoTitle)setSeoTitle.value=websiteSettingsSnapshot.seo_title||'';if(setSeoDescription)setSeoDescription.value=websiteSettingsSnapshot.seo_description||'';if(setSeoOgImage)setSeoOgImage.value=websiteSettingsSnapshot.seo_og_image||'';if(setSeoIndex)setSeoIndex.checked=websiteSettingsSnapshot.seo_index!==false;
   renderTemplateSettingsFields(websiteSettingsSnapshot.template_settings||{});
  }
  setWebsiteSettingsEditing(false);
@@ -632,7 +633,7 @@ settingsForm.addEventListener('submit',async e=>{
  if(btn){btn.disabled=true;btn.textContent='Đang lưu...'}
  try{
    await api('/settings',{method:'PUT',body:JSON.stringify({
-     name:setName.value,phone:setPhone.value,zalo:setZalo.value,email:setEmail.value,facebook:setFacebook.value,template_settings:collectTemplateSettings()
+     name:setName.value,phone:setPhone.value,zalo:setZalo.value,email:setEmail.value,facebook:setFacebook.value,seo_title:setSeoTitle?.value||'',seo_description:setSeoDescription?.value||'',seo_og_image:setSeoOgImage?.value||'',seo_index:!!setSeoIndex?.checked,template_settings:collectTemplateSettings()
    })});
    const fresh=await api('/me');
    setName.value=cleanSiteName(fresh.site.name||'');
@@ -640,6 +641,7 @@ settingsForm.addEventListener('submit',async e=>{
    setZalo.value=fresh.site.zalo||'';
    setEmail.value=fresh.site.email||fresh.site.contact_email||'';
    setFacebook.value=fresh.site.facebook||'';
+   if(setSeoTitle)setSeoTitle.value=fresh.site.seo_title||'';if(setSeoDescription)setSeoDescription.value=fresh.site.seo_description||'';if(setSeoOgImage)setSeoOgImage.value=fresh.site.seo_og_image||'';if(setSeoIndex)setSeoIndex.checked=Number(fresh.site.seo_index??1)!==0;
    CLIENT_TEMPLATE_SETTINGS=fresh.site.template_settings&&typeof fresh.site.template_settings==='object'?fresh.site.template_settings:(()=>{try{return JSON.parse(fresh.site.template_settings_json||'{}')}catch(e){return {}}})();renderTemplateSettingsFields(CLIENT_TEMPLATE_SETTINGS);
    websiteSettingsSnapshot=captureWebsiteSettings();
    setWebsiteSettingsEditing(false);

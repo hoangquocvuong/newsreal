@@ -6,7 +6,7 @@ function esc(v=''){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt
 function stripHtml(v=''){return String(v||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()}
 function slugify(v=''){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/đ/g,'d').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,90)||'tin-bat-dong-san'}
 function siteHost(req){return new URL(req.url).hostname.replace(/^www\./,'').toLowerCase()}
-async function siteFor(env,req){const h=siteHost(req);let s=await env.DB.prepare(`SELECT * FROM sites WHERE lower(domain)=? AND status='active'`).bind(h).first();if(!s&&(h==='localhost'||h.endsWith('.pages.dev')||h==='app.hoangvuongtech.com'))s=await env.DB.prepare(`SELECT * FROM sites WHERE status='active' ORDER BY id LIMIT 1`).first();return s}
+async function siteFor(env,req){const h=siteHost(req);try{await env.DB.prepare(`CREATE TABLE IF NOT EXISTS site_public_settings(site_id INTEGER PRIMARY KEY,contact_email TEXT NOT NULL DEFAULT '',settings_json TEXT NOT NULL DEFAULT '{}',seo_title TEXT NOT NULL DEFAULT '',seo_description TEXT NOT NULL DEFAULT '',seo_og_image TEXT NOT NULL DEFAULT '',seo_index INTEGER NOT NULL DEFAULT 1,updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`).run()}catch(e){};for(const q of [`ALTER TABLE site_public_settings ADD COLUMN seo_title TEXT NOT NULL DEFAULT ''`,`ALTER TABLE site_public_settings ADD COLUMN seo_description TEXT NOT NULL DEFAULT ''`,`ALTER TABLE site_public_settings ADD COLUMN seo_og_image TEXT NOT NULL DEFAULT ''`,`ALTER TABLE site_public_settings ADD COLUMN seo_index INTEGER NOT NULL DEFAULT 1`])try{await env.DB.prepare(q).run()}catch(e){};const sql=`SELECT s.*,coalesce(ps.seo_title,'') seo_title,coalesce(ps.seo_description,'') seo_description,coalesce(ps.seo_og_image,'') seo_og_image,coalesce(ps.seo_index,1) seo_index FROM sites s LEFT JOIN site_public_settings ps ON ps.site_id=s.id`;let s=await env.DB.prepare(sql+` WHERE lower(s.domain)=? AND s.status='active'`).bind(h).first();if(!s&&(h==='localhost'||h.endsWith('.pages.dev')||h==='app.hoangvuongtech.com'))s=await env.DB.prepare(sql+` WHERE s.status='active' ORDER BY s.id LIMIT 1`).first();return s}
 function postUrl(base,p){const cat=p.type==='news'?'tin-tuc':(p.transaction==='rent'?'cho-thue':(p.transaction==='buy'?'mua':(p.transaction==='sale'?'ban':'bat-dong-san')));return `${base}/${cat}/${slugify(p.title)}-p${p.id}`}
 function metaTags({title,description,image,url,type='website'}){return `
 <title>${esc(title)}</title>
@@ -26,6 +26,7 @@ function metaTags({title,description,image,url,type='website'}){return `
 <meta name="twitter:description" content="${esc(description)}">
 <meta name="twitter:image" content="${esc(image||'')}">
 <link rel="canonical" href="${esc(url)}">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 `}
 function inject(html,meta){
  return html
@@ -91,7 +92,7 @@ function stripDemoPath(path,demo){
 }
 function demoInject(html,demo,trialCtx=null){
  if(!demo||demo==='center')return html;
- html=html.replace(/\/assets\/style\.css\?v=[^\"'&<]+/g,'/assets/style.css?v=20.9.20.9').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.9.13');
+ html=html.replace(/\/assets\/style\.css\?v=[^\"'&<]+/g,'/assets/style.css?v=20.9.21.0').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.9.13');
  const preset=demo==='mau-1'?'newsreal':demo==='mau-2'?'estate_green':demo==='mau-3'?'estate_luxe_3':demo==='mau-4'?'estate_minimal_4':demo==='mau-5'?'estate_urban_5':demo==='tin-tuc-1'?'news_portal_1':demo==='tin-tuc-2'?'news_paper_2':demo==='tin-tuc-3'?'news_magazine_3':demo==='tin-tuc-4'?'news_minimal_4':demo==='dich-vu-1'?'service_fpt_1':demo==='dich-vu-2'?'service_vnpt_2':demo==='dich-vu-3'?'service_viettel_3':demo==='dich-vu-4'?'service_camera_store_4':demo==='game-1'?'game_clash_1':'';
  let out=themedHtml(html,preset);
  const currentPath=typeof rawPath!=='undefined'?rawPath:'';
@@ -450,7 +451,10 @@ function templateSeoDetailHtml(t){
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const key=String(t?.template_key||''),slug=String(t?.seo_slug||'').trim(),url=`https://hoangvuongtech.com/templates/${esc(t?.category||'game')}/${esc(slug)}/`,demo=t?.demo_url||'',title=t?.seo_title||t?.name||'Template website',desc=t?.meta_description||t?.description||'',keywords=[t?.primary_keyword,...String(t?.secondary_keywords||'').split(',')].map(x=>String(x||'').trim()).filter(Boolean);
  const features=String(t?.features||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
- return `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} | HoangVuongTech</title><meta name="description" content="${esc(desc)}"><meta name="keywords" content="${esc(keywords.join(', '))}"><link rel="canonical" href="${url}"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="product"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="https://hoangvuongtech.com${esc(t?.image_url||'/assets/demo/game-clash-1-preview.png')}"><link rel="stylesheet" href="/assets/style.css?v=20.9.20.9"><script type="application/ld+json">${JSON.stringify({'@context':'https://schema.org','@type':'Product','name':title,'description':desc,'category':'Website Template','brand':{'@type':'Brand','name':'HoangVuongTech'},'url':url,'offers':{'@type':'Offer','priceCurrency':'VND','price':String(Number(t?.price||0)),'availability':'https://schema.org/InStock'}})}</script></head><body class="template-seo-detail"><header class="demo-showroom-header"><div class="demo-showroom-nav"><a class="demo-brand" href="/templates/"><b>HOANGVUONGTECH · TEMPLATES</b></a><div><a href="/templates/${esc(t?.category||'game')}/">Kho ${esc(CATEGORY_NAMES[t?.category]||'template')}</a><a class="demo-contact-btn" href="/#dang-ky">Tư vấn</a></div></div></header><main class="template-detail-wrap"><nav class="template-detail-crumb"><a href="/templates/">Kho giao diện</a> / <a href="/templates/${esc(t?.category||'game')}/">${esc(CATEGORY_NAMES[t?.category]||'Game')}</a> / ${esc(t?.name||title)}</nav><section class="template-detail-hero"><div><span>${esc(t?.badge||'TEMPLATE')}</span><h1>${esc(t?.name||title)}</h1><p>${esc(t?.description||desc)}</p><div class="template-detail-actions">${demo?`<a class="primary" href="${esc(demo)}" target="_blank" rel="noopener">Xem demo trực tiếp</a>`:''}<a href="/?template=${encodeURIComponent(key)}&name=${encodeURIComponent(t?.name||key)}#dang-ky">Đăng ký mẫu này</a></div></div>${t?.category==='game'?gameMarketplacePreviewHtml('is-detail'):`<img src="${esc(t?.image_url||'/assets/demo/game-clash-1-preview.png')}" alt="${esc(title)}">`}</section><section class="template-detail-grid"><article><h2>Giao diện được thiết kế cho đúng nhu cầu</h2><p>Template này tuân thủ Universal Layout Contract của HoangVuongTech: showroom có dữ liệu mẫu đầy đủ, còn trial/client giữ nguyên cấu trúc 1:1 và chỉ thay đổi payload nội dung.</p><div class="template-detail-features">${features.map(x=>`<span>✓ ${esc(x)}</span>`).join('')}</div></article><aside><small>GÓI WEBSITE TRỌN GÓI</small><strong>${moneyVN(Number(t?.renewal_price||t?.price||0))} / năm</strong><span>Đã gồm tên miền, hosting, giao diện và công cụ quản trị đăng bài.</span><hr><b>🎟 Voucher khách mới: giảm ${moneyVN(Math.max(0,Number(t?.renewal_price||0)-Number(t?.price||0))||500000)}</b></aside></section></main></body></html>`;
+ const image='https://hoangvuongtech.com'+String(t?.image_url||'/assets/demo/game-clash-1-preview.png');
+ const catUrl=`https://hoangvuongtech.com/templates/${String(t?.category||'game')}/`;
+ const graph={'@context':'https://schema.org','@graph':[{'@type':'BreadcrumbList','@id':url+'#breadcrumb','itemListElement':[{'@type':'ListItem','position':1,'name':'HoangVuongTech','item':'https://hoangvuongtech.com/'},{'@type':'ListItem','position':2,'name':'Kho giao diện','item':'https://hoangvuongtech.com/templates/'},{'@type':'ListItem','position':3,'name':CATEGORY_NAMES[t?.category]||'Template','item':catUrl},{'@type':'ListItem','position':4,'name':t?.name||title,'item':url}]},{'@type':'Product','@id':url+'#product','name':t?.name||title,'description':desc,'image':[image],'category':'Website Template','brand':{'@type':'Brand','name':'HoangVuongTech'},'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'VND','price':String(Number(t?.price||t?.renewal_price||0)),'availability':'https://schema.org/InStock','seller':{'@type':'Organization','name':'HoangVuongTech','url':'https://hoangvuongtech.com/'}}}]};
+ return `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} | HoangVuongTech</title><meta name="description" content="${esc(desc)}"><meta name="keywords" content="${esc(keywords.join(', '))}"><link rel="canonical" href="${url}"><meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"><meta property="og:type" content="product"><meta property="og:site_name" content="HoangVuongTech"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${esc(image)}"><meta property="og:image:alt" content="${esc(t?.name||title)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(desc)}"><meta name="twitter:image" content="${esc(image)}"><link rel="stylesheet" href="/assets/style.css?v=20.9.21.0"><script type="application/ld+json">${JSON.stringify(graph)}</script></head><body class="template-seo-detail"><header class="demo-showroom-header"><div class="demo-showroom-nav"><a class="demo-brand" href="/templates/"><b>HOANGVUONGTECH · TEMPLATES</b></a><div><a href="/templates/${esc(t?.category||'game')}/">Kho ${esc(CATEGORY_NAMES[t?.category]||'template')}</a><a class="demo-contact-btn" href="/#dang-ky">Tư vấn</a></div></div></header><main class="template-detail-wrap"><nav class="template-detail-crumb"><a href="/templates/">Kho giao diện</a> / <a href="/templates/${esc(t?.category||'game')}/">${esc(CATEGORY_NAMES[t?.category]||'Game')}</a> / ${esc(t?.name||title)}</nav><section class="template-detail-hero"><div><span>${esc(t?.badge||'TEMPLATE')}</span><h1>${esc(t?.name||title)}</h1><p>${esc(t?.description||desc)}</p><div class="template-detail-actions">${demo?`<a class="primary" href="${esc(demo)}" target="_blank" rel="noopener">Xem demo trực tiếp</a>`:''}<a href="/?template=${encodeURIComponent(key)}&name=${encodeURIComponent(t?.name||key)}#dang-ky">Đăng ký mẫu này</a></div></div>${t?.category==='game'?gameMarketplacePreviewHtml('is-detail'):`<img src="${esc(t?.image_url||'/assets/demo/game-clash-1-preview.png')}" alt="${esc(title)}">`}</section><section class="template-detail-grid"><article><h2>Giao diện được thiết kế cho đúng nhu cầu</h2><p>Template này tuân thủ Universal Layout Contract của HoangVuongTech: showroom có dữ liệu mẫu đầy đủ, còn trial/client giữ nguyên cấu trúc 1:1 và chỉ thay đổi payload nội dung.</p><div class="template-detail-features">${features.map(x=>`<span>✓ ${esc(x)}</span>`).join('')}</div></article><aside><small>GÓI WEBSITE TRỌN GÓI</small><strong>${moneyVN(Number(t?.renewal_price||t?.price||0))} / năm</strong><span>Đã gồm tên miền, hosting, giao diện và công cụ quản trị đăng bài.</span><hr><b>🎟 Voucher khách mới: giảm ${moneyVN(Math.max(0,Number(t?.renewal_price||0)-Number(t?.price||0))||500000)}</b></aside></section></main></body></html>`;
 }
 function demoCenterHtml(siteName,templates=[],category=''){
  const isRoot=!category;
@@ -512,10 +516,15 @@ function demoCenterHtml(siteName,templates=[],category=''){
  <title>${categorySeo?esc(categorySeo.title):(isRoot?'Kho giao diện website':esc(catName)+' - Kho giao diện website')} | HoangVuongTech</title>
  <meta name="description" content="${categorySeo?esc(categorySeo.desc):(isRoot?'Kho giao diện website HoangVuongTech: chọn nhóm giao diện rồi xem demo, giá năm đầu và chi phí gia hạn.':'Kho giao diện website '+esc(catName)+' trọn gói. Xem demo, giá năm đầu, chi phí gia hạn và chọn mẫu trực tiếp.')}">
  <link rel="canonical" href="https://hoangvuongtech.com/templates/${isRoot?'':esc(category)+'/'}">
+ <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+ <meta property="og:type" content="website"><meta property="og:site_name" content="HoangVuongTech">
  <meta property="og:title" content="${isRoot?'Kho giao diện website':esc(catName)+' - Kho giao diện'} | HoangVuongTech">
  <meta property="og:description" content="Xem demo và chi phí trọn gói của từng mẫu website.">
  <meta property="og:url" content="https://hoangvuongtech.com/templates/${isRoot?'':esc(category)+'/'}">
- <link rel="stylesheet" href="/assets/style.css?v=20.9.20.9">  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+ <meta property="og:image" content="https://hoangvuongtech.com/assets/marketing-demo.webp"><meta property="og:image:alt" content="Kho giao diện website HoangVuongTech">
+ <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${categorySeo?esc(categorySeo.title):'Kho giao diện website HoangVuongTech'}"><meta name="twitter:description" content="${categorySeo?esc(categorySeo.desc):'Kho giao diện website trọn gói HoangVuongTech.'}"><meta name="twitter:image" content="https://hoangvuongtech.com/assets/marketing-demo.webp">
+ <script type="application/ld+json">${JSON.stringify({'@context':'https://schema.org','@graph':[{'@type':'BreadcrumbList','itemListElement':isRoot?[{'@type':'ListItem','position':1,'name':'HoangVuongTech','item':'https://hoangvuongtech.com/'},{'@type':'ListItem','position':2,'name':'Kho giao diện','item':'https://hoangvuongtech.com/templates/'}]:[{'@type':'ListItem','position':1,'name':'HoangVuongTech','item':'https://hoangvuongtech.com/'},{'@type':'ListItem','position':2,'name':'Kho giao diện','item':'https://hoangvuongtech.com/templates/'},{'@type':'ListItem','position':3,'name':catName,'item':`https://hoangvuongtech.com/templates/${category}/`}]},{'@type':'CollectionPage','name':categorySeo?categorySeo.title:'Kho giao diện website HoangVuongTech','description':categorySeo?categorySeo.desc:'Kho giao diện website trọn gói HoangVuongTech.','url':`https://hoangvuongtech.com/templates/${isRoot?'':category+'/'}`,'isPartOf':{'@id':'https://hoangvuongtech.com/#website'}}]})}</script>
+ <link rel="stylesheet" href="/assets/style.css?v=20.9.21.0">  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="theme-color" content="#ffffff">
 </head>
@@ -655,23 +664,33 @@ Disallow: /control-center/
 Disallow: /admin/
 Disallow: /activate/
 Disallow: /renewal/
+Disallow: /reset-password/
+Disallow: /trial-checkout/
+Disallow: /favorites
+Disallow: /api/
 Disallow: /demo/
 Sitemap: https://hoangvuongtech.com/sitemap.xml
 `,{headers:{'Content-Type':'text/plain; charset=UTF-8','Cache-Control':'public, max-age=3600'}});
  }
  if(marketHost && rawPath==='/sitemap.xml'){
-   const now=new Date().toISOString().slice(0,10);
    const urls=[
-    ['https://hoangvuongtech.com/','1.0'],
-    ['https://hoangvuongtech.com/templates/','0.9'],
-    ['https://hoangvuongtech.com/templates/bat-dong-san/','0.85'],
-    ['https://hoangvuongtech.com/templates/tin-tuc/','0.85'],
-    ['https://hoangvuongtech.com/templates/dich-vu/','0.85'],
-    ['https://hoangvuongtech.com/templates/game/','0.85'],
-    ['https://hoangvuongtech.com/templates/game/clash-of-clans-base/','0.90']
+    ['https://hoangvuongtech.com/','1.0',''],
+    ['https://hoangvuongtech.com/templates/','0.9',''],
+    ['https://hoangvuongtech.com/templates/bat-dong-san/','0.85',''],
+    ['https://hoangvuongtech.com/templates/tin-tuc/','0.85',''],
+    ['https://hoangvuongtech.com/templates/dich-vu/','0.85',''],
+    ['https://hoangvuongtech.com/templates/game/','0.85','']
    ];
+   try{
+     const catalog=await loadTemplateCatalog(env,'');
+     for(const t of catalog){
+       const cat=String(t?.category||'').trim(),slug=String(t?.seo_slug||'').trim();
+       if(cat&&slug&&t?.is_active!==0)urls.push([`https://hoangvuongtech.com/templates/${encodeURIComponent(cat)}/${encodeURIComponent(slug)}/`,'0.80',String(t?.updated_at||'').slice(0,10)]);
+     }
+   }catch(e){}
+   const unique=[...new Map(urls.map(x=>[x[0],x])).values()];
    const xml=`<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(([loc,p])=>`<url><loc>${loc}</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>${p}</priority></url>`).join('')}</urlset>`;
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${unique.map(([loc,p,lastmod])=>`<url><loc>${loc}</loc>${/^\d{4}-\d{2}-\d{2}$/.test(lastmod||'')?`<lastmod>${lastmod}</lastmod>`:''}<changefreq>weekly</changefreq><priority>${p}</priority></url>`).join('')}</urlset>`;
    return new Response(xml,{headers:{'Content-Type':'application/xml; charset=UTF-8','Cache-Control':'public, max-age=3600'}});
  }
 
@@ -694,7 +713,14 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
    return Response.redirect('https://hoangvuongtech.com/templates/',302);
  }
  if(marketHost && demo==='marketplace'){
-   if(/^\/templates\/game\/clash-of-clans-base\/?$/i.test(rawPath)){const all=await loadTemplateCatalog(env,'game');const t=all.find(x=>x.template_key==='game-1');if(t)return htmlNoCache(templateSeoDetailHtml(t));}
+   const detailMatch=rawPath.match(/^\/templates\/([^/]+)\/([^/]+)\/?$/i);
+   if(detailMatch){
+     const cat=decodeURIComponent(detailMatch[1]),slug=decodeURIComponent(detailMatch[2]);
+     const all=await loadTemplateCatalog(env,cat);
+     const t=all.find(x=>String(x.seo_slug||'')===slug);
+     if(t)return htmlNoCache(templateSeoDetailHtml(t));
+     return new Response('<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="robots" content="noindex,follow"><title>Không tìm thấy giao diện | HoangVuongTech</title></head><body><main><h1>Không tìm thấy giao diện</h1><p><a href="/templates/">Quay lại kho giao diện</a></p></main></body></html>',{status:404,headers:{'Content-Type':'text/html; charset=UTF-8','Cache-Control':'no-store'}});
+   }
    // V20.0.1: render both /templates and /templates/ directly. Do NOT redirect
    // between slash/no-slash because Cloudflare Pages may normalize the other
    // direction and create ERR_TOO_MANY_REDIRECTS.
@@ -706,21 +732,21 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
  if(marketHost && rawPath==='/'){
    const r=await env.ASSETS.fetch(new URL('/marketing.html',u.origin));
    let body=await r.text();
-   const seo=`<title>Thiết kế Website Bất Động Sản Trọn Gói | HoangVuongTech</title>
-<meta name="description" content="HoangVuongTech cung cấp website bất động sản trọn gói cho môi giới, văn phòng nhà đất và doanh nghiệp nhỏ. Có tên miền, hosting, quản trị dễ dùng và giao diện chuyên nghiệp.">
+   const seo=`<title>Thiết Kế Website Trọn Gói, Giao Diện Chuyên Nghiệp | HoangVuongTech</title>
+<meta name="description" content="HoangVuongTech cung cấp website trọn gói với tên miền, hosting, giao diện chuyên nghiệp và trang quản trị dễ dùng cho tin tức, bất động sản, dịch vụ và cộng đồng game.">
 <link rel="canonical" href="https://hoangvuongtech.com/">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="HoangVuongTech">
-<meta property="og:title" content="Website Bất Động Sản Trọn Gói | HoangVuongTech">
-<meta property="og:description" content="Website riêng cho môi giới và doanh nghiệp bất động sản: tên miền, hosting, giao diện, quản trị và hỗ trợ bàn giao.">
+<meta property="og:title" content="Thiết Kế Website Trọn Gói | HoangVuongTech">
+<meta property="og:description" content="Website trọn gói cho tin tức, bất động sản, dịch vụ và cộng đồng game: tên miền, hosting, giao diện, quản trị và hỗ trợ bàn giao.">
 <meta property="og:url" content="https://hoangvuongtech.com/">
 <meta property="og:image" content="https://hoangvuongtech.com/assets/marketing-demo.webp">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Website Bất Động Sản Trọn Gói | HoangVuongTech">
-<meta name="twitter:description" content="Website riêng cho môi giới và doanh nghiệp bất động sản, quản trị dễ dùng, tên miền và hosting trọn gói.">
+<meta name="twitter:title" content="Thiết Kế Website Trọn Gói | HoangVuongTech">
+<meta name="twitter:description" content="Website trọn gói với giao diện chuyên nghiệp, tên miền, hosting và trang quản trị dễ dùng.">
 <meta name="twitter:image" content="https://hoangvuongtech.com/assets/marketing-demo.webp">
-<script type="application/ld+json">${JSON.stringify({"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://hoangvuongtech.com/#organization","name":"HoangVuongTech","url":"https://hoangvuongtech.com/","email":"hoangquocvuong.hp89@gmail.com","telephone":"+84389986287"},{"@type":"WebSite","@id":"https://hoangvuongtech.com/#website","url":"https://hoangvuongtech.com/","name":"HoangVuongTech","publisher":{"@id":"https://hoangvuongtech.com/#organization"}},{"@type":"Service","name":"Website bất động sản trọn gói","provider":{"@id":"https://hoangvuongtech.com/#organization"},"areaServed":"VN","url":"https://hoangvuongtech.com/templates/bat-dong-san/"}]})}</script>`;
+<script type="application/ld+json">${JSON.stringify({"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://hoangvuongtech.com/#organization","name":"HoangVuongTech","url":"https://hoangvuongtech.com/","email":"hoangquocvuong.hp89@gmail.com","telephone":"+84389986287","logo":"https://hoangvuongtech.com/favicons/favicon-16x16.png","contactPoint":{"@type":"ContactPoint","telephone":"+84389986287","contactType":"customer service","areaServed":"VN","availableLanguage":["vi"]}},{"@type":"WebSite","@id":"https://hoangvuongtech.com/#website","url":"https://hoangvuongtech.com/","name":"HoangVuongTech","publisher":{"@id":"https://hoangvuongtech.com/#organization"}},{"@type":"Service","name":"Thiết kế website trọn gói","provider":{"@id":"https://hoangvuongtech.com/#organization"},"areaServed":"VN","url":"https://hoangvuongtech.com/templates/"}]})}</script>`;
    body=body.replace(/<title>.*?<\/title>/is,'').replace('</head>',seo+'</head>');
    return new Response(body,{status:200,headers:{'Content-Type':'text/html; charset=UTF-8','Cache-Control':'public, max-age=300'}});
  }
@@ -779,9 +805,11 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
  }
  if(path==='/'){
    const hero=await env.DB.prepare(`SELECT * FROM posts WHERE site_id=? AND status='published' AND image<>'' ORDER BY featured DESC,id DESC LIMIT 1`).bind(site.id).first();
-   const title=`${siteName} - Bất động sản & tin tức thị trường`,desc=`${siteName} - tin đăng bất động sản, nhà đất bán, cho thuê và thông tin thị trường mới nhất.`;
-   {const html=inject(INDEX_HTML,metaTags({title,description:desc,image:hero?.image||'',url:demo&&demo!=='marketplace'&&demo!=='legacy-center'?origin+demoPrefixForPath(rawPath,demo)+'/':origin+'/'}));
-    return demo?htmlNoCache(demoInject(html,demo,trialCtx)):htmlResponse(themedHtml(html,site.preset));
+   const title=String(site.seo_title||'').trim()||`${siteName} - Bất động sản & tin tức thị trường`,desc=String(site.seo_description||'').trim()||`${siteName} - tin đăng bất động sản, nhà đất bán, cho thuê và thông tin thị trường mới nhất.`;
+   const seoImage=String(site.seo_og_image||'').trim()||hero?.image||'';
+   let html=inject(INDEX_HTML,metaTags({title,description:desc,image:seoImage,url:demo&&demo!=='marketplace'&&demo!=='legacy-center'?origin+demoPrefixForPath(rawPath,demo)+'/':origin+'/'}));
+   if(!demo&&Number(site.seo_index)===0)html=html.replace(/<meta name="robots"[^>]*>/ig,'').replace('</head>','<meta name="robots" content="noindex,follow"></head>');
+   return demo?htmlNoCache(demoInject(html,demo,trialCtx)):htmlResponse(themedHtml(html,site.preset));
    }
  }
  if(path==='/favorites'){

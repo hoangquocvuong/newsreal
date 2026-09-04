@@ -39,10 +39,18 @@ async function ensureSitePublicSettings(env){
     site_id INTEGER PRIMARY KEY,
     contact_email TEXT NOT NULL DEFAULT '',
     settings_json TEXT NOT NULL DEFAULT '{}',
+    seo_title TEXT NOT NULL DEFAULT '',
+    seo_description TEXT NOT NULL DEFAULT '',
+    seo_og_image TEXT NOT NULL DEFAULT '',
+    seo_index INTEGER NOT NULL DEFAULT 1,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(site_id) REFERENCES sites(id) ON DELETE CASCADE
   )`).run();
   try{await env.DB.prepare(`ALTER TABLE site_public_settings ADD COLUMN settings_json TEXT NOT NULL DEFAULT '{}'`).run()}catch(e){}
+  try{await env.DB.prepare(`ALTER TABLE site_public_settings ADD COLUMN seo_title TEXT NOT NULL DEFAULT ''`).run()}catch(e){}
+  try{await env.DB.prepare(`ALTER TABLE site_public_settings ADD COLUMN seo_description TEXT NOT NULL DEFAULT ''`).run()}catch(e){}
+  try{await env.DB.prepare(`ALTER TABLE site_public_settings ADD COLUMN seo_og_image TEXT NOT NULL DEFAULT ''`).run()}catch(e){}
+  try{await env.DB.prepare(`ALTER TABLE site_public_settings ADD COLUMN seo_index INTEGER NOT NULL DEFAULT 1`).run()}catch(e){}
 }
 async function ensureGameStatsTables(env){
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS game_base_stats(
@@ -78,6 +86,10 @@ async function siteFor(env,req){
   const baseSql=`SELECT s.*,
     coalesce(ps.contact_email,'') contact_email,
     coalesce(ps.settings_json,'{}') template_settings_json,
+    coalesce(ps.seo_title,'') seo_title,
+    coalesce(ps.seo_description,'') seo_description,
+    coalesce(ps.seo_og_image,'') seo_og_image,
+    coalesce(ps.seo_index,1) seo_index,
     coalesce(cp.phone,'') customer_phone,
     coalesce(cp.email,'') customer_email,
     coalesce((SELECT email FROM users u WHERE u.site_id=s.id AND u.role='admin' ORDER BY u.id LIMIT 1),'') admin_email
@@ -3577,7 +3589,9 @@ if(request.method==='DELETE'){await env.DB.prepare(`DELETE FROM posts WHERE id=?
 if(route==='settings'&&request.method==='PUT'){
  const b=await body(request);
  const publicEmail=String(b.email||'').trim().toLowerCase();
+ const seoTitle=String(b.seo_title||'').trim().slice(0,90),seoDescription=String(b.seo_description||'').trim().slice(0,180),seoOgImage=String(b.seo_og_image||'').trim().slice(0,1000),seoIndex=b.seo_index===false||b.seo_index===0||String(b.seo_index)==='0'?0:1;
  if(publicEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(publicEmail))return json({error:'Email liên hệ không hợp lệ'},400);
+ if(seoOgImage&&!/^https?:\/\//i.test(seoOgImage)&&!seoOgImage.startsWith('/'))return json({error:'Ảnh chia sẻ SEO phải là URL http(s) hoặc đường dẫn bắt đầu bằng /'},400);
  await ensureSitePublicSettings(env);await ensureTemplateCatalog(env);
  let structure=defaultTemplateStructure(site.template_key||'');
  try{const tr=await env.DB.prepare(`SELECT structure_profile FROM template_catalog WHERE template_key=? LIMIT 1`).bind(site.template_key||'').first();if(tr?.structure_profile)structure=JSON.parse(tr.structure_profile)}catch(e){}
@@ -3586,12 +3600,12 @@ if(route==='settings'&&request.method==='PUT'){
  for(const [key,def] of allowed){let v=String(incoming[key]??def.default??'').trim();const max=def.type==='textarea'?12000:1000;v=v.slice(0,max);if(def.type==='url'&&v&&!/^https?:\/\//i.test(v))return json({error:`${def.label||key}: link phải bắt đầu bằng http:// hoặc https://`},400);clean[key]=v}
  await env.DB.batch([
    env.DB.prepare(`UPDATE sites SET name=?,phone=?,zalo=?,facebook=? WHERE id=?`).bind(b.name||site.name,b.phone||'',b.zalo||'',b.facebook||'',site.id),
-   env.DB.prepare(`INSERT INTO site_public_settings(site_id,contact_email,settings_json,updated_at) VALUES(?,?,?,CURRENT_TIMESTAMP)
-     ON CONFLICT(site_id) DO UPDATE SET contact_email=excluded.contact_email,settings_json=excluded.settings_json,updated_at=CURRENT_TIMESTAMP`).bind(site.id,publicEmail,JSON.stringify(clean))
+   env.DB.prepare(`INSERT INTO site_public_settings(site_id,contact_email,settings_json,seo_title,seo_description,seo_og_image,seo_index,updated_at) VALUES(?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+     ON CONFLICT(site_id) DO UPDATE SET contact_email=excluded.contact_email,settings_json=excluded.settings_json,seo_title=excluded.seo_title,seo_description=excluded.seo_description,seo_og_image=excluded.seo_og_image,seo_index=excluded.seo_index,updated_at=CURRENT_TIMESTAMP`).bind(site.id,publicEmail,JSON.stringify(clean),seoTitle,seoDescription,seoOgImage,seoIndex)
  ]);
  try{await env.DB.prepare(`ALTER TABLE sites ADD COLUMN email TEXT DEFAULT ''`).run()}catch(e){}
  try{await env.DB.prepare(`UPDATE sites SET email=? WHERE id=?`).bind(publicEmail,site.id).run()}catch(e){}
- return json({ok:true,email:publicEmail,template_settings:clean})
+ return json({ok:true,email:publicEmail,template_settings:clean,seo_title:seoTitle,seo_description:seoDescription,seo_og_image:seoOgImage,seo_index:seoIndex})
 }
 if(route==='password'&&request.method==='PUT'){const b=await body(request),old=await sha256(b.old_password||'');if(old!==user.password_hash)return json({error:'Mật khẩu hiện tại không đúng'},400);if((b.new_password||'').length<8)return json({error:'Mật khẩu mới phải có ít nhất 8 ký tự'},400);await env.DB.prepare(`UPDATE users SET password_hash=? WHERE id=?`).bind(await sha256(b.new_password),user.id).run();return json({ok:true})}
 if(route==='stats'){const all=(await stats(env,site.id)).views,last7=(await env.DB.prepare(`SELECT count(*)c FROM pageviews WHERE site_id=? AND created_at>=datetime('now','-7 day')`).bind(site.id).first())?.c||0,last30=(await env.DB.prepare(`SELECT count(*)c FROM pageviews WHERE site_id=? AND created_at>=datetime('now','-30 day')`).bind(site.id).first())?.c||0;const {results}=await env.DB.prepare(`SELECT title,views FROM posts WHERE site_id=? ORDER BY views DESC LIMIT 10`).bind(site.id).all();return json({all,last7,last30,top:results})}
