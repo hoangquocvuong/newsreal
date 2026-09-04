@@ -3849,3 +3849,10 @@ html.coc-saved-open,html.coc-saved-open body{overflow:hidden}
 .demo-choose[data-market-choose] small{display:block;font-size:9px;font-weight:750;line-height:1.2;opacity:.9}
 .demo-choose[data-market-choose] small[hidden]{display:none!important}
 .voucher-applied .demo-choose[data-market-choose]{background:#eaf9f0;color:#07834a;border-color:#9fdfba}
+
+/* V20.9.20.8 — registration CTA after voucher: action first, price + saving status second */
+.demo-choose[data-market-choose] .market-cta-price{color:#d94b18;font-weight:950}
+.demo-choose[data-market-choose] .market-cta-sep{color:#718196;font-weight:800}
+.demo-choose[data-market-choose] .market-cta-voucher{color:#07834a;font-weight:900}
+.voucher-applied .demo-choose[data-market-choose]{background:#fff;border-color:#9fdfba;color:inherit}
+.voucher-applied .demo-choose[data-market-choose] [data-market-choose-main]{color:#17263a;font-weight:900}
