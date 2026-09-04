@@ -3856,3 +3856,14 @@ html.coc-saved-open,html.coc-saved-open body{overflow:hidden}
 .demo-choose[data-market-choose] .market-cta-voucher{color:#07834a;font-weight:900}
 .voucher-applied .demo-choose[data-market-choose]{background:#fff;border-color:#9fdfba;color:inherit}
 .voucher-applied .demo-choose[data-market-choose] [data-market-choose-main]{color:#17263a;font-weight:900}
+
+
+/* V20.9.20.9 — compact registration CTA + visible voucher price transition */
+.demo-choose[data-market-choose]{display:flex!important;align-items:center;justify-content:center;line-height:1.15;text-align:center}
+.demo-choose[data-market-choose] [data-market-choose-main]{font-weight:900;transition:opacity .42s ease,transform .42s ease}
+.demo-choose[data-market-choose] [data-market-choose-price]{font-weight:950}
+.demo-choose[data-market-choose] .market-cta-price-changing{opacity:.38;transform:scale(.96)}
+.demo-choose[data-market-choose] .market-cta-price-changed{animation:marketCtaPriceReveal .65s ease}
+.voucher-applied .demo-choose[data-market-choose] [data-market-choose-price]{color:#d94b18}
+@keyframes marketCtaPriceReveal{0%{opacity:.45;transform:scale(.96)}55%{opacity:1;transform:scale(1.07)}100%{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.demo-choose[data-market-choose] [data-market-choose-main]{transition:none!important}.demo-choose[data-market-choose] .market-cta-price-changed{animation:none!important}}
