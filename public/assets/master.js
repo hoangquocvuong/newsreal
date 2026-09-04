@@ -987,11 +987,14 @@ templateEditorForm?.addEventListener('submit',async e=>{
 
  let structureProfile={};try{structureProfile=JSON.parse(g('teStructureProfile').value||'{}')}catch(err){alert('Khung giao diện JSON không hợp lệ.');return}
  structureProfile=tmNormalizeStructureDraft(structureProfile,contentType);
- const structureCheck=tmValidateStructure(structureProfile);
- if(g('teActive').checked&&!structureCheck.ok){alert('Chưa thể đưa template vào Kho giao diện:\n\n- '+structureCheck.errors.join('\n- '));return}
- if(!Array.isArray(structureProfile.sections))structureProfile.sections=[];
  const geometryLocked=!!current&&Number(tmStructureProfile(current)?.geometry_locked||0)===1;
+ // Existing locked templates may carry legacy structure profiles that predate the
+ // Universal Layout Contract. Editing commercial/SEO metadata must never be
+ // blocked by those legacy warnings; preserve the sold geometry byte-for-byte.
  if(geometryLocked)structureProfile=tmStructureProfile(current);
+ const structureCheck=tmValidateStructure(structureProfile);
+ if(g('teActive').checked&&!structureCheck.ok&&!geometryLocked){alert('Chưa thể đưa template vào Kho giao diện:\n\n- '+structureCheck.errors.join('\n- '));return}
+ if(!Array.isArray(structureProfile.sections))structureProfile.sections=[];
  const payload={
   template_key:g('teKey').value,name:g('teName').value,category:g('teCategory').value,preset:g('tePreset').value,
   price:Number(g('tePrice').value||0),renewal_price:Number(g('teRenewal').value||0),sort_order:Number(g('teSort').value||0),

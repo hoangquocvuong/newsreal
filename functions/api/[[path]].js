@@ -2877,10 +2877,19 @@ if(route==='master/template-save'&&request.method==='POST'){
   const cl=(v,min,max,def)=>Math.max(min,Math.min(max,Math.round(Number(v)||def)));
   layoutProfile={category_columns:cl(layoutProfile.category_columns,1,6,4),category_rows:cl(layoutProfile.category_rows,1,4,2),sidebar_enabled:layoutProfile.sidebar_enabled===false||Number(layoutProfile.sidebar_enabled)===0?0:1,sidebar_read_most:cl(layoutProfile.sidebar_read_most,0,12,6),sidebar_latest:cl(layoutProfile.sidebar_latest,0,12,5),sidebar_categories:cl(layoutProfile.sidebar_categories,0,12,8),home_latest_count:cl(layoutProfile.home_latest_count,4,24,10),related_count:cl(layoutProfile.related_count,2,12,6)};
   const layoutProfileJson=JSON.stringify(layoutProfile);
-  const structureProfile=normalizeStructureProfile(b.structure_profile,key,category==='tin-tuc'?'news':category==='bat-dong-san'?'property':category==='dich-vu'?'service':category==='game'?'game':'generic');
+  let structureProfile=normalizeStructureProfile(b.structure_profile,key,category==='tin-tuc'?'news':category==='bat-dong-san'?'property':category==='dich-vu'?'service':category==='game'?'game':'generic');
+  // Legacy-safe edit contract: templates already sold with locked geometry keep
+  // their stored structure when Master edits price/SEO/preview metadata. Legacy
+  // structure warnings therefore cannot block a non-layout save. New/unlocked
+  // templates are still required to pass the Universal Layout Contract.
+  const existingTemplate=await env.DB.prepare(`SELECT structure_profile FROM template_catalog WHERE template_key=? LIMIT 1`).bind(key).first();
+  let existingStructure=null;
+  if(existingTemplate?.structure_profile){try{existingStructure=JSON.parse(existingTemplate.structure_profile)}catch(e){existingStructure=null}}
+  const legacyGeometryLocked=Number(existingStructure?.geometry_locked||0)===1;
+  if(legacyGeometryLocked)structureProfile=existingStructure;
   const structureProfileJson=JSON.stringify(structureProfile);
   const structureValidation=validateStructureProfile(structureProfile,{active});
-  if(active&&!structureValidation.ok)return json({error:'Khung giao diện chưa đạt chuẩn để đưa vào Kho template.',details:structureValidation.errors,warnings:structureValidation.warnings},400);
+  if(active&&!structureValidation.ok&&!legacyGeometryLocked)return json({error:'Khung giao diện chưa đạt chuẩn để đưa vào Kho template.',details:structureValidation.errors,warnings:structureValidation.warnings},400);
   let editorProfile={};
   try{editorProfile=typeof b.editor_profile==='object'&&b.editor_profile?b.editor_profile:JSON.parse(String(b.editor_profile||'{}'))}catch(e){return json({error:'Cấu hình form đăng bài không hợp lệ'},400)}
   const allowedContentTypes=['property','news','product','app','service','game','generic'];
