@@ -483,7 +483,7 @@ function demoCenterHtml(siteName,templates=[],category=''){
         <span><i>✓</i><b>Giao diện Website đã chọn</b></span>
         <span><i>✓</i><b>Công cụ quản trị đăng bài</b></span>
        </div>
-       <button type="button" class="commercial-voucher" data-market-voucher>🎟 Nhận voucher giảm 500.000đ</button>
+       <button type="button" class="commercial-voucher" data-market-voucher>🎟 ÁP DỤNG NGAY VOUCHER GIẢM 500K</button>
        <small class="commercial-voucher-note">Áp dụng 1 lần cho khách hàng đăng ký mới.</small>
      </div>
 
@@ -590,7 +590,7 @@ function demoCenterHtml(siteName,templates=[],category=''){
      }
      document.addEventListener('click',e=>{
        const voucher=e.target.closest('[data-market-voucher]');
-       if(voucher){e.preventDefault();const card=voucher.closest('.commercial-card'),box=card?.querySelector('[data-market-price]');if(!box)return;const list=Number(box.dataset.listPrice||0),price=Number(box.dataset.voucherPrice||0)||Math.max(0,list-500000),fmt=n=>new Intl.NumberFormat('vi-VN').format(n)+'đ',del=box.querySelector('[data-market-list]'),cur=box.querySelector('[data-market-current]'),st=box.querySelector('[data-market-voucher-status]');if(del){del.hidden=false;del.textContent=fmt(list)}if(cur)cur.textContent=fmt(price);if(st)st.textContent='✓ Đã áp dụng voucher thành công';voucher.textContent='✓ Voucher 500.000đ đã áp dụng';voucher.disabled=true;card?.classList.add('voucher-applied');return;}
+       if(voucher){e.preventDefault();const card=voucher.closest('.commercial-card'),box=card?.querySelector('[data-market-price]');if(!box)return;const list=Number(box.dataset.listPrice||0),price=Number(box.dataset.voucherPrice||0)||Math.max(0,list-500000),fmt=n=>new Intl.NumberFormat('vi-VN').format(n)+'đ',del=box.querySelector('[data-market-list]'),cur=box.querySelector('[data-market-current]'),st=box.querySelector('[data-market-voucher-status]');if(del){del.hidden=false;del.textContent=fmt(list)}if(cur)cur.textContent=fmt(price);if(st)st.textContent='✓ Đã áp dụng voucher thành công';voucher.textContent='✓ ĐÃ ÁP DỤNG VOUCHER GIẢM 500K';voucher.disabled=true;card?.classList.add('voucher-applied');return;}
        const b=e.target.closest('.demo-trial-start');if(!b)return;e.preventDefault();openTrial(b)
      });
      document.addEventListener('keydown',e=>{if(e.key==='Escape')closeTrial()});

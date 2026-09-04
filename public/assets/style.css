@@ -3760,3 +3760,18 @@ html.coc-saved-open,html.coc-saved-open body{overflow:hidden}
 
 /* V20.9.15 — marketplace single annual price + first-registration voucher */
 .commercial-pricing-simple{display:block!important}.commercial-pricing-simple .commercial-price-main{padding:14px 16px}.commercial-price-line{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.commercial-price-line del{font-size:18px;font-weight:850;color:#8a96a8}.commercial-price-line strong{font-size:30px!important}.commercial-price-line>b{font-size:13px;color:#52657a}.voucher-applied .commercial-price-main{border-color:#9fdfba;background:#f3fcf6}.voucher-applied [data-market-voucher-status]{color:#07834a!important;font-weight:900}.commercial-voucher{width:100%;margin-top:10px;border:1px dashed #12a05d;background:#fff;color:#087a43;border-radius:9px;padding:10px 12px;font-weight:900;cursor:pointer}.commercial-voucher:hover{background:#eaf9f0}.commercial-voucher:disabled{cursor:default;background:#eaf9f0}.commercial-voucher-note{display:block;text-align:center;margin-top:6px;color:#718196;font-size:9.5px}.commercial-gift-box .commercial-includes span{grid-template-rows:auto!important}.commercial-gift-box .commercial-includes i{grid-row:1!important}.coc-empty-base-card{min-height:230px;border:1px dashed #cad5e2;border-radius:14px;background:linear-gradient(180deg,#f8fafc,#fff);display:grid;place-items:center;text-align:center;padding:18px;color:#94a3b8}.coc-empty-base-card b{display:block;color:#64748b;margin-bottom:5px}.coc-empty-base-card span{font-size:12px}
+
+/* V20.9.16 — centered annual price + high-visibility voucher CTA */
+.commercial-pricing-simple .commercial-price-main{text-align:center!important;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.commercial-pricing-simple .commercial-price-line{justify-content:center!important;width:100%}
+.commercial-pricing-simple .commercial-price-line strong{font-size:34px!important;line-height:1.05}
+.commercial-pricing-simple .commercial-price-line>b{font-size:14px!important}
+.commercial-pricing-simple .commercial-price-main small,.commercial-pricing-simple .commercial-price-main em{display:block;text-align:center;width:100%}
+.commercial-voucher{position:relative;overflow:hidden;font-size:15px!important;letter-spacing:.15px;box-shadow:0 8px 20px rgba(18,160,93,.12);animation:voucherPulse 1.6s ease-in-out infinite}
+.commercial-voucher:before{content:"";position:absolute;top:0;left:-55%;width:38%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent);transform:skewX(-20deg);animation:voucherShine 2.2s ease-in-out infinite}
+.commercial-voucher:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(18,160,93,.2)}
+.commercial-voucher:disabled{animation:none;box-shadow:none}
+.commercial-voucher:disabled:before{display:none}
+@keyframes voucherPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.018)}}
+@keyframes voucherShine{0%{left:-55%}55%,100%{left:120%}}
+@media (prefers-reduced-motion:reduce){.commercial-voucher,.commercial-voucher:before{animation:none!important}}
