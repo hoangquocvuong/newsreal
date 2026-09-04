@@ -930,7 +930,7 @@ async function ensureTemplateCatalog(env){
     {key:'dich-vu-2',name:'VNPT',category:'dich-vu',preset:'service_vnpt_2',price:1499000,renewal:1999000,sort:2,image:'/assets/demo/dich-vu-2-preview.png',demo:'/demo/dich-vu/mau-2/',badge:'VNPT',description:'Website VNPT Home với Home Internet, MyTV, Home Cam và combo gia đình.',features:'Home Internet\nMyTV\nHome Cam\nCombo gia đình',accent:'blue'},
     {key:'dich-vu-3',name:'Viettel',category:'dich-vu',preset:'service_viettel_3',price:1499000,renewal:1999000,sort:3,image:'/assets/demo/dich-vu-3-preview.png',demo:'/demo/dich-vu/mau-3/',badge:'VIETTEL',description:'Website Viettel với Internet Wi-Fi 6, TV360, Camera và combo trọn gói.',features:'Internet Viettel\nTV360\nCamera Cloud\nCombo trọn gói',accent:'red'},
     {key:'dich-vu-4',name:'Camera Store',category:'dich-vu',preset:'service_camera_store_4',price:1499000,renewal:1999000,sort:4,image:'/assets/demo/dich-vu-4-preview.png',demo:'/demo/dich-vu/mau-4/',badge:'CAMERA',description:'Website trưng bày camera đa thương hiệu với sản phẩm, thông số, giá, khuyến mãi và tư vấn.',features:'Camera trong nhà\nCamera ngoài trời\nCamera AI quay quét\nCamera IP / bộ giám sát',accent:'green'},
-    {key:'game-1',name:'Template website Clash of Clans · Base Portal',category:'game',preset:'game_clash_1',price:1699000,renewal:2199000,sort:1,image:'/assets/demo/game-clash-1-preview.svg',demo:'/demo/game/clash-of-clans/',badge:'CLASH OF CLANS',description:'Mẫu website game chia sẻ base Clash of Clans cho cộng đồng với TH/BH/CH, bộ lọc nhanh và trang chi tiết base.',features:'Town Hall TH2–TH18\nBuilder Hall BH2–BH10\nClan Capital CH1–CH10\nFast Filter + Copy Link',accent:'orange'},
+    {key:'game-1',name:'Template website Clash of Clans · Base Portal',category:'game',preset:'game_clash_1',price:1699000,renewal:2199000,sort:1,image:'/assets/demo/game-clash-1-preview.png',demo:'/demo/game/clash-of-clans/',badge:'CLASH OF CLANS',description:'Mẫu website game chia sẻ base Clash of Clans cho cộng đồng với TH/BH/CH, bộ lọc nhanh và trang chi tiết base.',features:'Town Hall TH2–TH18\nBuilder Hall BH2–BH10\nClan Capital CH1–CH10\nFast Filter + Copy Link',accent:'orange'},
     {key:'tin-tuc-1',name:'Tin tức Mẫu 1 · Tạp chí hiện đại',category:'tin-tuc',preset:'news_portal_1',price:1499000,renewal:1999000,sort:1,image:'/assets/demo/tin-tuc-1-preview-v2.png',demo:'/demo/tin-tuc/mau-1/',badge:'MỚI',description:'Giao diện tin tức hiện đại, tập trung bài nổi bật, dòng tin mới, chuyên mục và nội dung đọc nhiều.',features:'Trang chủ kiểu tạp chí\nTin nổi bật + đọc nhiều\nChuyên mục tự động theo bài viết\nTối ưu nội dung & mobile',accent:'red'},
     {key:'tin-tuc-2',name:'Tin tức Mẫu 2 · Báo điện tử',category:'tin-tuc',preset:'news_paper_2',price:1399000,renewal:1899000,sort:2,image:'/assets/demo/tin-tuc-2-preview.png',demo:'/demo/tin-tuc/mau-2/',badge:'BÁO ĐIỆN TỬ',description:'Bố cục tin dày, headline lớn, danh sách cập nhật liên tục và khu đọc nhiều kiểu báo điện tử.',features:'Headline + tin cạnh bên\nDanh sách tin dày\nĐọc nhiều + chuyên mục\nTối ưu website tin tổng hợp',accent:'red'},
     {key:'tin-tuc-3',name:'Tin tức Mẫu 3 · Magazine hiện đại',category:'tin-tuc',preset:'news_magazine_3',price:1599000,renewal:1999000,sort:3,image:'/assets/demo/tin-tuc-3-preview.png',demo:'/demo/tin-tuc/mau-3/',badge:'MAGAZINE',description:'Giao diện tạp chí hình ảnh nổi bật, hero mosaic, card hiện đại và nhiều khối biên tập.',features:'Hero mosaic nhiều ảnh\nEditor Pick + Trending\nCard tạp chí hiện đại\nPhù hợp lifestyle/công nghệ',accent:'orange'},
@@ -2869,6 +2869,7 @@ if(route==='master/template-save'&&request.method==='POST'){
   const badge=String(b.badge||'').trim().slice(0,60);
   const description=String(b.description||'').trim().slice(0,1000);
   const features=String(b.features||'').trim().slice(0,2000);
+  const seoTitle=String(b.seo_title||'').trim().slice(0,90),seoSlug=String(b.seo_slug||'').trim().toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,90),primaryKeyword=String(b.primary_keyword||'').trim().slice(0,120),secondaryKeywords=String(b.secondary_keywords||'').trim().slice(0,500),metaDescription=String(b.meta_description||'').trim().slice(0,180),internalAnchor=String(b.internal_anchor||'').trim().slice(0,120);
   const accent=['blue','green','orange','purple','red'].includes(String(b.accent||''))?String(b.accent):'blue';
   const active=b.is_active===false||Number(b.is_active)===0?0:1;
   const sampleEnabled=b.sample_enabled===true||Number(b.sample_enabled)===1?1:0;
@@ -2903,16 +2904,17 @@ if(route==='master/template-save'&&request.method==='POST'){
   if(!key||!name)return json({error:'Mã template và tên template là bắt buộc'},400);
 
   await env.DB.prepare(`INSERT INTO template_catalog
-    (template_key,name,category,preset,price,renewal_price,is_active,sort_order,image_url,demo_url,badge,description,features,accent,editor_profile,sample_enabled,sample_count,layout_profile,structure_profile,updated_at)
-    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+    (template_key,name,category,preset,price,renewal_price,is_active,sort_order,image_url,demo_url,badge,description,features,accent,seo_title,seo_slug,primary_keyword,secondary_keywords,meta_description,internal_anchor,editor_profile,sample_enabled,sample_count,layout_profile,structure_profile,updated_at)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
     ON CONFLICT(template_key) DO UPDATE SET
       name=excluded.name,category=excluded.category,preset=excluded.preset,price=excluded.price,
       renewal_price=excluded.renewal_price,is_active=excluded.is_active,sort_order=excluded.sort_order,
       image_url=excluded.image_url,demo_url=excluded.demo_url,badge=excluded.badge,
       description=excluded.description,features=excluded.features,accent=excluded.accent,
+      seo_title=excluded.seo_title,seo_slug=excluded.seo_slug,primary_keyword=excluded.primary_keyword,secondary_keywords=excluded.secondary_keywords,meta_description=excluded.meta_description,internal_anchor=excluded.internal_anchor,
       editor_profile=excluded.editor_profile,sample_enabled=excluded.sample_enabled,sample_count=excluded.sample_count,layout_profile=excluded.layout_profile,structure_profile=excluded.structure_profile,
       updated_at=CURRENT_TIMESTAMP`)
-    .bind(key,name,category,preset,price,renewal,active,sort,image,demo,badge,description,features,accent,editorProfileJson,sampleEnabled,sampleCount,layoutProfileJson,structureProfileJson).run();
+    .bind(key,name,category,preset,price,renewal,active,sort,image,demo,badge,description,features,accent,seoTitle,seoSlug,primaryKeyword,secondaryKeywords,metaDescription,internalAnchor,editorProfileJson,sampleEnabled,sampleCount,layoutProfileJson,structureProfileJson).run();
   return json({ok:true,template_key:key,structure_validation:structureValidation});
 }
 

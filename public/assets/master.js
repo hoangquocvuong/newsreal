@@ -828,7 +828,7 @@ function tmClientSimulationUrl(t){
    return base+(base.includes('?')?'&':'?')+'nr_client=1&nr_samples=0';
  }
 }
-const tmCatName=k=>({'bat-dong-san':'Bất động sản','tin-tuc':'Tin tức','ban-hang':'Bán hàng','landing-page':'Landing Page','dich-vu':'Dịch vụ'}[k]||k||'Khác');
+const tmCatName=k=>({'bat-dong-san':'Bất động sản','tin-tuc':'Tin tức','ban-hang':'Bán hàng','landing-page':'Landing Page','dich-vu':'Dịch vụ','game':'Game'}[k]||k||'Khác');
 
 function tmUpdateStats(){
  const active=tmData.filter(x=>Number(x.is_active)===1).length;
@@ -887,7 +887,7 @@ function tmOpenEditor(t=null){
  document.getElementById('tmModalTitle').textContent=t?'Chỉnh sửa template':'Thêm template mới';
  const set=(id,v)=>document.getElementById(id).value=v??'';
  set('teKey',t?.template_key||'');set('teName',t?.name||'');set('teCategory',t?.category||'bat-dong-san');
- set('tePreset',t?.preset||'');set('tePrice',t?.price||0);set('teRenewal',t?.renewal_price||0);
+ set('tePreset',t?.preset||'');set('teSeoTitle',t?.seo_title||'');set('teSeoSlug',t?.seo_slug||'');set('tePrimaryKeyword',t?.primary_keyword||'');set('teSecondaryKeywords',t?.secondary_keywords||'');set('teMetaDescription',t?.meta_description||'');set('teInternalAnchor',t?.internal_anchor||'');set('tePrice',t?.price||0);set('teRenewal',t?.renewal_price||0);
  set('teSort',t?.sort_order||0);set('teAccent',t?.accent||'blue');set('teImage',t?.image_url||'');
  set('teDemo',t?.demo_url||'');set('teBadge',t?.badge||'');set('teDescription',t?.description||'');set('teFeatures',t?.features||'');
  const ep=tmProfile(t);
@@ -993,7 +993,7 @@ templateEditorForm?.addEventListener('submit',async e=>{
   template_key:g('teKey').value,name:g('teName').value,category:g('teCategory').value,preset:g('tePreset').value,
   price:Number(g('tePrice').value||0),renewal_price:Number(g('teRenewal').value||0),sort_order:Number(g('teSort').value||0),
   accent:g('teAccent').value,image_url:g('teImage').value,demo_url:g('teDemo').value,badge:g('teBadge').value,
-  description:g('teDescription').value,features:g('teFeatures').value,is_active:g('teActive').checked?1:0,
+  description:g('teDescription').value,features:g('teFeatures').value,seo_title:g('teSeoTitle').value,seo_slug:g('teSeoSlug').value,primary_keyword:g('tePrimaryKeyword').value,secondary_keywords:g('teSecondaryKeywords').value,meta_description:g('teMetaDescription').value,internal_anchor:g('teInternalAnchor').value,is_active:g('teActive').checked?1:0,
   editor_profile:editorProfile,
   structure_profile:structureProfile,
   sample_enabled:g('teSampleEnabled').checked?1:0,

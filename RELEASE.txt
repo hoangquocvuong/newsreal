@@ -1,11 +1,7 @@
-NEWSREAL V20.9.13 — CoC Unified Sticky Sidebar + Desktop Stats Alignment
-
-- Article desktop sidebar is now one unified sticky wrapper.
-- Information, Quick Guide and Copy Base Link move together; no child card uses sticky positioning.
-- Copy Base remains the last block in sidebar order.
-- Desktop Vote / View / Download / Saved are aligned to a fixed four-column baseline.
-- Keeps V20.9.12 one-line card titles and all V20.9.11 runtime/filter/daily-hero fixes.
-- Game structure profile version: 17.
-- article_sidebar_contract: game-unified-sticky-sidebar-v3.
-- article_contract: game-base-detail-v7.
-- No database migration.
+V20.9.14 - TEMPLATE MARKETPLACE SEO + GAME MANAGER
+- Game added to Master Template Manager category controls.
+- Game preview standardized to PNG asset.
+- Gift copy: domain + hosting = Tặng 1 năm.
+- SEO title/slug/keywords/meta/internal anchor for all current marketplace templates.
+- SEO fields editable in Master Template Manager.
+- Category SEO for News and Real Estate added.

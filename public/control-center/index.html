@@ -117,6 +117,7 @@
 <option value="ban-hang">Bán hàng</option>
 <option value="landing-page">Landing Page</option>
 <option value="dich-vu">Dịch vụ</option>
+<option value="game">Game</option>
 </select>
 <select id="tmStatusFilter">
 <option value="">Tất cả trạng thái</option>
@@ -141,9 +142,16 @@
 <label>Mã template *<input id="teKey" placeholder="VD: mau-3" required=""/></label>
 <label>Tên hiển thị *<input id="teName" placeholder="VD: Mẫu 3 · BĐS Luxury" required=""/></label>
 <label>Danh mục
-      <select id="teCategory"><option value="bat-dong-san">Bất động sản</option><option value="tin-tuc">Tin tức</option><option value="ban-hang">Bán hàng</option><option value="landing-page">Landing Page</option><option value="dich-vu">Dịch vụ</option></select>
+      <select id="teCategory"><option value="bat-dong-san">Bất động sản</option><option value="tin-tuc">Tin tức</option><option value="ban-hang">Bán hàng</option><option value="landing-page">Landing Page</option><option value="dich-vu">Dịch vụ</option><option value="game">Game</option></select>
 </label>
 <label>Preset / mã theme<input id="tePreset" placeholder="VD: estate_green"/></label>
+<div class="wide te-section-title"><b>SEO trang bán template</b><span>Tiêu đề, URL, từ khóa và mô tả dùng cho trang chi tiết template trên hoangvuongtech.com/templates/.</span></div>
+<label>SEO title<input id="teSeoTitle" maxlength="90" placeholder="VD: Template website bất động sản hiện đại"/></label>
+<label>SEO slug<input id="teSeoSlug" maxlength="90" placeholder="VD: website-bat-dong-san-hien-dai"/></label>
+<label>Từ khóa chính<input id="tePrimaryKeyword" maxlength="120"/></label>
+<label>Internal anchor<input id="teInternalAnchor" maxlength="120"/></label>
+<label class="wide">Từ khóa phụ<input id="teSecondaryKeywords" maxlength="500" placeholder="Phân cách bằng dấu phẩy"/></label>
+<label class="wide">Meta description<textarea id="teMetaDescription" maxlength="180" rows="3"></textarea></label>
 <div class="wide te-section-title"><b>Form đăng nội dung của template</b><span>Client Admin tự dùng cấu hình này. Khi thêm template mới không cần sửa lại form bằng code.</span></div>
 <label>Loại nội dung
       <select id="teContentType">
