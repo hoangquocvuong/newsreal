@@ -1,9 +1,17 @@
-V20.9.23.1 - PRODUCT AFFILIATE MARKETPLACE CATEGORY FIX
-- Product/Affiliate commercial template is listed under the existing Bán hàng category.
-- Keeps template key san-pham-1 and demo route /demo/san-pham/mau-1/.
-- Adds migration 0044 to move already-seeded san-pham-1 rows from san-pham to ban-hang.
+NEWSREAL V20.9.23.2 — PRODUCT/AFFILIATE DEMO BOOT + REAL PREVIEW
 
-NEWSREAL V20.9.23.0 — PRODUCT/AFFILIATE COMMERCIAL V1
+- Fix /demo/san-pham/mau-1/ booting the BĐS transport template.
+- Public Product/Affiliate showroom is self-contained and always renders full sample products.
+- Showroom keeps the same renderer/structure profile used by trial and customer modes; only content population changes.
+- Product category blocks keep exact structure keys/slots/grid contract; product detail keeps the same gallery/price/promo/spec/review layout.
+- Product demo has a hard anti-cross-template fallback: API failure can never reveal the BĐS shell.
+- Demo asset cache bumped to V20.9.23.2.
+- Marketplace "Kho mẫu" returns to /templates/ban-hang/.
+- Marketplace preview changed from placeholder SVG to a PNG captured from the real Product/Affiliate renderer layout.
+- Trial fallback routing supports Product/Affiliate and service/game templates correctly.
+- /templates/ban-hang/ added to the system sitemap category set.
+- Migration 0045 updates the production catalog preview/demo/category metadata.
 
-NEWSREAL V20.9.22.0 — HOANGVUONGTECH COMPLETE SEO FOUNDATION
-Baseline V20.9.21.1. Finalizes the template-sales SEO layer: canonical/index rules, robots exclusions, clean sitemap lastmod behavior, category/detail social metadata, CollectionPage/Product/Breadcrumb structured data, 404 noindex behavior, and noindex on private/transactional pages. Preserves template/layout/trial/voucher/checkout contracts.
+Deploy source with Git, then apply only the pending D1 migration:
+  npx wrangler d1 migrations list DB --remote
+  npx wrangler d1 migrations apply DB --remote

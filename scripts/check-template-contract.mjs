@@ -104,6 +104,10 @@ const required=[
   ['Product Affiliate Admin data contract','product_affiliate_url'],
   ['Product Affiliate no private SanVoucher API','No SanVoucher API/catalogue dependency'],
   ['backend Product preview contract',"contentType==='product'"],
+  ['Product showroom self-contained',"isPublicProductDemo=demoTemplateKey==='san-pham-1'"],
+  ['Product showroom hard anti-cross-template fallback',"window.NR_DEMO_THEME==='san-pham-1'"],
+  ['Marketplace Product category route',"isProductDemo?'/templates/ban-hang/'"],
+  ['Marketplace Product real preview PNG','/assets/demo/san-pham-1-preview.png'],
 ];
 let failed=0;
 for(const [name,needle] of required){

@@ -1876,7 +1876,7 @@ if(route==='trial/create'&&request.method==='POST'){
   // Public showroom demo data is virtual and must never leak into a trial tenant.
   try{await env.DB.prepare(`DELETE FROM posts WHERE site_id=?`).bind(siteId).run()}catch(e){}
   const tr=await trialByToken(env,token);await trialEvent(env,tr,'trial_created',{template_key:templateKey,activation_required:true});
-  const demoBase=String(tpl.demo_url||(`/demo/${tpl.category==='tin-tuc'?'tin-tuc':'bat-dong-san'}/${templateKey.replace('tin-tuc-','mau-')}/`));
+  const demoBase=String(tpl.demo_url||(tpl.category==='ban-hang'&&templateKey==='san-pham-1'?'/demo/san-pham/mau-1/':tpl.category==='game'&&templateKey==='game-1'?'/demo/game/clash-of-clans/':`/demo/${tpl.category==='tin-tuc'?'tin-tuc':tpl.category==='dich-vu'?'dich-vu':'bat-dong-san'}/${templateKey.replace('tin-tuc-','mau-').replace('dich-vu-','mau-')}/`));
   return json({ok:true,trial_id:trialId,lead_id:leadId,token,tenant,status:'pending_activation',
     activation_url:`/activate/?token=${encodeURIComponent(activationRaw)}&trial=1`,
     trial_url:`/trial/${token}/`,website_url:`${demoBase}?nr_trial=${encodeURIComponent(token)}`,
@@ -1885,7 +1885,7 @@ if(route==='trial/create'&&request.method==='POST'){
 if(route==='trial/status'&&request.method==='GET'){
   const tr=await trialByToken(env,String(u.searchParams.get('token')||''));if(!tr)return json({error:'Trial không tồn tại'},404);
   await trialEvent(env,tr,'trial_seen',{path:String(u.searchParams.get('path')||'')});
-  const demoBase=String(tr.template_demo_url||(`/demo/${tr.template_category==='tin-tuc'?'tin-tuc':'bat-dong-san'}/${String(tr.template_key||'').replace('tin-tuc-','mau-')}/`));
+  const demoBase=String(tr.template_demo_url||(tr.template_category==='ban-hang'&&tr.template_key==='san-pham-1'?'/demo/san-pham/mau-1/':tr.template_category==='game'&&tr.template_key==='game-1'?'/demo/game/clash-of-clans/':`/demo/${tr.template_category==='tin-tuc'?'tin-tuc':tr.template_category==='dich-vu'?'dich-vu':'bat-dong-san'}/${String(tr.template_key||'').replace('tin-tuc-','mau-').replace('dich-vu-','mau-')}/`));
   const websiteUrl=demoBase+(demoBase.includes('?')?'&':'?')+'nr_trial='+encodeURIComponent(tr.trial_token);
   return json({ok:true,trial:trialPublicState(tr),customer:{name:tr.customer_name||'',email:tr.email||'',phone:tr.phone||'',zalo:tr.zalo||'',company:tr.company||'',facebook:tr.facebook||'',site_name:tr.site_name||'',note:tr.note||'',marketing_opt_in:Number(tr.marketing_opt_in||0)},template:{key:tr.template_key,name:tr.template_name||tr.template_key,price:Number(tr.template_price||0),renewal_price:Number(tr.template_renewal_price||0),demo_url:demoBase},website_url:websiteUrl});
 }

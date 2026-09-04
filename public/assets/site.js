@@ -1697,8 +1697,10 @@ async function nrBootMain(){
    // Demo route already tells us the template key, so site data and catalog profile
    // are requested in parallel. Subsequent demo pages reuse session cache.
    const isPublicGameDemo=demoTemplateKey==='game-1'&&!window.NR_TRIAL_TOKEN&&!window.NR_CLIENT_SIM;
-   const sitePromise=isPublicGameDemo?null:nrFetchJsonCached(tenantApiUrl('/api/site'),{kind:'site',key:demoTemplateKey||'site',ttl:300000});
-   const demoCatalogPromise=(demoTemplateKey&&!isPublicGameDemo)?nrFetchJsonCached(tenantApiUrl('/api/template-catalog?key='+encodeURIComponent(demoTemplateKey)),{kind:'catalog',key:demoTemplateKey,ttl:1800000,options:{cache:'force-cache'}}):null;
+   const isPublicProductDemo=demoTemplateKey==='san-pham-1'&&!window.NR_TRIAL_TOKEN&&!window.NR_CLIENT_SIM;
+   const selfContainedDemo=isPublicGameDemo||isPublicProductDemo;
+   const sitePromise=selfContainedDemo?null:nrFetchJsonCached(tenantApiUrl('/api/site'),{kind:'site',key:demoTemplateKey||'site',ttl:300000});
+   const demoCatalogPromise=(demoTemplateKey&&!selfContainedDemo)?nrFetchJsonCached(tenantApiUrl('/api/template-catalog?key='+encodeURIComponent(demoTemplateKey)),{kind:'catalog',key:demoTemplateKey,ttl:1800000,options:{cache:'force-cache'}}):null;
    // V20.9.5: the public Clash of Clans showroom is a self-contained demo package.
    // It must NEVER depend on the shared BDS demo tenant/API to decide what DOM to paint.
    // Yield once so GAME_REAL_SAMPLE_POSTS is initialized, then boot from the local package.
@@ -1706,12 +1708,16 @@ async function nrBootMain(){
    if(isPublicGameDemo){
      await Promise.resolve();
      d={site:{id:0,name:'COC Base Portal',template_key:'game-1',preset:'game_clash_1',template_settings:{donate_url:'https://buymeacoffee.com/cocbase',about_title:'About COC Base Portal',about_content:'Thư viện base cộng đồng dành cho Town Hall, Builder Hall và Clan Capital.',terms_title:'Điều khoản sử dụng',terms_content:'Base được chia sẻ cho cộng đồng.',footer_text:'Community Clash of Clans base sharing · Not affiliated with Supercell.'},structure_profile:{version:7,content_type:'game',sections:[{key:'hero',type:'section',bind_required:0},{key:'filters',type:'section',bind_required:0},{key:'town-hall',type:'category',category:'Town Hall',slots:17,desktop_columns:4,tablet_columns:3,mobile_columns:2,bind_required:1},{key:'builder-hall',type:'category',category:'Builder Hall',slots:9,desktop_columns:4,tablet_columns:2,mobile_columns:2,bind_required:1},{key:'clan-capital',type:'category',category:'Clan Capital',slots:10,desktop_columns:4,tablet_columns:2,mobile_columns:2,bind_required:1}] }},posts:Array.isArray(GAME_REAL_SAMPLE_POSTS)?GAME_REAL_SAMPLE_POSTS:[],stats:{posts:Array.isArray(GAME_REAL_SAMPLE_POSTS)?GAME_REAL_SAMPLE_POSTS.length:0},preview:{demo:true,template_demo:true,source:'local-game-showroom'}};
+   }else if(isPublicProductDemo){
+     await Promise.resolve();
+     const sample=nrBuildProductShowroomPosts();
+     d={site:{id:0,name:'Product Store',template_key:'san-pham-1',preset:'product_affiliate_1',template_settings:{product_cta_label:'Xem nơi bán',product_affiliate_note:'Website có thể nhận hoa hồng khi người xem mua hàng qua liên kết giới thiệu.'},structure_profile:{version:1,content_type:'product',layout_contract:'universal-layout-v1',route_contract:'product-catalog-v1',card_contract:'product-title-price-v1',article_contract:'product-detail-v1',sections:[{key:'hero',type:'section',bind_required:0},{key:'categories',type:'section',bind_required:0},{key:'featured',type:'category',slots:10,desktop_columns:5,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1},{key:'electronics',type:'category',category:'Điện tử & Công nghệ',slots:5,desktop_columns:5,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1},{key:'home',type:'category',category:'Nhà cửa & Đời sống',slots:5,desktop_columns:5,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1},{key:'beauty',type:'category',category:'Thời trang & Làm đẹp',slots:5,desktop_columns:5,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1},{key:'baby',type:'category',category:'Mẹ & Bé',slots:5,desktop_columns:5,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1}]}},posts:sample,stats:{posts:sample.length},preview:{demo:true,template_demo:true,samples:1,source:'local-product-showroom',content_type:'product'}};
    }else d=await sitePromise;
    SITE_DATA=d;
    const s=d.site||{};
    if(s?.favicon_url){let f=document.querySelector('link[rel=\"icon\"]');if(!f){f=document.createElement('link');f.rel='icon';document.head.appendChild(f)}f.href=s.favicon_url}
    const activeTemplateKey=demoTemplateKey||s.template_key||'';
-   if(activeTemplateKey&&!isPublicGameDemo){
+   if(activeTemplateKey&&!selfContainedDemo){
      try{
        const td=(demoCatalogPromise&&activeTemplateKey===demoTemplateKey)
          ?await demoCatalogPromise
@@ -1836,6 +1842,13 @@ async function nrBootMain(){
        window.__NR_GAME_BOOT_ERROR__=String(gameFallbackError&&gameFallbackError.stack||gameFallbackError||'unknown');
        nrGameEmergencyHome();
      }
+   }else if(window.NR_DEMO_THEME==='san-pham-1'||document.body.classList.contains('theme-product-affiliate')){
+     try{
+       document.body.classList.add('theme-product-affiliate');
+       const sample=nrBuildProductShowroomPosts(),fallbackSite={name:'Product Store',template_key:'san-pham-1',preset:'product_affiliate_1',template_settings:{product_cta_label:'Xem nơi bán'}};
+       SITE_DATA={site:fallbackSite,posts:sample,stats:{posts:sample.length},preview:{demo:true,source:'hard-product-fallback'}};
+       renderProductAffiliate1(fallbackSite);
+     }catch(productFallbackError){console.error('PRODUCT HARD FALLBACK',productFallbackError);const main=document.querySelector('main');if(main)main.innerHTML='<div class="pa-wrap pa-empty"><h1>Không tải được giao diện Sản phẩm / Affiliate.</h1></div>'}
    }else if(window.NR_DEMO_THEME==='tin-tuc-1'||document.body.classList.contains('theme-news-portal')){
      const main=document.querySelector('main');
      if(main)main.innerHTML='<section class="n3-section"><div class="wrap"><div class="empty">Không tải được dữ liệu demo tin tức.</div></div></section>';
@@ -2109,6 +2122,19 @@ const NR_SERVICE_PROVIDERS={
 
 // V20.9.23.0 — Commercial Product/Affiliate template.
 // Data source is exclusively NEWSREAL posts/Admin Client. No SanVoucher API/catalogue dependency.
+function nrBuildProductShowroomPosts(){
+ const groups={
+  'Điện tử & Công nghệ':['Tai nghe Bluetooth Pro','Chuột không dây Silent','Bàn phím cơ Compact','Sạc nhanh GaN 65W','Hub USB-C 8 in 1','Loa Bluetooth Mini'],
+  'Nhà cửa & Đời sống':['Máy hút bụi cầm tay','Đèn bàn chống cận','Máy xay mini','Bình giữ nhiệt 900ml','Quạt tuần hoàn mini','Kệ để bàn đa năng'],
+  'Thời trang & Làm đẹp':['Máy sấy tóc Ion','Máy uốn tóc mini','Túi đeo chéo Urban','Kính chống UV','Máy rửa mặt Sonic','Đồng hồ thể thao'],
+  'Mẹ & Bé':['Đèn ngủ cảm biến','Bình nước trẻ em','Máy hâm sữa mini','Camera trông bé','Bộ đồ chơi lắp ráp','Gối chống trào ngược'],
+  'Thể thao & Du lịch':['Bình nước thể thao','Túi du lịch gấp gọn','Đồng hồ chạy bộ','Đèn pin dã ngoại','Gậy trekking carbon','Túi chống nước'],
+  'Phụ kiện & Khác':['Cáp sạc bọc dù','Giá đỡ điện thoại','Pin dự phòng 20K','Ổ cắm thông minh','Webcam Full HD','Thẻ nhớ 128GB']
+ };
+ const out=[];let idx=0;
+ Object.entries(groups).forEach(([category,names])=>names.forEach(title=>{const price=199000+((idx*173000)%4200000),old=Math.round(price*1.28/1000)*1000,brand=['Nova','Aster','MobiGear','HomeLab','UrbanX','Kiddo'][idx%6];out.push({id:940000+idx,type:'product',title,category,image:`/assets/product-affiliate/product-${(idx%6)+1}.svg`,gallery:`/assets/product-affiliate/product-${((idx+1)%6)+1}.svg, /assets/product-affiliate/product-${((idx+2)%6)+1}.svg`,content:`<p><b>${title}</b> là sản phẩm mẫu dùng để trình bày đúng giao diện catalog thương mại.</p><h2>Điểm nổi bật</h2><p>Khung bài chi tiết giữ nguyên layout sản phẩm: gallery, giá, ưu đãi, thông số, nội dung review và sản phẩm liên quan. Khi bàn giao, khách quản lý toàn bộ dữ liệu trong Trang quản trị.</p>`,status:'published',featured:idx<10?1:0,verified:1,views:320+idx*47,extra_json:JSON.stringify({product_price:String(price),product_old_price:String(old),product_brand:brand,product_sku:'PA-'+String(idx+1).padStart(4,'0'),product_affiliate_url:'#',product_badge:idx%4===0?'BÁN CHẠY':idx%4===1?'GIẢM GIÁ':'',product_rating:(4.6+(idx%4)*.1).toFixed(1),product_sold:String(230+idx*91),product_promo:'Ưu đãi mẫu dành cho showroom. Chủ website tự chỉnh giá, voucher và link mua trong Trang quản trị.',product_specs:'Thương hiệu: '+brand+'\nBảo hành: 12 tháng\nTình trạng: Mới'}),is_sample:1,sample_key:'san-pham-1:'+(idx+1),__nr_blueprint:1});idx++}));
+ return out;
+}
 function nrProductExtra(p){try{return typeof p?.extra_json==='object'&&p.extra_json?p.extra_json:JSON.parse(p?.extra_json||'{}')}catch(e){return {}}}
 function nrProductMoney(v){const n=Number(String(v||'').replace(/[^0-9.-]/g,''));return n?new Intl.NumberFormat('vi-VN').format(n)+'đ':'Liên hệ'}
 function nrProductSlug(v){return String(v||'san-pham').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/đ/g,'d').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,100)||'san-pham'}
