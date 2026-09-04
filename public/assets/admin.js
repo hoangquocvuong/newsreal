@@ -71,14 +71,14 @@ const BUILTIN_CONTENT_PROFILES={
   categories:['Town Hall','Builder Hall','Clan Capital'],
   contentLabel:'Nội dung / chiến thuật base',
   contentHelp:'Mô tả cách base hoạt động, mục tiêu phòng thủ, meta phù hợp và hướng dẫn copy.',
+  // Category is the single source of truth for TH / BH / CH. Do not duplicate it as game_group in the form.
   custom_fields:[
-   {key:'game_group',label:'Nhóm Base',type:'select',options:['Town Hall','Builder Hall','Clan Capital']},
-   {key:'game_level',label:'Level',type:'text',placeholder:'TH18 / BH10 / CH10'},
-   {key:'game_purpose',label:'Purpose',type:'select',options:['War','Farming','Hybrid','Trophy','Legend','CWL','Troll']},
-   {key:'game_style',label:'Style',type:'select',options:['Diamond','Ring','Box','Compact','Spread','Original']},
-   {key:'game_defense',label:'Defense',type:'select',options:['Anti 3 Star','Anti 2 Star','Anti Everything','Anti Air','Balanced Defense']},
+   {key:'game_level',label:'Level',type:'select',options:[]},
+   {key:'game_purpose',label:'Type',type:'select',options:[]},
+   {key:'game_style',label:'Style',type:'select',options:[]},
+   {key:'game_defense',label:'Defense',type:'select',options:[]},
    {key:'copy_link',label:'Copy Base Link',type:'url',placeholder:'https://link.clashofclans.com/...'},
-   {key:'game_year',label:'Năm',type:'text',placeholder:'2026'}
+   {key:'game_year',label:'Năm',type:'select',options:['2026','2025']}
   ]
  }
 };
@@ -101,7 +101,9 @@ function resolvedContentProfile(){
  const merged={...base,...remote,custom_fields:Array.isArray(remote.custom_fields)&&remote.custom_fields.length?remote.custom_fields:(base.custom_fields||[])};
  if(gameBase){
    merged.content_type='game';
-   merged.categories=Array.isArray(remote.categories)&&remote.categories.length?remote.categories:(base.categories||[]);
+   merged.categories=['Town Hall','Builder Hall','Clan Capital'];
+   // Always use the current game taxonomy schema so legacy editor_profile cannot re-introduce the duplicate Nhóm Base field.
+   merged.custom_fields=base.custom_fields||[];
    delete merged.categoriesByTransaction;
  }else if(newsBase){
    merged.content_type='news';
@@ -113,9 +115,41 @@ function resolvedContentProfile(){
  return merged;
 }
 function safeProfileId(v=''){return String(v).replace(/[^a-z0-9_-]/gi,'').slice(0,60)}
+function gameAdminTaxonomy(category='Town Hall'){
+ const group=String(category||'Town Hall');
+ if(group==='Builder Hall')return {
+   prefix:'BH',levels:Array.from({length:9},(_,i)=>'BH'+(i+2)),typeLabel:'Type',
+   types:['Anti Air','Anti Ground','Anti Baby Dragon','Anti Minion','Anti Giant','Builder Base'],
+   styles:['Compact','Box','Ring','Spread','Original'],
+   defenses:['Anti Air','Anti Ground','Balanced Defense']
+ };
+ if(group==='Clan Capital')return {
+   prefix:'CH',levels:Array.from({length:10},(_,i)=>'CH'+(i+1)),typeLabel:'District',
+   types:['Capital Peak','Barbarian Camp','Wizard Valley','Balloon Lagoon','Builders Workshop','Dragon Cliffs','Golem Quarry','Skeleton Park','Goblin Mines'],
+   styles:['Compact','Spread','Original'],
+   defenses:['Balanced Defense','Anti Air','Anti Ground']
+ };
+ return {
+   prefix:'TH',levels:Array.from({length:17},(_,i)=>'TH'+(i+2)),typeLabel:'Type',
+   types:['War','Farming','Hybrid','Trophy','Legend','CWL','Troll'],
+   styles:['Diamond','Ring','Box','Compact','Spread','Original'],
+   defenses:['Anti 3 Star','Anti 2 Star','Anti Everything','Anti Air','Balanced Defense']
+ };
+}
+function gameAdminFields(values={}){
+ const tax=gameAdminTaxonomy(postCategory?.value||values.game_group||'Town Hall');
+ return [
+   {key:'game_level',label:'Level',type:'select',options:tax.levels},
+   {key:'game_purpose',label:tax.typeLabel,type:'select',options:tax.types},
+   {key:'game_style',label:'Style',type:'select',options:tax.styles},
+   {key:'game_defense',label:'Defense',type:'select',options:tax.defenses},
+   {key:'copy_link',label:'Copy Base Link',type:'url',placeholder:'https://link.clashofclans.com/...'},
+   {key:'game_year',label:'Năm',type:'select',options:['2026','2025']}
+ ];
+}
 function renderProfileFields(values={}){
  const host=document.getElementById('profileFieldsHost');if(!host)return;
- const profile=resolvedContentProfile(),fields=Array.isArray(profile.custom_fields)?profile.custom_fields:[];
+ const profile=resolvedContentProfile(),fields=profile.content_type==='game'?gameAdminFields(values):(Array.isArray(profile.custom_fields)?profile.custom_fields:[]);
  if(!fields.length){host.innerHTML='';host.classList.add('hidden');return}
  host.classList.remove('hidden');
  host.innerHTML='<div class="form-section-title">Thông tin theo mẫu giao diện</div><div class="profile-fields-grid">'+fields.map(f=>{
@@ -127,7 +161,7 @@ function renderProfileFields(values={}){
  }).join('')+'</div>';
 }
 function collectProfileFields(){
- const o={};document.querySelectorAll('[data-profile-field]').forEach(el=>o[el.dataset.profileField]=el.value||'');return o;
+ const o={};document.querySelectorAll('[data-profile-field]').forEach(el=>o[el.dataset.profileField]=el.value||'');if(isGameTemplate()||postType?.value==='game')o.game_group=postCategory?.value||'Town Hall';return o;
 }
 function parseExtraJson(v){try{return typeof v==='object'&&v?v:JSON.parse(v||'{}')}catch{return {}}}
 
@@ -162,6 +196,7 @@ function configureAdminForTemplate(){
    postType.value='game';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
    if(menuNew)menuNew.textContent='Đăng base mới';if(menuPosts)menuPosts.textContent='Quản lý base';if(overviewBtn)overviewBtn.textContent='＋ Đăng base mới';
    if(postTitle)postTitle.placeholder='Ví dụ: TH18 War Base Link – Anti 3 Stars';
+   const catLabel=postCategory?.closest('label');if(catLabel){const n=[...catLabel.childNodes].find(x=>x.nodeType===3&&String(x.textContent).trim());if(n)n.textContent='Nhóm Base\n';const h=catLabel.querySelector('.field-help');if(h)h.textContent='Chọn Town Hall, Builder Hall hoặc Clan Capital. Level và Type/District bên dưới sẽ tự đổi theo đúng bộ lọc của giao diện.'}
    document.querySelector('#tab-overview .admin-page-head p')?.replaceChildren(document.createTextNode('Quản lý base Clash of Clans, Copy Base Link và theo dõi hiệu quả website.'));
    document.querySelector('#tab-overview .admin-kpis .kpi:first-child small')?.replaceChildren(document.createTextNode('TỔNG BASE'));
    document.querySelector('#tab-overview .admin-kpis .kpi:first-child span')?.replaceChildren(document.createTextNode('Base đã đăng'));
@@ -549,7 +584,7 @@ function updateContentTypeUI(){
   imageSectionTitle.textContent=isGame?'Hình ảnh base':isService?'Hình ảnh dịch vụ':isNews?'Hình ảnh bài viết':'Hình ảnh bất động sản';
   fillCategoryOptions(postCategory.value);
 }
-postType.addEventListener('change',updateContentTypeUI);transaction.addEventListener('change',()=>fillCategoryOptions(postCategory.value));
+postType.addEventListener('change',updateContentTypeUI);transaction.addEventListener('change',()=>fillCategoryOptions(postCategory.value));postCategory.addEventListener('change',()=>{if(isGameTemplate()||postType.value==='game')renderProfileFields({})});
 
 
 postForm.addEventListener('submit',async e=>{e.preventDefault();if(!validatePost())return;const normalizedContent=normalizeArticleHtml(richHtml());if(postContent)postContent.value=normalizedContent;if(nrTinyEditor)nrTinyEditor.setContent(normalizedContent);else if(richEditor)richEditor.innerHTML=normalizedContent;submitPostBtn.disabled=true;submitPostBtn.textContent='Đang xử lý...';const isNews=postType.value==='news',isService=postType.value==='service',isGame=postType.value==='game',isSimple=isNews||isService||isGame;const b={type:postType.value,transaction:isSimple?'':transaction.value,property_type:isSimple?'':propertyType.value,title:postTitle.value,price:isSimple?'':postPrice.value,area:isSimple?'':postArea.value,unit_price:isSimple?'':unitPrice.value,listing_code:listingCode.value,bedrooms:isSimple?null:(+bedrooms.value||null),bathrooms:isSimple?null:(+bathrooms.value||null),floors:isSimple?null:(+floors.value||null),frontage:isSimple?'':frontage.value,direction:isSimple?'':direction.value,legal:isSimple?'':legal.value,furniture:isSimple?'':furniture.value,province:isSimple?'':province.value,district:isSimple?'':district.value,ward:isSimple?'':ward.value,address:isSimple?'':postAddress.value,image:postImage.value,gallery:gallery.value,contact_name:isSimple?'':contactName.value,phone:isSimple?'':postPhone.value,category:postCategory.value,content:postContent.value,extra_json:JSON.stringify(collectProfileFields()),featured:featured.checked?1:0,verified:verified.checked?1:0,status:postStatus.value};const id=editingId.value;try{

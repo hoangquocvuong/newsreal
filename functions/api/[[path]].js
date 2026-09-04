@@ -1051,13 +1051,12 @@ async function ensureTemplateCatalog(env){
   // V20.8.0 — Game / Clash of Clans content contract.
   try{
     const gameEditor={id:'game-base',label:'Clash of Clans Base',content_type:'game',categories:['Town Hall','Builder Hall','Clan Capital'],contentLabel:'Nội dung / chiến thuật base',contentHelp:'Mô tả cách base hoạt động, mục tiêu phòng thủ, meta phù hợp và hướng dẫn copy.',custom_fields:[
-      {key:'game_group',label:'Nhóm Base',type:'select',options:['Town Hall','Builder Hall','Clan Capital']},
-      {key:'game_level',label:'Level',type:'text',placeholder:'TH18 / BH10 / CH10'},
-      {key:'game_purpose',label:'Purpose',type:'select',options:['War','Farming','Hybrid','Trophy','Legend','CWL','Troll']},
-      {key:'game_style',label:'Style',type:'select',options:['Diamond','Ring','Box','Compact','Spread','Original']},
-      {key:'game_defense',label:'Defense',type:'select',options:['Anti 3 Star','Anti 2 Star','Anti Everything','Anti Air','Balanced Defense']},
-      {key:'copy_link',label:'Copy Link',type:'url',placeholder:'https://link.clashofclans.com/...'},
-      {key:'game_year',label:'Năm',type:'text',placeholder:'2026'}
+      {key:'game_level',label:'Level',type:'select',options:[]},
+      {key:'game_purpose',label:'Type',type:'select',options:[]},
+      {key:'game_style',label:'Style',type:'select',options:[]},
+      {key:'game_defense',label:'Defense',type:'select',options:[]},
+      {key:'copy_link',label:'Copy Base Link',type:'url',placeholder:'https://link.clashofclans.com/...'},
+      {key:'game_year',label:'Năm',type:'select',options:['2026','2025']}
     ]};
     await env.DB.prepare(`UPDATE template_catalog SET editor_profile=?,structure_profile=? WHERE template_key='game-1'`).bind(JSON.stringify(gameEditor),JSON.stringify(defaultTemplateStructure('game-1'))).run();
   }catch(e){}

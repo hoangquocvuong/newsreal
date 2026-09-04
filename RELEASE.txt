@@ -1,3 +1,8 @@
+V20.9.19 - GAME ADMIN FILTER TAXONOMY SYNC
+- Removes duplicated game Group field; category is the single TH/BH/CH source.
+- Admin Level + Type/District options now follow the same progressive taxonomy as the public filter.
+- Style/Defense adapt by game group; game_group is still derived on save for renderer/backward compatibility.
+
 V20.9.18 — TEMPLATE-AWARE ADMIN + GAME ARTICLE CLEAN DETAIL + CONTEXTUAL TRIAL NAME
 - Game/Clash of Clans Admin is now template-aware: Game post form, Game categories/custom fields, Game labels/KPIs, no service consultation inbox.
 - News, real-estate and service Admin contracts remain template-specific; Master Template Manager now preserves service/game content_type instead of coercing them to generic.
