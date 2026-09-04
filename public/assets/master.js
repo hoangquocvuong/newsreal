@@ -897,12 +897,34 @@ async function loadTemplateManager(){
   tmData=r.templates||[];tmUpdateStats();tmRender();renderCreateThemePicker(csTemplateKey?.value||'');
  }catch(e){tmList.innerHTML='<div class="empty-state">Không tải được Template Manager.</div>'}
 }
+function tmSeoSlugify(v=''){
+ return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,90);
+}
+function tmSeoDefaults(name='',category=''){
+ const n=String(name||'').trim()||'Template website';
+ const c=String(category||'').trim();
+ let primary='template website',secondary='mẫu website, giao diện website, website chuyên nghiệp';
+ if(c==='bat-dong-san'){primary='template website bất động sản';secondary='mẫu website bất động sản, website nhà đất, website môi giới bất động sản'}
+ else if(c==='tin-tuc'){primary='template website tin tức';secondary='mẫu website tin tức, giao diện báo điện tử, template tạp chí online'}
+ else if(c==='dich-vu'){primary='template website dịch vụ';secondary='mẫu website dịch vụ, website tư vấn dịch vụ, landing page dịch vụ'}
+ else if(c==='game'){primary='template website game';secondary='mẫu website game, website cộng đồng game, giao diện website game'}
+ const clean=n.replace(/^Mẫu\s*\d+\s*[·.-]?\s*/i,'').trim();
+ const title=(/^template|^mẫu website/i.test(clean)?clean:`${primary} – ${clean}`).slice(0,68);
+ const desc=(`${n} với giao diện chuyên nghiệp, responsive, công cụ quản trị nội dung và cấu trúc phù hợp phát triển SEO dài hạn.`).slice(0,158);
+ return {seo_title:title,seo_slug:tmSeoSlugify(clean||n),primary_keyword:primary,secondary_keywords:secondary,meta_description:desc,internal_anchor:primary};
+}
+function tmAutoFillSeoDraft(){
+ const g=id=>document.getElementById(id); if(!g('teName')||!g('teCategory'))return;
+ const d=tmSeoDefaults(g('teName').value,g('teCategory').value);
+ [['teSeoTitle','seo_title'],['teSeoSlug','seo_slug'],['tePrimaryKeyword','primary_keyword'],['teSecondaryKeywords','secondary_keywords'],['teMetaDescription','meta_description'],['teInternalAnchor','internal_anchor']].forEach(([id,k])=>{const el=g(id);if(el&&!String(el.value||'').trim())el.value=d[k]||''});
+}
 function tmOpenEditor(t=null){
  templateEditorForm.reset();
  document.getElementById('tmModalTitle').textContent=t?'Chỉnh sửa template':'Thêm template mới';
  const set=(id,v)=>document.getElementById(id).value=v??'';
  set('teKey',t?.template_key||'');set('teName',t?.name||'');set('teCategory',t?.category||'bat-dong-san');
  set('tePreset',t?.preset||'');set('teSeoTitle',t?.seo_title||'');set('teSeoSlug',t?.seo_slug||'');set('tePrimaryKeyword',t?.primary_keyword||'');set('teSecondaryKeywords',t?.secondary_keywords||'');set('teMetaDescription',t?.meta_description||'');set('teInternalAnchor',t?.internal_anchor||'');set('tePrice',t?.price||0);set('teRenewal',t?.renewal_price||0);
+ tmAutoFillSeoDraft();
  set('teSort',t?.sort_order||0);set('teAccent',t?.accent||'blue');set('teImage',t?.image_url||'');
  set('teDemo',t?.demo_url||'');set('teBadge',t?.badge||'');set('teDescription',t?.description||'');set('teFeatures',t?.features||'');
  const ep=tmProfile(t);
@@ -1007,6 +1029,7 @@ templateEditorForm?.addEventListener('submit',async e=>{
  const structureCheck=tmValidateStructure(structureProfile);
  if(g('teActive').checked&&!structureCheck.ok&&!geometryLocked){alert('Chưa thể đưa template vào Kho giao diện:\n\n- '+structureCheck.errors.join('\n- '));return}
  if(!Array.isArray(structureProfile.sections))structureProfile.sections=[];
+ tmAutoFillSeoDraft();
  const payload={
   template_key:g('teKey').value,name:g('teName').value,category:g('teCategory').value,preset:g('tePreset').value,
   price:Number(g('tePrice').value||0),renewal_price:Number(g('teRenewal').value||0),sort_order:Number(g('teSort').value||0),
