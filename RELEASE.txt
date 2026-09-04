@@ -1,7 +1,9 @@
-V20.9.14 - TEMPLATE MARKETPLACE SEO + GAME MANAGER
-- Game added to Master Template Manager category controls.
-- Game preview standardized to PNG asset.
-- Gift copy: domain + hosting = Tặng 1 năm.
-- SEO title/slug/keywords/meta/internal anchor for all current marketplace templates.
-- SEO fields editable in Master Template Manager.
-- Category SEO for News and Real Estate added.
+NEWSREAL V20.9.15 — MARKETPLACE SIMPLE PRICE + NEW-CUSTOMER VOUCHER + TH18 REAL SAMPLES
+
+- Marketplace uses one annual list price instead of Year 1 / Year 2 price boxes.
+- Package includes: free custom domain, free hosting, selected website UI, post-management admin tool.
+- New-customer voucher UI: 500,000 VND one-time discount; after click list price is struck through and discounted first-payment price is shown with success state.
+- Preserves existing catalog price/renewal fields internally so checkout and renewal contracts remain compatible.
+- Game showroom prepends 8 real TH18 posts sourced from the provided Blogger Atom feed, preserving original title, image, article HTML and Copy Base Link.
+- Empty Game client/trial archives keep the same 12-card geometry using blank article placeholders; no fake sample content is injected.
+- Existing universal 1:1 template layout/content-population contract remains locked.

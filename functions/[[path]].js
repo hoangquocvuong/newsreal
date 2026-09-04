@@ -443,7 +443,7 @@ function templateSeoDetailHtml(t){
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const key=String(t?.template_key||''),slug=String(t?.seo_slug||'').trim(),url=`https://hoangvuongtech.com/templates/${esc(t?.category||'game')}/${esc(slug)}/`,demo=t?.demo_url||'',title=t?.seo_title||t?.name||'Template website',desc=t?.meta_description||t?.description||'',keywords=[t?.primary_keyword,...String(t?.secondary_keywords||'').split(',')].map(x=>String(x||'').trim()).filter(Boolean);
  const features=String(t?.features||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
- return `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} | HoangVuongTech</title><meta name="description" content="${esc(desc)}"><meta name="keywords" content="${esc(keywords.join(', '))}"><link rel="canonical" href="${url}"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="product"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="https://hoangvuongtech.com${esc(t?.image_url||'/assets/demo/game-clash-1-preview.png')}"><link rel="stylesheet" href="/assets/style.css?v=20.9.13"><script type="application/ld+json">${JSON.stringify({'@context':'https://schema.org','@type':'Product','name':title,'description':desc,'category':'Website Template','brand':{'@type':'Brand','name':'HoangVuongTech'},'url':url,'offers':{'@type':'Offer','priceCurrency':'VND','price':String(Number(t?.price||0)),'availability':'https://schema.org/InStock'}})}</script></head><body class="template-seo-detail"><header class="demo-showroom-header"><div class="demo-showroom-nav"><a class="demo-brand" href="/templates/"><b>HOANGVUONGTECH · TEMPLATES</b></a><div><a href="/templates/${esc(t?.category||'game')}/">Kho ${esc(CATEGORY_NAMES[t?.category]||'template')}</a><a class="demo-contact-btn" href="/#dang-ky">Tư vấn</a></div></div></header><main class="template-detail-wrap"><nav class="template-detail-crumb"><a href="/templates/">Kho giao diện</a> / <a href="/templates/${esc(t?.category||'game')}/">${esc(CATEGORY_NAMES[t?.category]||'Game')}</a> / ${esc(t?.name||title)}</nav><section class="template-detail-hero"><div><span>${esc(t?.badge||'TEMPLATE')}</span><h1>${esc(title)}</h1><p>${esc(desc)}</p><div class="market-keywords">${keywords.slice(0,4).map(x=>`<span>${esc(x)}</span>`).join('')}</div><div class="template-detail-actions">${demo?`<a class="primary" href="${esc(demo)}" target="_blank" rel="noopener">Xem demo trực tiếp</a>`:''}<a href="/?template=${encodeURIComponent(key)}&name=${encodeURIComponent(t?.name||key)}#dang-ky">Đăng ký mẫu này</a></div></div><img src="${esc(t?.image_url||'/assets/demo/game-clash-1-preview.png')}" alt="${esc(title)}"></section><section class="template-detail-grid"><article><h2>Giao diện được thiết kế cho đúng nhu cầu</h2><p>Template này tuân thủ Universal Layout Contract của HoangVuongTech: showroom có dữ liệu mẫu đầy đủ, còn trial/client giữ nguyên cấu trúc 1:1 và chỉ thay đổi payload nội dung.</p><div class="template-detail-features">${features.map(x=>`<span>✓ ${esc(x)}</span>`).join('')}</div><h2>SEO & cấu trúc nội dung</h2><p>Từ khóa chính: <b>${esc(t?.primary_keyword||'')}</b>. Cấu trúc category, archive, bài chi tiết và internal link được đồng bộ với Trang quản trị để hỗ trợ SEO dài hạn.</p></article><aside><small>GÓI WEBSITE TRỌN GÓI</small><strong>${moneyVN(Number(t?.price||0))}</strong><span>Năm đầu · tên miền + hosting + giao diện + quản trị</span><hr><small>DUY TRÌ TỪ NĂM 2</small><b>${moneyVN(Number(t?.renewal_price||0))} / 12 tháng</b></aside></section></main></body></html>`;
+ return `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} | HoangVuongTech</title><meta name="description" content="${esc(desc)}"><meta name="keywords" content="${esc(keywords.join(', '))}"><link rel="canonical" href="${url}"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="product"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="https://hoangvuongtech.com${esc(t?.image_url||'/assets/demo/game-clash-1-preview.png')}"><link rel="stylesheet" href="/assets/style.css?v=20.9.13"><script type="application/ld+json">${JSON.stringify({'@context':'https://schema.org','@type':'Product','name':title,'description':desc,'category':'Website Template','brand':{'@type':'Brand','name':'HoangVuongTech'},'url':url,'offers':{'@type':'Offer','priceCurrency':'VND','price':String(Number(t?.price||0)),'availability':'https://schema.org/InStock'}})}</script></head><body class="template-seo-detail"><header class="demo-showroom-header"><div class="demo-showroom-nav"><a class="demo-brand" href="/templates/"><b>HOANGVUONGTECH · TEMPLATES</b></a><div><a href="/templates/${esc(t?.category||'game')}/">Kho ${esc(CATEGORY_NAMES[t?.category]||'template')}</a><a class="demo-contact-btn" href="/#dang-ky">Tư vấn</a></div></div></header><main class="template-detail-wrap"><nav class="template-detail-crumb"><a href="/templates/">Kho giao diện</a> / <a href="/templates/${esc(t?.category||'game')}/">${esc(CATEGORY_NAMES[t?.category]||'Game')}</a> / ${esc(t?.name||title)}</nav><section class="template-detail-hero"><div><span>${esc(t?.badge||'TEMPLATE')}</span><h1>${esc(title)}</h1><p>${esc(desc)}</p><div class="market-keywords">${keywords.slice(0,4).map(x=>`<span>${esc(x)}</span>`).join('')}</div><div class="template-detail-actions">${demo?`<a class="primary" href="${esc(demo)}" target="_blank" rel="noopener">Xem demo trực tiếp</a>`:''}<a href="/?template=${encodeURIComponent(key)}&name=${encodeURIComponent(t?.name||key)}#dang-ky">Đăng ký mẫu này</a></div></div><img src="${esc(t?.image_url||'/assets/demo/game-clash-1-preview.png')}" alt="${esc(title)}"></section><section class="template-detail-grid"><article><h2>Giao diện được thiết kế cho đúng nhu cầu</h2><p>Template này tuân thủ Universal Layout Contract của HoangVuongTech: showroom có dữ liệu mẫu đầy đủ, còn trial/client giữ nguyên cấu trúc 1:1 và chỉ thay đổi payload nội dung.</p><div class="template-detail-features">${features.map(x=>`<span>✓ ${esc(x)}</span>`).join('')}</div><h2>SEO & cấu trúc nội dung</h2><p>Từ khóa chính: <b>${esc(t?.primary_keyword||'')}</b>. Cấu trúc category, archive, bài chi tiết và internal link được đồng bộ với Trang quản trị để hỗ trợ SEO dài hạn.</p></article><aside><small>GÓI WEBSITE TRỌN GÓI</small><strong>${moneyVN(Number(t?.renewal_price||t?.price||0))} / năm</strong><span>Đã gồm tên miền, hosting, giao diện và công cụ quản trị đăng bài.</span><hr><b>🎟 Voucher khách mới: giảm ${moneyVN(Math.max(0,Number(t?.renewal_price||0)-Number(t?.price||0))||500000)}</b></aside></section></main></body></html>`;
 }
 function demoCenterHtml(siteName,templates=[],category=''){
  const isRoot=!category;
@@ -467,27 +467,24 @@ function demoCenterHtml(siteName,templates=[],category=''){
     <div class="demo-pro-body commercial-card">
      <div class="demo-pro-title-row"><h2>${t.seo_slug?`<a class="market-title-link" href="/templates/${esc(t.category)}/${esc(t.seo_slug)}/">${esc(t.seo_title||t.name)}</a>`:esc(t.seo_title||t.name)}</h2><span>Website trọn gói</span></div>${t.description?`<p class="market-seo-desc">${esc(t.description)}</p>`:''}${t.primary_keyword?`<div class="market-keywords"><span>${esc(t.primary_keyword)}</span>${String(t.secondary_keywords||'').split(',').slice(0,2).map(x=>`<span>${esc(x.trim())}</span>`).join('')}</div>`:''}
 
-     <div class="commercial-pricing">
+     <div class="commercial-pricing commercial-pricing-simple" data-market-price data-list-price="${renewal}" data-voucher-price="${first}">
        <div class="commercial-price-main">
-         <small>NĂM ĐẦU</small>
-         <strong>${first>0?moneyVN(first):'Liên hệ'}</strong>
-         ${saving?`<em>Tiết kiệm ${moneyVN(saving)}</em>`:''}
-       </div>
-       <div class="commercial-price-renew">
-         <small>TỪ NĂM 2</small>
-         <b>${renewal>0?moneyVN(renewal):'Liên hệ'}</b>
-         <span>/ 12 tháng</span>
+         <small>GIÁ WEBSITE TRỌN GÓI</small>
+         <div class="commercial-price-line"><del data-market-list hidden>${renewal>0?moneyVN(renewal):''}</del><strong data-market-current>${renewal>0?moneyVN(renewal):first>0?moneyVN(first):'Liên hệ'}</strong><b>/ năm</b></div>
+         <em data-market-voucher-status>Giá niêm yết hằng năm</em>
        </div>
      </div>
 
      <div class="commercial-gift-box">
-       <div class="commercial-gift-title"><b>🎁 TẶNG KÈM TRỌN GÓI</b><span>Đã bao gồm trong giá năm đầu</span></div>
+       <div class="commercial-gift-title"><b>🎁 TẶNG KÈM TRỌN GÓI</b><span>Đã bao gồm</span></div>
        <div class="commercial-includes">
-        <span><i>✓</i><b>Tên miền riêng</b><small>Tặng 1 năm</small></span>
-        <span><i>✓</i><b>Hosting website</b><small>Tặng 1 năm</small></span>
-        <span><i>✓</i><b>Giao diện đã chọn</b><small>Cài đặt theo mẫu</small></span>
-        <span><i>✓</i><b>Trang quản trị</b><small>Kèm hỗ trợ bàn giao</small></span>
+        <span><i>✓</i><b>Tên miền riêng miễn phí</b></span>
+        <span><i>✓</i><b>Hosting miễn phí</b></span>
+        <span><i>✓</i><b>Giao diện Website đã chọn</b></span>
+        <span><i>✓</i><b>Công cụ quản trị đăng bài</b></span>
        </div>
+       <button type="button" class="commercial-voucher" data-market-voucher>🎟 Nhận voucher giảm 500.000đ</button>
+       <small class="commercial-voucher-note">Áp dụng 1 lần cho khách hàng đăng ký mới.</small>
      </div>
 
      <div class="commercial-note">Không phải chỉ mua file template — đây là gói website hoàn chỉnh để đưa vào sử dụng.</div>
@@ -524,11 +521,11 @@ function demoCenterHtml(siteName,templates=[],category=''){
    <section class="demo-center-head">
     <span class="demo-eyebrow">HOANGVUONGTECH · WEBSITE TRỌN GÓI</span>
     <h1>Chọn giao diện, xem rõ chi phí trước khi đăng ký</h1>
-    <p>Mỗi mẫu hiển thị giá năm đầu, giá duy trì từ năm 2 và các dịch vụ đi kèm. Bạn có thể mở demo trong tab mới trước khi lựa chọn.</p>
+    <p>Mỗi mẫu hiển thị một mức giá theo năm, các hạng mục đã bao gồm và voucher dành cho khách đăng ký mới. Bạn có thể mở demo trong tab mới trước khi lựa chọn.</p>
     <nav class="template-categories">${categoryLinks}</nav>
-    <div class="demo-mini-trust"><span>✓ Tên miền riêng</span><span>✓ Hosting 1 năm</span><span>✓ Quản trị dễ dùng</span><span>✓ Hỗ trợ bàn giao</span></div>
+    <div class="demo-mini-trust"><span>✓ Tên miền riêng</span><span>✓ Hosting miễn phí</span><span>✓ Quản trị dễ dùng</span><span>✓ Hỗ trợ bàn giao</span></div>
    </section>
-   <section class="market-section-head"><div><span>${isRoot?'KHO GIAO DIỆN':'GIAO DIỆN '+esc(catName.toUpperCase())}</span><h2>${isRoot?'Chọn nhóm giao diện để bắt đầu':templates.length+' gói đang mở bán'}</h2></div><p>${isRoot?'Bạn có thể xem tất cả mẫu bên dưới hoặc chọn một nhóm để lọc đúng nhu cầu.':'Giá được đồng bộ trực tiếp từ Master Control.'}</p></section>
+   <section class="market-section-head"><div><span>${isRoot?'KHO GIAO DIỆN':'GIAO DIỆN '+esc(catName.toUpperCase())}</span><h2>${isRoot?'Chọn nhóm giao diện để bắt đầu':templates.length+' gói đang mở bán'}</h2></div><p>${isRoot?'Bạn có thể xem tất cả mẫu bên dưới hoặc chọn một nhóm để lọc đúng nhu cầu.':'Giá và quyền lợi được đồng bộ trực tiếp từ Master Control.'}</p></section>
    <section class="demo-pro-grid">${cards||`<div class="market-empty"><h3>Chưa có mẫu đang bán</h3><p>Danh mục này sẽ được cập nhật trong thời gian tới.</p></div>`}</section>
    <section class="demo-compare"><div><span>CẦN TƯ VẤN?</span><h3>Chưa biết mẫu nào phù hợp? Gửi nhu cầu, bên mình sẽ hỗ trợ chọn.</h3></div><a href="/#dang-ky" target="_blank" rel="noopener">Gửi yêu cầu tư vấn →</a></section>
    <script>
@@ -591,7 +588,11 @@ function demoCenterHtml(siteName,templates=[],category=''){
          }catch(err){msg.className='market-trial-msg full error';msg.textContent=err.message||'Có lỗi xảy ra';submit.disabled=false}
        };
      }
-     document.addEventListener('click',e=>{const b=e.target.closest('.demo-trial-start');if(!b)return;e.preventDefault();openTrial(b)});
+     document.addEventListener('click',e=>{
+       const voucher=e.target.closest('[data-market-voucher]');
+       if(voucher){e.preventDefault();const card=voucher.closest('.commercial-card'),box=card?.querySelector('[data-market-price]');if(!box)return;const list=Number(box.dataset.listPrice||0),price=Number(box.dataset.voucherPrice||0)||Math.max(0,list-500000),fmt=n=>new Intl.NumberFormat('vi-VN').format(n)+'đ',del=box.querySelector('[data-market-list]'),cur=box.querySelector('[data-market-current]'),st=box.querySelector('[data-market-voucher-status]');if(del){del.hidden=false;del.textContent=fmt(list)}if(cur)cur.textContent=fmt(price);if(st)st.textContent='✓ Đã áp dụng voucher thành công';voucher.textContent='✓ Voucher 500.000đ đã áp dụng';voucher.disabled=true;card?.classList.add('voucher-applied');return;}
+       const b=e.target.closest('.demo-trial-start');if(!b)return;e.preventDefault();openTrial(b)
+     });
      document.addEventListener('keydown',e=>{if(e.key==='Escape')closeTrial()});
    })();
    </script>
