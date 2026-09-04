@@ -1,3 +1,8 @@
+V20.9.23.1 - PRODUCT AFFILIATE MARKETPLACE CATEGORY FIX
+- Product/Affiliate commercial template is listed under the existing Bán hàng category.
+- Keeps template key san-pham-1 and demo route /demo/san-pham/mau-1/.
+- Adds migration 0044 to move already-seeded san-pham-1 rows from san-pham to ban-hang.
+
 NEWSREAL V20.9.23.0 — PRODUCT/AFFILIATE COMMERCIAL V1
 
 NEWSREAL V20.9.22.0 — HOANGVUONGTECH COMPLETE SEO FOUNDATION

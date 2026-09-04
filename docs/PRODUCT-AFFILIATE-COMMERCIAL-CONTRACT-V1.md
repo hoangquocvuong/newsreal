@@ -1,6 +1,6 @@
 # PRODUCT / AFFILIATE COMMERCIAL CONTRACT V1
 
-- Template key: `san-pham-1`; preset: `product_affiliate_1`; category: `san-pham`.
+- Template key: `san-pham-1`; preset: `product_affiliate_1`; marketplace category: `ban-hang` (Bán hàng).
 - Commercial template is a HoangVuongTech/NEWSREAL template and follows all current template contracts.
 - Customer product data is created and edited only through the dedicated Admin Client.
 - No dependency on `api.sanvoucher.net`, `images.sanvoucher.net`, SanVoucher manifest/search-index, private VPS pipelines, or PRO analytics.
