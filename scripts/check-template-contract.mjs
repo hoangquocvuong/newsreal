@@ -98,6 +98,12 @@ const required=[
   ['Game stats batch hydration','nrGameHydrateStats'],
   ['Game stats detail view dedupe','nrGameTrackDetailView'],
   ['Game dynamic Donate setting','nrGameTemplateSettings'],
+  ['Product Affiliate preset',"'san-pham-1':'product_affiliate_1'"],
+  ['Product Affiliate renderer','renderProductAffiliate1'],
+  ['Product Affiliate detail route','/san-pham/'],
+  ['Product Affiliate Admin data contract','product_affiliate_url'],
+  ['Product Affiliate no private SanVoucher API','No SanVoucher API/catalogue dependency'],
+  ['backend Product preview contract',"contentType==='product'"],
 ];
 let failed=0;
 for(const [name,needle] of required){
@@ -106,7 +112,7 @@ for(const [name,needle] of required){
   console.log(`${ok?'OK':'FAIL'}  ${name}`);
   if(!ok)failed++;
 }
-for(const key of ['dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4','game-1']){
+for(const key of ['dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4','game-1','san-pham-1']){
   const ok=api.includes(`'${key}'`);
   console.log(`${ok?'OK':'FAIL'}  profile ${key}`);
   if(!ok)failed++;

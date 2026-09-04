@@ -73,6 +73,8 @@ function demoThemeFromPath(path){
  if(service)return 'dich-vu-'+service[1];
  const game=path.match(/^\/demo\/game\/clash-of-clans(?:\/|$)/i);
  if(game)return 'game-1';
+ const product=path.match(/^\/demo\/san-pham\/mau-1(?:\/|$)/i);
+ if(product)return 'san-pham-1';
  return '';
 }
 function demoPrefixForPath(path,demo){
@@ -80,6 +82,7 @@ function demoPrefixForPath(path,demo){
  if(/^tin-tuc-[1-4]$/.test(demo))return '/demo/tin-tuc/mau-'+demo.split('-').pop();
  if(/^dich-vu-\d+$/.test(demo))return '/demo/dich-vu/mau-'+demo.split('-').pop();
  if(demo==='game-1')return '/demo/game/clash-of-clans';
+ if(demo==='san-pham-1')return '/demo/san-pham/mau-1';
  if(/^mau-[1-5]$/.test(demo))return '/demo/bat-dong-san/'+demo;
  return '';
 }
@@ -93,7 +96,7 @@ function stripDemoPath(path,demo){
 function demoInject(html,demo,trialCtx=null){
  if(!demo||demo==='center')return html;
  html=html.replace(/\/assets\/style\.css\?v=[^\"'&<]+/g,'/assets/style.css?v=20.9.21.0').replace(/\/assets\/site\.js\?v=[^\"'&<]+/g,'/assets/site.js?v=20.9.13');
- const preset=demo==='mau-1'?'newsreal':demo==='mau-2'?'estate_green':demo==='mau-3'?'estate_luxe_3':demo==='mau-4'?'estate_minimal_4':demo==='mau-5'?'estate_urban_5':demo==='tin-tuc-1'?'news_portal_1':demo==='tin-tuc-2'?'news_paper_2':demo==='tin-tuc-3'?'news_magazine_3':demo==='tin-tuc-4'?'news_minimal_4':demo==='dich-vu-1'?'service_fpt_1':demo==='dich-vu-2'?'service_vnpt_2':demo==='dich-vu-3'?'service_viettel_3':demo==='dich-vu-4'?'service_camera_store_4':demo==='game-1'?'game_clash_1':'';
+ const preset=demo==='mau-1'?'newsreal':demo==='mau-2'?'estate_green':demo==='mau-3'?'estate_luxe_3':demo==='mau-4'?'estate_minimal_4':demo==='mau-5'?'estate_urban_5':demo==='tin-tuc-1'?'news_portal_1':demo==='tin-tuc-2'?'news_paper_2':demo==='tin-tuc-3'?'news_magazine_3':demo==='tin-tuc-4'?'news_minimal_4':demo==='dich-vu-1'?'service_fpt_1':demo==='dich-vu-2'?'service_vnpt_2':demo==='dich-vu-3'?'service_viettel_3':demo==='dich-vu-4'?'service_camera_store_4':demo==='game-1'?'game_clash_1':demo==='san-pham-1'?'product_affiliate_1':'';
  let out=themedHtml(html,preset);
  const currentPath=typeof rawPath!=='undefined'?rawPath:'';
  const prefix=demoPrefixForPath(currentPath,demo);
@@ -117,7 +120,7 @@ window.NR_ESTATE_CORE={
 window.NR_DEMO_TITLE_LABELS={
  'mau-1':'BĐS Mẫu 1','mau-2':'BĐS Mẫu 2','mau-3':'BĐS Mẫu 3','mau-4':'BĐS Mẫu 4','mau-5':'BĐS Mẫu 5',
  'tin-tuc-1':'Tin tức Mẫu 1','tin-tuc-2':'Tin tức Mẫu 2','tin-tuc-3':'Tin tức Mẫu 3','tin-tuc-4':'Tin tức Mẫu 4',
- 'dich-vu-1':'FPT','dich-vu-2':'VNPT','dich-vu-3':'Viettel','dich-vu-4':'Camera Store','game-1':'Clash of Clans · Base Portal'
+ 'dich-vu-1':'FPT','dich-vu-2':'VNPT','dich-vu-3':'Viettel','dich-vu-4':'Camera Store','game-1':'Clash of Clans · Base Portal','san-pham-1':'Product Store · Affiliate'
 };
 window.nrApplyDemoTitle=function(){
  const key=String(window.NR_DEMO_THEME||''),base=window.NR_DEMO_TITLE_LABELS[key];
@@ -331,21 +334,23 @@ document.addEventListener('DOMContentLoaded',()=>{
  const newsNum=/^tin-tuc-([1-4])$/.exec(demo)?.[1]||'';
  const serviceNum=/^dich-vu-(\d+)$/.exec(demo)?.[1]||'';
  const isGameDemo=demo==='game-1';
+ const isProductDemo=demo==='san-pham-1';
  const newsNames={'1':'Tin tức Mẫu 1 · Tạp chí hiện đại','2':'Tin tức Mẫu 2 · Báo điện tử','3':'Tin tức Mẫu 3 · Magazine hiện đại','4':'Tin tức Mẫu 4 · Minimal SEO'};
  const estateNames={'mau-1':'Mẫu 1 · Tin tức & BĐS','mau-2':'Mẫu 2 · BĐS hiện đại','mau-3':'Mẫu 3 · BĐS Luxury','mau-4':'Mẫu 4 · BĐS Minimal','mau-5':'Mẫu 5 · BĐS Urban'};
  const serviceNames={'1':'FPT','2':'VNPT','3':'Viettel','4':'Camera Store'};
- const demoLabel=isGameDemo?'Template website Clash of Clans · Base Portal':(newsNum?newsNames[newsNum]:(serviceNum?(serviceNames[serviceNum]||`Dịch vụ Mẫu ${serviceNum}`):(estateNames[demo]||'Mẫu bất động sản')));
+ const demoLabel=isProductDemo?'Product Store · Affiliate':isGameDemo?'Template website Clash of Clans · Base Portal':(newsNum?newsNames[newsNum]:(serviceNum?(serviceNames[serviceNum]||`Dịch vụ Mẫu ${serviceNum}`):(estateNames[demo]||'Mẫu bất động sản')));
  const isNewsDemo=!!newsNum;
+ const isProductTemplateDemo=isProductDemo;
  const isServiceDemo=!!serviceNum;
  // V16.9 — Demo browser title must follow the selected template, never the
  // underlying BĐS tenant used as the shared showroom data source.
  const relativeDemoPath=prefix&&currentPath.startsWith(prefix)?(currentPath.slice(prefix.length)||'/'):currentPath;
  const isDemoArticle=/\.html$/i.test(relativeDemoPath)||/\-p\d+\/?$/i.test(relativeDemoPath);
  if(!isDemoArticle){
-   const tabTitle=isGameDemo?'Template website Clash of Clans · Demo | HoangVuongTech':isNewsDemo?`Tin tức Mẫu ${newsNum} · Demo | HoangVuongTech`:isServiceDemo?`Dịch vụ Mẫu ${serviceNum} · Demo | HoangVuongTech`:`BĐS ${demo==='mau-1'?'Mẫu 1':demo==='mau-2'?'Mẫu 2':demo==='mau-3'?'Mẫu 3':demo==='mau-4'?'Mẫu 4':'Mẫu 5'} · Demo | HoangVuongTech`;
+   const tabTitle=isProductDemo?'Product Store · Affiliate · Demo | HoangVuongTech':isGameDemo?'Template website Clash of Clans · Demo | HoangVuongTech':isNewsDemo?`Tin tức Mẫu ${newsNum} · Demo | HoangVuongTech`:isServiceDemo?`Dịch vụ Mẫu ${serviceNum} · Demo | HoangVuongTech`:`BĐS ${demo==='mau-1'?'Mẫu 1':demo==='mau-2'?'Mẫu 2':demo==='mau-3'?'Mẫu 3':demo==='mau-4'?'Mẫu 4':'Mẫu 5'} · Demo | HoangVuongTech`;
    out=out.replace(/<title>[\s\S]*?<\/title>/i,`<title>${tabTitle}</title>`);
  }
- const bar=`<div class="nr-demo-bar"><div class="nr-demo-inner"><b>ĐANG XEM ${isGameDemo?'GAME · CLASH OF CLANS':isNewsDemo?'TIN TỨC · MẪU '+newsNum:isServiceDemo?'DỊCH VỤ · MẪU '+serviceNum:'BẤT ĐỘNG SẢN · '+(demo==='mau-1'?'MẪU 1':demo==='mau-2'?'MẪU 2':demo==='mau-3'?'MẪU 3':demo==='mau-4'?'MẪU 4':'MẪU 5')}</b><span>Chọn giao diện phù hợp với bạn</span><div class="nr-demo-actions"><div class="nr-demo-devices" aria-label="Xem trên thiết bị"><button type="button" class="active" data-demo-device="desktop" title="Xem trên PC">▰ <span>PC</span></button><button type="button" data-demo-device="tablet" title="Xem trên máy tính bảng">▯ <span>Tablet</span></button><button type="button" data-demo-device="mobile" title="Xem trên điện thoại">▯ <span>Mobile</span></button></div><a href="${isGameDemo?'/templates/game/':isNewsDemo?'/templates/tin-tuc/':isServiceDemo?'/templates/dich-vu/':'/templates/bat-dong-san/'}">Kho mẫu</a><a class="nr-demo-cta" data-demo-external="1" href="https://hoangvuongtech.com/?template=${encodeURIComponent(demo)}&name=${encodeURIComponent(demoLabel)}#dang-ky" target="_blank" rel="noopener">Chọn mẫu này</a></div></div></div>`;
+ const bar=`<div class="nr-demo-bar"><div class="nr-demo-inner"><b>ĐANG XEM ${isProductDemo?'SẢN PHẨM · AFFILIATE':isGameDemo?'GAME · CLASH OF CLANS':isNewsDemo?'TIN TỨC · MẪU '+newsNum:isServiceDemo?'DỊCH VỤ · MẪU '+serviceNum:'BẤT ĐỘNG SẢN · '+(demo==='mau-1'?'MẪU 1':demo==='mau-2'?'MẪU 2':demo==='mau-3'?'MẪU 3':demo==='mau-4'?'MẪU 4':'MẪU 5')}</b><span>Chọn giao diện phù hợp với bạn</span><div class="nr-demo-actions"><div class="nr-demo-devices" aria-label="Xem trên thiết bị"><button type="button" class="active" data-demo-device="desktop" title="Xem trên PC">▰ <span>PC</span></button><button type="button" data-demo-device="tablet" title="Xem trên máy tính bảng">▯ <span>Tablet</span></button><button type="button" data-demo-device="mobile" title="Xem trên điện thoại">▯ <span>Mobile</span></button></div><a href="${isProductDemo?'/templates/san-pham/':isGameDemo?'/templates/game/':isNewsDemo?'/templates/tin-tuc/':isServiceDemo?'/templates/dich-vu/':'/templates/bat-dong-san/'}">Kho mẫu</a><a class="nr-demo-cta" data-demo-external="1" href="https://hoangvuongtech.com/?template=${encodeURIComponent(demo)}&name=${encodeURIComponent(demoLabel)}#dang-ky" target="_blank" rel="noopener">Chọn mẫu này</a></div></div></div>`;
  return out.replace('</head>',boot+'</head>').replace(/<body([^>]*)>/i,`<body$1>${bar}`);
 }
 
@@ -355,6 +360,7 @@ const TEMPLATE_CATALOG_DEFAULTS=[
  {template_key:'dich-vu-2',name:'VNPT',category:'dich-vu',preset:'service_vnpt_2',price:1499000,renewal_price:1999000,is_active:1,sort_order:2,image_url:'/assets/demo/dich-vu-2-preview.png',demo_url:'/demo/dich-vu/mau-2/',badge:'VNPT',description:'Website VNPT Home với Home Internet, MyTV, Home Cam và combo gia đình.',features:'Home Internet\nMyTV\nHome Cam\nCombo gia đình',accent:'blue',seo_title:'Template website VNPT – Home Internet, MyTV & Home Cam',seo_slug:'website-dich-vu-vnpt',primary_keyword:'template website VNPT',secondary_keywords:'mẫu website VNPT, website MyTV, landing page Home Internet VNPT',meta_description:'Template website VNPT với Home Internet, MyTV, Home Cam, combo gia đình và CTA tư vấn, phù hợp đại lý và nhân viên kinh doanh VNPT.',internal_anchor:'template website VNPT'},
  {template_key:'dich-vu-3',name:'Viettel',category:'dich-vu',preset:'service_viettel_3',price:1499000,renewal_price:1999000,is_active:1,sort_order:3,image_url:'/assets/demo/dich-vu-3-preview.png',demo_url:'/demo/dich-vu/mau-3/',badge:'VIETTEL',description:'Website Viettel với Internet Wi-Fi 6, TV360, Camera và combo trọn gói.',features:'Internet Viettel\nTV360\nCamera Cloud\nCombo trọn gói',accent:'red',seo_title:'Template website Viettel – Internet, TV360 & Camera',seo_slug:'website-dich-vu-viettel',primary_keyword:'template website Viettel',secondary_keywords:'mẫu website Viettel, website TV360, landing page internet Viettel',meta_description:'Template website Viettel với Internet Wi-Fi, TV360, Camera Cloud, combo và CTA đăng ký, phù hợp đại lý và nhân viên kinh doanh Viettel.',internal_anchor:'template website Viettel'},
  {template_key:'dich-vu-4',name:'Camera Store',category:'dich-vu',preset:'service_camera_store_4',price:1499000,renewal_price:1999000,is_active:1,sort_order:4,image_url:'/assets/demo/dich-vu-4-preview.png',demo_url:'/demo/dich-vu/mau-4/',badge:'CAMERA',description:'Website trưng bày và tư vấn camera đa thương hiệu với sản phẩm, giá, thông số, khuyến mãi và form lead.',features:'Camera trong nhà\nCamera ngoài trời\nCamera AI quay quét\nCamera IP / bộ giám sát',accent:'green',seo_title:'Template website bán Camera – Catalog sản phẩm & tư vấn',seo_slug:'website-camera',primary_keyword:'template website camera',secondary_keywords:'mẫu website camera, website bán camera, catalog camera an ninh',meta_description:'Template website camera đa thương hiệu với catalog sản phẩm, giá, thông số, khuyến mãi, trang chi tiết và form tư vấn khách hàng.',internal_anchor:'template website camera'},
+ {template_key:'san-pham-1',name:'Product Store · Affiliate',category:'san-pham',preset:'product_affiliate_1',price:1499000,renewal_price:1999000,is_active:1,sort_order:1,image_url:'/assets/demo/san-pham-1-preview.svg',demo_url:'/demo/san-pham/mau-1/',badge:'SẢN PHẨM',description:'Website catalog / review sản phẩm với giá, voucher, rating, gallery, link mua hàng và quản trị sản phẩm riêng.',features:'Catalog sản phẩm nhiều chuyên mục\nTrang chi tiết sản phẩm & gallery\nGiá, voucher, rating & link affiliate\nKhách tự quản lý bằng Trang quản trị',accent:'orange',seo_title:'Template website bán hàng & Affiliate – Catalog sản phẩm',seo_slug:'website-ban-hang-affiliate',primary_keyword:'template website bán hàng affiliate',secondary_keywords:'mẫu website review sản phẩm, website affiliate, catalog sản phẩm, website giới thiệu sản phẩm',meta_description:'Template website bán hàng và affiliate với catalog nhiều chuyên mục, giá, voucher, rating, gallery, trang chi tiết và link mua hàng do khách tự quản lý.',internal_anchor:'template website bán hàng affiliate'},
  {template_key:'game-1',name:'Template website Clash of Clans · Base Portal',category:'game',preset:'game_clash_1',price:1699000,renewal_price:2199000,is_active:1,sort_order:1,image_url:'/assets/demo/game-clash-1-preview.png',demo_url:'/demo/game/clash-of-clans/',badge:'CLASH OF CLANS',description:'Mẫu website game chia sẻ base Clash of Clans cho cộng đồng với TH/BH/CH, bộ lọc nhanh và trang chi tiết base.',features:'Town Hall TH2–TH18\nBuilder Hall BH2–BH10\nClan Capital CH1–CH10\nFast Filter + Copy Link',accent:'orange',seo_title:'Template website Clash of Clans – Chia sẻ base TH/BH/CH',seo_slug:'clash-of-clans-base',primary_keyword:'template website Clash of Clans',secondary_keywords:'mẫu website game, website chia sẻ base Clash of Clans, template game Clash of Clans',meta_description:'Template website Clash of Clans chuyên chia sẻ base Town Hall, Builder Hall và Clan Capital với bộ lọc nhanh, copy link và trang chi tiết tối ưu SEO.',internal_anchor:'template website Clash of Clans'},
  {template_key:'tin-tuc-1',name:'Tin tức Mẫu 1 · Tạp chí hiện đại',category:'tin-tuc',preset:'news_portal_1',price:1499000,renewal_price:1999000,is_active:1,sort_order:1,image_url:'/assets/demo/tin-tuc-1-preview-v2.png',demo_url:'/demo/tin-tuc/mau-1/',badge:'MỚI',description:'Giao diện tin tức hiện đại, tập trung bài nổi bật, dòng tin mới, chuyên mục và nội dung đọc nhiều.',features:'Trang chủ kiểu tạp chí\nTin nổi bật + đọc nhiều\nChuyên mục tự động theo bài viết\nTối ưu nội dung & mobile',accent:'red',seo_title:'Template website tin tức hiện đại – Tạp chí & cổng nội dung',seo_slug:'tin-tuc-tap-chi-hien-dai',primary_keyword:'template website tin tức',secondary_keywords:'mẫu website tin tức, giao diện báo điện tử, template tạp chí online',meta_description:'Template website tin tức hiện đại với bài nổi bật, tin mới, chuyên mục và nội dung đọc nhiều; phù hợp báo điện tử, tạp chí và site nội dung.',internal_anchor:'template website tin tức'},
  {template_key:'mau-2',name:'Mẫu 2 · BĐS hiện đại',category:'bat-dong-san',preset:'estate_green',price:1799000,renewal_price:2299000,is_active:1,sort_order:2,image_url:'/assets/demo/mau-2-preview.png',demo_url:'/demo/bat-dong-san/mau-2/',badge:'ĐỀ XUẤT',description:'Phong cách portal bất động sản hiện đại, hero tìm kiếm lớn và tập trung mạnh vào chuyển đổi khách hàng.',features:'Bộ lọc tìm kiếm nổi bật\nCard bất động sản hiện đại\nTối ưu trải nghiệm mobile',accent:'green',seo_title:'Template website bất động sản hiện đại – Tìm kiếm & chuyển đổi',seo_slug:'bat-dong-san-hien-dai',primary_keyword:'mẫu website bất động sản hiện đại',secondary_keywords:'template nhà đất, website môi giới bất động sản, giao diện website bất động sản',meta_description:'Template bất động sản hiện đại với hero tìm kiếm, card dự án và bố cục tối ưu trải nghiệm mobile, phù hợp môi giới và doanh nghiệp nhà đất.',internal_anchor:'mẫu website bất động sản hiện đại'}
@@ -427,7 +433,7 @@ async function loadTemplateCatalog(env,category=''){
  }catch(e){return category?TEMPLATE_CATALOG_DEFAULTS.filter(x=>x.category===category):TEMPLATE_CATALOG_DEFAULTS.filter(x=>x.is_active!==0)}
 }
 const CATEGORY_NAMES={
- 'bat-dong-san':'Bất động sản','tin-tuc':'Tin tức','ban-hang':'Bán hàng','landing-page':'Landing Page','dich-vu':'Dịch vụ','game':'Game'
+ 'bat-dong-san':'Bất động sản','tin-tuc':'Tin tức','ban-hang':'Bán hàng','landing-page':'Landing Page','dich-vu':'Dịch vụ','game':'Game','san-pham':'Sản phẩm / Affiliate'
 };
 function marketCategoryFromPath(path){
  const m=String(path||'').match(/^\/templates\/([^/]+)/);

@@ -1,2 +1,4 @@
+NEWSREAL V20.9.23.0 — PRODUCT/AFFILIATE COMMERCIAL V1
+
 NEWSREAL V20.9.22.0 — HOANGVUONGTECH COMPLETE SEO FOUNDATION
 Baseline V20.9.21.1. Finalizes the template-sales SEO layer: canonical/index rules, robots exclusions, clean sitemap lastmod behavior, category/detail social metadata, CollectionPage/Product/Breadcrumb structured data, 404 noindex behavior, and noindex on private/transactional pages. Preserves template/layout/trial/voucher/checkout contracts.
