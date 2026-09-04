@@ -165,6 +165,18 @@ const templates={
  'tin-tuc-1':'Tin tức Mẫu 1 · Tạp chí hiện đại',
  'news_portal_1':'Tin tức Mẫu 1 · Tạp chí hiện đại'
 };
+function siteNameSuggestion(templateKey,templateName=''){
+ const k=String(templateKey||'').toLowerCase(),n=String(templateName||'').toLowerCase();
+ if(k==='game-1'||k.startsWith('game-'))return 'Ví dụ: Clash Base Việt Nam';
+ if(k==='dich-vu-1'||n.includes('fpt'))return 'Ví dụ: Internet FPT Hải Phòng';
+ if(k==='dich-vu-2'||n.includes('vnpt'))return 'Ví dụ: Internet VNPT Hải Phòng';
+ if(k==='dich-vu-3'||n.includes('viettel'))return 'Ví dụ: Internet Viettel Hải Phòng';
+ if(k==='dich-vu-4'||n.includes('camera'))return 'Ví dụ: Camera An Ninh Hải Phòng';
+ if(k.startsWith('tin-tuc-'))return 'Ví dụ: Tin Việt 24h';
+ if(k.startsWith('mau-')||n.includes('bất động sản'))return 'Ví dụ: Bất động sản Hoàng Gia';
+ return 'Ví dụ: Website Thương Hiệu Việt';
+}
+function applySiteNameSuggestion(){const el=document.getElementById('fSite');if(el)el.placeholder=siteNameSuggestion(key,selectedName)}
 let selectedName=params.get('name')||templates[key]||'';
 let selectedPriceRaw=params.get('price')||'';
 let selectedPrice=selectedPriceRaw && /^\d+$/.test(selectedPriceRaw)?Number(selectedPriceRaw):0;
@@ -183,6 +195,7 @@ async function hydrateSelectedTemplate(){
  document.getElementById('templateKey').value=key;
  document.getElementById('chosenName').textContent=selectedName||key;
  document.getElementById('chosenBox').classList.add('active');
+ applySiteNameSuggestion();
  if(selectedPrice){
    document.getElementById('chosenPriceValue').textContent=new Intl.NumberFormat('vi-VN').format(selectedPrice)+'đ';
    document.getElementById('chosenPrice').hidden=false;
@@ -191,6 +204,7 @@ async function hydrateSelectedTemplate(){
  if(location.hash!=='#dang-ky') history.replaceState(null,'',location.pathname+location.search+'#dang-ky');
  setTimeout(()=>document.getElementById('dang-ky').scrollIntoView({behavior:'smooth',block:'start'}),120);
 }
+applySiteNameSuggestion();
 if(key)hydrateSelectedTemplate();
 // V20.4.6 — Trial conversion is continuation, not a second registration.
 // Reuse all information already captured during Trial; visitor only completes fields

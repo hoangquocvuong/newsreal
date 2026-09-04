@@ -1,3 +1,11 @@
+V20.9.18 — TEMPLATE-AWARE ADMIN + GAME ARTICLE CLEAN DETAIL + CONTEXTUAL TRIAL NAME
+- Game/Clash of Clans Admin is now template-aware: Game post form, Game categories/custom fields, Game labels/KPIs, no service consultation inbox.
+- News, real-estate and service Admin contracts remain template-specific; Master Template Manager now preserves service/game content_type instead of coercing them to generic.
+- TH18 Atom showroom detail pages use the same clean article structure as existing Game sample articles: one hero image, title/stats, concise body, no duplicate source image or raw Blogger copy-link markup.
+- Trial/registration desired-site-name placeholder is contextual by template: real estate, FPT, VNPT, Viettel, Camera, News and Game each get a relevant example.
+- Game Admin creates posts with type=game and BASE listing codes; property-only fields are hidden/ignored.
+- No migration required.
+
 V20.9.17 — GAME REAL PREVIEW + TH18 SHOWROOM FIX
 
 - Game showroom always uses packaged real Atom sample posts; 8 TH18 posts are guaranteed in the public demo filter.

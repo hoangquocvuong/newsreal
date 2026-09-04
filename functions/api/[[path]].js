@@ -1054,8 +1054,8 @@ async function ensureTemplateCatalog(env){
       {key:'game_group',label:'Nhóm Base',type:'select',options:['Town Hall','Builder Hall','Clan Capital']},
       {key:'game_level',label:'Level',type:'text',placeholder:'TH18 / BH10 / CH10'},
       {key:'game_purpose',label:'Purpose',type:'select',options:['War','Farming','Hybrid','Trophy','Legend','CWL','Troll']},
-      {key:'game_style',label:'Style',type:'select',options:['Diamond','Ring','Box','Compact','Spread']},
-      {key:'game_defense',label:'Defense',type:'select',options:['Anti 3 Star','Anti 2 Star','Anti Everything']},
+      {key:'game_style',label:'Style',type:'select',options:['Diamond','Ring','Box','Compact','Spread','Original']},
+      {key:'game_defense',label:'Defense',type:'select',options:['Anti 3 Star','Anti 2 Star','Anti Everything','Anti Air','Balanced Defense']},
       {key:'copy_link',label:'Copy Link',type:'url',placeholder:'https://link.clashofclans.com/...'},
       {key:'game_year',label:'Năm',type:'text',placeholder:'2026'}
     ]};
@@ -2878,15 +2878,15 @@ if(route==='master/template-save'&&request.method==='POST'){
   const cl=(v,min,max,def)=>Math.max(min,Math.min(max,Math.round(Number(v)||def)));
   layoutProfile={category_columns:cl(layoutProfile.category_columns,1,6,4),category_rows:cl(layoutProfile.category_rows,1,4,2),sidebar_enabled:layoutProfile.sidebar_enabled===false||Number(layoutProfile.sidebar_enabled)===0?0:1,sidebar_read_most:cl(layoutProfile.sidebar_read_most,0,12,6),sidebar_latest:cl(layoutProfile.sidebar_latest,0,12,5),sidebar_categories:cl(layoutProfile.sidebar_categories,0,12,8),home_latest_count:cl(layoutProfile.home_latest_count,4,24,10),related_count:cl(layoutProfile.related_count,2,12,6)};
   const layoutProfileJson=JSON.stringify(layoutProfile);
-  const structureProfile=normalizeStructureProfile(b.structure_profile,key,category==='tin-tuc'?'news':category==='bat-dong-san'?'property':'generic');
+  const structureProfile=normalizeStructureProfile(b.structure_profile,key,category==='tin-tuc'?'news':category==='bat-dong-san'?'property':category==='dich-vu'?'service':category==='game'?'game':'generic');
   const structureProfileJson=JSON.stringify(structureProfile);
   const structureValidation=validateStructureProfile(structureProfile,{active});
   if(active&&!structureValidation.ok)return json({error:'Khung giao diện chưa đạt chuẩn để đưa vào Kho template.',details:structureValidation.errors,warnings:structureValidation.warnings},400);
   let editorProfile={};
   try{editorProfile=typeof b.editor_profile==='object'&&b.editor_profile?b.editor_profile:JSON.parse(String(b.editor_profile||'{}'))}catch(e){return json({error:'Cấu hình form đăng bài không hợp lệ'},400)}
-  const allowedContentTypes=['property','news','product','app','generic'];
+  const allowedContentTypes=['property','news','product','app','service','game','generic'];
   editorProfile.content_type=allowedContentTypes.includes(String(editorProfile.content_type||''))?String(editorProfile.content_type):(
-    category==='tin-tuc'?'news':category==='bat-dong-san'?'property':'generic'
+    category==='tin-tuc'?'news':category==='bat-dong-san'?'property':category==='dich-vu'?'service':category==='game'?'game':'generic'
   );
   editorProfile.id=String(editorProfile.id||editorProfile.content_type).slice(0,50);
   if(editorProfile.content_type==='property'){
@@ -3557,7 +3557,7 @@ if((b.type||'property')==='property'){
 }
 if(missing.length)return json({error:'Thiếu thông tin bắt buộc: '+missing.join(', ')},400);
 if(request.method==='POST'&&!String(b.listing_code||'').trim()){
- const prefix=(b.type||'property')==='news'?'TT':'BDS';
+ const postType=String(b.type||'property');const prefix=postType==='news'?'TT':postType==='game'?'BASE':postType==='service'?'DV':'BDS';
  const stamp=new Date().toISOString().slice(0,10).replace(/-/g,'');
  const row=await env.DB.prepare(`SELECT coalesce(max(id),0)+1 n FROM posts WHERE site_id=?`).bind(site.id).first();
  b.listing_code=`${prefix}-${String(site.id).padStart(2,'0')}-${stamp}-${String(row?.n||1).padStart(4,'0')}`;

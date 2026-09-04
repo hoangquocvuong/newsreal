@@ -532,9 +532,21 @@ function demoCenterHtml(siteName,templates=[],category=''){
    (()=>{
      const escHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
      function closeTrial(){document.querySelector('.market-trial-modal')?.remove();document.body.classList.remove('market-trial-open')}
+     function trialSiteSuggestion(key,name){
+       key=String(key||'').toLowerCase();name=String(name||'').toLowerCase();
+       if(key==='game-1'||key.startsWith('game-'))return 'Ví dụ: Clash Base Việt Nam';
+       if(key==='dich-vu-1'||name.includes('fpt'))return 'Ví dụ: Internet FPT Hải Phòng';
+       if(key==='dich-vu-2'||name.includes('vnpt'))return 'Ví dụ: Internet VNPT Hải Phòng';
+       if(key==='dich-vu-3'||name.includes('viettel'))return 'Ví dụ: Internet Viettel Hải Phòng';
+       if(key==='dich-vu-4'||name.includes('camera'))return 'Ví dụ: Camera An Ninh Hải Phòng';
+       if(key.startsWith('tin-tuc-'))return 'Ví dụ: Tin Việt 24h';
+       if(key.startsWith('mau-')||name.includes('bất động sản'))return 'Ví dụ: Bất động sản Hoàng Gia';
+       return 'Ví dụ: Website Thương Hiệu Việt';
+     }
      function openTrial(btn){
        const key=String(btn.dataset.trialTemplate||''),name=String(btn.dataset.trialName||key);
        if(!key)return;
+       const siteSuggestion=trialSiteSuggestion(key,name);
        closeTrial();
        const modal=document.createElement('div');modal.className='market-trial-modal';
        modal.innerHTML='<div class="market-trial-card" role="dialog" aria-modal="true" aria-labelledby="marketTrialTitle">'+
@@ -548,7 +560,7 @@ function demoCenterHtml(siteName,templates=[],category=''){
           '<label>Số điện thoại<input name="phone" inputmode="tel" autocomplete="tel" required></label>'+
           '<label>Email<input name="email" type="email" autocomplete="email" required></label>'+
           '<label>Zalo<input name="zalo" inputmode="tel" placeholder="Không bắt buộc"></label>'+
-          '<label class="full">Tên website mong muốn *<input name="site_name" autocomplete="organization" required placeholder="Ví dụ: Internet FPT Hải Phòng"><small class="market-trial-site-help">Tên này được dùng làm căn cứ để đề xuất/gắn tên miền cho website, vì vậy hãy đặt tên phù hợp với nội dung và thương hiệu website của bạn.</small></label>'+
+          '<label class="full">Tên website mong muốn *<input name="site_name" autocomplete="organization" required placeholder="'+escHtml(siteSuggestion)+'"><small class="market-trial-site-help">Gợi ý được điều chỉnh theo loại website đang xem. Bạn có thể nhập tên thương hiệu hoặc khu vực kinh doanh thực tế.</small></label>'+
           '<label>Công ty / thương hiệu<input name="company" autocomplete="organization"></label>'+
           '<label class="full">Nhu cầu / ghi chú<textarea name="note" rows="2" placeholder="Bạn muốn thử website cho nhu cầu nào?"></textarea></label>'+
           '<input class="market-trial-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"><label class="full market-trial-consent"><input name="contact_consent" type="checkbox" value="1"> <span>Tôi đồng ý để HoangVuongTech liên hệ hỗ trợ và tư vấn về website sau thời gian dùng thử.</span></label>'+

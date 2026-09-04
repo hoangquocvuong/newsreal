@@ -721,10 +721,11 @@ const TM_DEFAULT_RENT_CATEGORIES=[
  'Cho thuê mặt bằng kinh doanh','Cho thuê đất','Bất động sản cho thuê khác'
 ];
 const TM_DEFAULT_NEWS_CATEGORIES=['Kinh tế','Công nghệ','Du lịch','Sức khỏe','Bất động sản','Đời sống','Kinh doanh','Giáo dục','Nhà đẹp'];
+const TM_DEFAULT_GAME_CATEGORIES=['Town Hall','Builder Hall','Clan Capital'];
 function tmLines(v=''){return String(v||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean)}
 function tmProfile(t){
  let p={};try{p=typeof t?.editor_profile==='object'?t.editor_profile:JSON.parse(t?.editor_profile||'{}')}catch{}
- const ct=p.content_type||(t?.category==='tin-tuc'?'news':t?.category==='dich-vu'?'service':'property');
+ const ct=p.content_type||(t?.category==='tin-tuc'?'news':t?.category==='dich-vu'?'service':t?.category==='game'?'game':'property');
  if(ct==='property'){
   p.categoriesByTransaction=p.categoriesByTransaction||{};
   p.categoriesByTransaction.buy=Array.isArray(p.categoriesByTransaction.buy)&&p.categoriesByTransaction.buy.length?p.categoriesByTransaction.buy:TM_DEFAULT_BUY_CATEGORIES;
@@ -734,6 +735,8 @@ function tmProfile(t){
   p.categories=Array.isArray(p.categories)&&p.categories.length?p.categories:TM_DEFAULT_NEWS_CATEGORIES;
  }else if(ct==='service'){
   p.categories=Array.isArray(p.categories)&&p.categories.length?p.categories:['Internet FPT','Truyền hình FPT','Camera FPT','Combo Internet + Truyền hình','Combo Internet + Camera','Khuyến mãi'];
+ }else if(ct==='game'){
+  p.categories=Array.isArray(p.categories)&&p.categories.length?p.categories:TM_DEFAULT_GAME_CATEGORIES;
  }
  return {id:p.id||ct,content_type:ct,contentLabel:p.contentLabel||'',contentHelp:p.contentHelp||'',categories:p.categories||[],categoriesByTransaction:p.categoriesByTransaction||{},custom_fields:Array.isArray(p.custom_fields)?p.custom_fields:[]};
 }
@@ -892,7 +895,7 @@ function tmOpenEditor(t=null){
  set('teDemo',t?.demo_url||'');set('teBadge',t?.badge||'');set('teDescription',t?.description||'');set('teFeatures',t?.features||'');
  const ep=tmProfile(t);
  set('teContentType',ep.content_type||'property');
- set('teContentLabel',ep.contentLabel||(ep.content_type==='news'?'Nội dung bài viết':'Mô tả chi tiết bất động sản'));
+ set('teContentLabel',ep.contentLabel||(ep.content_type==='news'?'Nội dung bài viết':ep.content_type==='service'?'Mô tả gói dịch vụ':ep.content_type==='game'?'Nội dung / chiến thuật base':'Mô tả chi tiết bất động sản'));
  set('teCategories',(ep.categories||[]).join('\n'));
  set('teBuyCategories',(ep.categoriesByTransaction?.buy||TM_DEFAULT_BUY_CATEGORIES).join('\n'));
  set('teSaleCategories',(ep.categoriesByTransaction?.sale||TM_DEFAULT_SALE_CATEGORIES).join('\n'));
@@ -971,7 +974,7 @@ templateEditorForm?.addEventListener('submit',async e=>{
  const oldProfile=tmProfile(current);
  const editorProfile={
    id:contentType,content_type:contentType,
-   contentLabel:g('teContentLabel').value.trim()||(contentType==='news'?'Nội dung bài viết':contentType==='property'?'Mô tả chi tiết bất động sản':'Nội dung'),
+   contentLabel:g('teContentLabel').value.trim()||(contentType==='news'?'Nội dung bài viết':contentType==='property'?'Mô tả chi tiết bất động sản':contentType==='service'?'Mô tả gói dịch vụ':contentType==='game'?'Nội dung / chiến thuật base':'Nội dung'),
    contentHelp:oldProfile.contentHelp||'Soạn nội dung đầy đủ bằng trình soạn thảo.',
    custom_fields:oldProfile.custom_fields||[]
  };

@@ -65,13 +65,30 @@ const BUILTIN_CONTENT_PROFILES={
   contentLabel:'Nội dung bài viết',
   contentHelp:'Soạn bài như trình soạn thảo văn bản: tiêu đề phụ, danh sách, liên kết và ảnh trong bài.',
   custom_fields:[]
+ },
+ game:{
+  id:'game-base',label:'Clash of Clans Base',content_type:'game',
+  categories:['Town Hall','Builder Hall','Clan Capital'],
+  contentLabel:'Nội dung / chiến thuật base',
+  contentHelp:'Mô tả cách base hoạt động, mục tiêu phòng thủ, meta phù hợp và hướng dẫn copy.',
+  custom_fields:[
+   {key:'game_group',label:'Nhóm Base',type:'select',options:['Town Hall','Builder Hall','Clan Capital']},
+   {key:'game_level',label:'Level',type:'text',placeholder:'TH18 / BH10 / CH10'},
+   {key:'game_purpose',label:'Purpose',type:'select',options:['War','Farming','Hybrid','Trophy','Legend','CWL','Troll']},
+   {key:'game_style',label:'Style',type:'select',options:['Diamond','Ring','Box','Compact','Spread','Original']},
+   {key:'game_defense',label:'Defense',type:'select',options:['Anti 3 Star','Anti 2 Star','Anti Everything','Anti Air','Balanced Defense']},
+   {key:'copy_link',label:'Copy Base Link',type:'url',placeholder:'https://link.clashofclans.com/...'},
+   {key:'game_year',label:'Năm',type:'text',placeholder:'2026'}
+  ]
  }
 };
 function resolvedContentProfile(){
  const override=adminTemplateOverride();
  let base;
  if(/^tin-tuc-\d+$/i.test(override))base=BUILTIN_CONTENT_PROFILES.news;
+ else if(/^game-\d+$/i.test(override))base=BUILTIN_CONTENT_PROFILES.game;
  else if(override==='mau-1'||override==='mau-2')base=BUILTIN_CONTENT_PROFILES.property;
+ else if(CLIENT_PROFILE?.content_type==='game'||CLIENT_PROFILE?.id==='game-base'||isGameTemplate())base=BUILTIN_CONTENT_PROFILES.game;
  else if(CLIENT_PROFILE?.content_type==='news'||CLIENT_PROFILE?.id==='news'||isNewsTemplate())base=BUILTIN_CONTENT_PROFILES.news;
  else base=BUILTIN_CONTENT_PROFILES.property;
 
@@ -80,8 +97,13 @@ function resolvedContentProfile(){
  // category definitions.
  const remote=(CLIENT_PROFILE&&typeof CLIENT_PROFILE==='object')?CLIENT_PROFILE:{};
  const newsBase=base.content_type==='news'||remote.content_type==='news'||/^tin-tuc-\d+$/i.test(adminTemplateOverride())||isNewsTemplate();
- const merged={...base,...remote,custom_fields:Array.isArray(remote.custom_fields)?remote.custom_fields:(base.custom_fields||[])};
- if(newsBase){
+ const gameBase=base.content_type==='game'||remote.content_type==='game'||/^game-\d+$/i.test(adminTemplateOverride())||isGameTemplate();
+ const merged={...base,...remote,custom_fields:Array.isArray(remote.custom_fields)&&remote.custom_fields.length?remote.custom_fields:(base.custom_fields||[])};
+ if(gameBase){
+   merged.content_type='game';
+   merged.categories=Array.isArray(remote.categories)&&remote.categories.length?remote.categories:(base.categories||[]);
+   delete merged.categoriesByTransaction;
+ }else if(newsBase){
    merged.content_type='news';
    merged.categories=Array.isArray(remote.categories)&&remote.categories.length?remote.categories:(base.categories||[]);
    delete merged.categoriesByTransaction;
@@ -116,9 +138,16 @@ function isNewsTemplate(){
  if(override)return /^tin-tuc-\d+$/i.test(override);
  return CLIENT_TEMPLATE_KEY==='tin-tuc-1'||CLIENT_PRESET==='news_portal_1'||CLIENT_CATEGORY==='tin-tuc'||CLIENT_PROFILE?.content_type==='news'||CLIENT_PROFILE?.id==='news';
 }
+function isGameTemplate(){
+ const override=adminTemplateOverride();
+ if(override)return /^game-\d+$/i.test(override);
+ return CLIENT_TEMPLATE_KEY==='game-1'||CLIENT_CATEGORY==='game'||CLIENT_PROFILE?.content_type==='game'||CLIENT_PROFILE?.id==='game-base'||String(CLIENT_PRESET||'').startsWith('game_');
+}
 function configureAdminForTemplate(){
- const news=isNewsTemplate(),service=isServiceTemplate();
+ const news=isNewsTemplate(),service=isServiceTemplate(),game=isGameTemplate();
  document.body.classList.toggle('admin-template-news',news);
+ document.body.classList.toggle('admin-template-game',game);
+ document.getElementById('menuServiceLeads')?.classList.add('hidden');
  const picker=document.getElementById('contentTypePicker');
  const notice=document.getElementById('newsTemplateNotice');
  const menuNew=document.getElementById('menuNewPostText');
@@ -129,7 +158,14 @@ function configureAdminForTemplate(){
  if(editorLabel)editorLabel.textContent=profile.contentLabel||(news?'Nội dung bài viết':'Mô tả chi tiết');
  if(editorHelp)editorHelp.textContent=profile.contentHelp||'Soạn và định dạng nội dung.';
  renderProfileFields();
- if(service){
+ if(game){
+   postType.value='game';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
+   if(menuNew)menuNew.textContent='Đăng base mới';if(menuPosts)menuPosts.textContent='Quản lý base';if(overviewBtn)overviewBtn.textContent='＋ Đăng base mới';
+   if(postTitle)postTitle.placeholder='Ví dụ: TH18 War Base Link – Anti 3 Stars';
+   document.querySelector('#tab-overview .admin-page-head p')?.replaceChildren(document.createTextNode('Quản lý base Clash of Clans, Copy Base Link và theo dõi hiệu quả website.'));
+   document.querySelector('#tab-overview .admin-kpis .kpi:first-child small')?.replaceChildren(document.createTextNode('TỔNG BASE'));
+   document.querySelector('#tab-overview .admin-kpis .kpi:first-child span')?.replaceChildren(document.createTextNode('Base đã đăng'));
+ }else if(service){
    document.getElementById('menuServiceLeads')?.classList.remove('hidden');
    postType.value='service';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
    if(menuNew)menuNew.textContent='Thêm gói dịch vụ';if(menuPosts)menuPosts.textContent='Quản lý dịch vụ';if(overviewBtn)overviewBtn.textContent='＋ Thêm gói dịch vụ';
@@ -176,7 +212,10 @@ async function boot(){try{
  CLIENT_PROFILE=d.content_profile&&typeof d.content_profile==='object'?d.content_profile:null;
  loginPanel.classList.add('hidden');dashboard.classList.remove('hidden');document.documentElement.classList.remove('nr-admin-auth-boot','nr-handover-boot');
  if(d.site?.favicon_url){let f=document.querySelector('link[rel=\"icon\"]');if(!f){f=document.createElement('link');f.rel='icon';document.head.appendChild(f)}f.href=d.site.favicon_url}
- welcome.textContent=cleanSiteName(d.site.name);kpiPosts.textContent=d.stats.posts;kpiViews.textContent=d.stats.views;kpiToday.textContent=d.stats.today;
+ const siteDisplayName=cleanSiteName(d.site.name);
+ welcome.textContent=siteDisplayName;kpiPosts.textContent=d.stats.posts;kpiViews.textContent=d.stats.views;kpiToday.textContent=d.stats.today;
+ const adminBrand=document.querySelector('.admin-top .brand');if(adminBrand)adminBrand.textContent=isGameTemplate()?'COC BASE PORTAL':siteDisplayName;
+ document.title='Trang quản trị · '+siteDisplayName;
  setName.value=cleanSiteName(d.site.name||'');setPhone.value=d.site.phone||'';setZalo.value=d.site.zalo||'';setEmail.value=d.site.email||'';setFacebook.value=d.site.facebook||'';
  CLIENT_TEMPLATE_SETTINGS=d.site.template_settings&&typeof d.site.template_settings==='object'?d.site.template_settings:(()=>{try{return JSON.parse(d.site.template_settings_json||'{}')}catch(e){return {}}})();renderTemplateSettingsFields(CLIENT_TEMPLATE_SETTINGS);
  websiteSettingsSnapshot=captureWebsiteSettings();setWebsiteSettingsEditing(false);
@@ -446,7 +485,7 @@ function validatePost(){
   clearFieldErrors();
   const errors=[];
   const add=(el,msg)=>{if(!String(el?.value||'').trim()){errors.push({el,msg});markError(el,msg)}};
-  add(postTitle,isNewsTemplate()?'Vui lòng nhập tiêu đề bài viết.':'Vui lòng nhập tiêu đề tin.');
+  add(postTitle,isGameTemplate()?'Vui lòng nhập tiêu đề base.':isNewsTemplate()?'Vui lòng nhập tiêu đề bài viết.':'Vui lòng nhập tiêu đề tin.');
   if(postType.value==='property'){
     add(postPrice,'Vui lòng nhập giá bất động sản.');
     add(postArea,'Vui lòng nhập diện tích.');
@@ -460,7 +499,7 @@ function validatePost(){
       markError(document.querySelector('.upload-drop'),'Vui lòng tải ít nhất 1 ảnh hoặc nhập URL ảnh đại diện.');
     }
   }
-  add(postContent,isNewsTemplate()?'Vui lòng nhập nội dung bài viết.':'Vui lòng nhập nội dung chi tiết.');
+  add(postContent,isGameTemplate()?'Vui lòng nhập nội dung / mô tả base.':isNewsTemplate()?'Vui lòng nhập nội dung bài viết.':'Vui lòng nhập nội dung chi tiết.');
   if(postPhone.value && !/^[0-9+\s().-]{8,20}$/.test(postPhone.value.trim())){
     errors.push({el:postPhone,msg:'Số điện thoại chưa đúng định dạng.'}); markError(postPhone,'Số điện thoại chưa đúng định dạng.');
   }
@@ -487,7 +526,7 @@ function fillCategoryOptions(keep=''){
   // Never infer a News category list from categoriesByTransaction. Older/stale
   // property profiles may still carry that object and previously produced an
   // empty dropdown for News Trial sites.
-  if(isNewsTemplate()||isServiceTemplate()||profile.content_type==='news'||profile.content_type==='service')list=Array.isArray(profile.categories)?profile.categories:[];
+  if(isNewsTemplate()||isServiceTemplate()||isGameTemplate()||['news','service','game'].includes(profile.content_type))list=Array.isArray(profile.categories)?profile.categories:[];
   else if(profile.categoriesByTransaction)list=profile.categoriesByTransaction[transaction.value]||[];
   else list=Array.isArray(profile.categories)?profile.categories:[];
   list=[...new Set(list.map(x=>String(x||'').trim()).filter(Boolean))];
@@ -501,32 +540,34 @@ const contentTypeHint=document.getElementById('contentTypeHint');
 const editorHelp=document.getElementById('editorHelp');
 const imageSectionTitle=document.getElementById('imageSectionTitle');
 function updateContentTypeUI(){
-  if(isNewsTemplate())postType.value='news';if(isServiceTemplate())postType.value='service';
-  const isNews=postType.value==='news',isService=postType.value==='service',isSimple=isNews||isService;
+  if(isNewsTemplate())postType.value='news';if(isServiceTemplate())postType.value='service';if(isGameTemplate())postType.value='game';
+  const isNews=postType.value==='news',isService=postType.value==='service',isGame=postType.value==='game',isSimple=isNews||isService||isGame;
   propertyOnlyEls.forEach(el=>el.classList.toggle('hidden',isSimple));
-  editorTitle.textContent=editingId.value?(isService?'Chỉnh sửa gói dịch vụ':isNews?'Chỉnh sửa tin tức':'Chỉnh sửa tin bất động sản'):(isService?'Thêm gói dịch vụ':isNews?'Đăng bài tin tức':'Đăng tin bất động sản');
-  contentTypeHint.textContent=isService?'Dịch vụ: quản lý gói cước, thông số, giá, ưu đãi và nội dung tư vấn.':isNews?'Tin tức: chỉ cần tiêu đề, chuyên mục, hình ảnh và nội dung bài viết.':'Bất động sản: hiển thị giá, diện tích, vị trí và thông số chi tiết.';
-  editorHelp.textContent=isService?'Điền thông tin gói dịch vụ; các trường riêng của template sẽ hiển thị tự động.':isNews?'Giao diện đã ẩn các trường bất động sản để bạn viết bài đơn giản và dễ nhìn hơn.':'Điền thông tin chi tiết để tin đăng hiển thị đầy đủ trên website.';
-  imageSectionTitle.textContent=isService?'Hình ảnh dịch vụ':isNews?'Hình ảnh bài viết':'Hình ảnh bất động sản';
+  editorTitle.textContent=editingId.value?(isGame?'Chỉnh sửa base Clash of Clans':isService?'Chỉnh sửa gói dịch vụ':isNews?'Chỉnh sửa tin tức':'Chỉnh sửa tin bất động sản'):(isGame?'Đăng base Clash of Clans':isService?'Thêm gói dịch vụ':isNews?'Đăng bài tin tức':'Đăng tin bất động sản');
+  contentTypeHint.textContent=isGame?'Gaming: đăng base theo Hall, Level, Purpose, Style, Defense và Copy Base Link.':isService?'Dịch vụ: quản lý gói cước, thông số, giá, ưu đãi và nội dung tư vấn.':isNews?'Tin tức: chỉ cần tiêu đề, chuyên mục, hình ảnh và nội dung bài viết.':'Bất động sản: hiển thị giá, diện tích, vị trí và thông số chi tiết.';
+  editorHelp.textContent=isGame?'Điền thông tin base; các trường Hall, Level, Purpose, Defense và Copy Link sẽ đồng bộ với giao diện Gaming.':isService?'Điền thông tin gói dịch vụ; các trường riêng của template sẽ hiển thị tự động.':isNews?'Giao diện đã ẩn các trường bất động sản để bạn viết bài đơn giản và dễ nhìn hơn.':'Điền thông tin chi tiết để tin đăng hiển thị đầy đủ trên website.';
+  imageSectionTitle.textContent=isGame?'Hình ảnh base':isService?'Hình ảnh dịch vụ':isNews?'Hình ảnh bài viết':'Hình ảnh bất động sản';
   fillCategoryOptions(postCategory.value);
 }
 postType.addEventListener('change',updateContentTypeUI);transaction.addEventListener('change',()=>fillCategoryOptions(postCategory.value));
 
 
-postForm.addEventListener('submit',async e=>{e.preventDefault();if(!validatePost())return;const normalizedContent=normalizeArticleHtml(richHtml());if(postContent)postContent.value=normalizedContent;if(nrTinyEditor)nrTinyEditor.setContent(normalizedContent);else if(richEditor)richEditor.innerHTML=normalizedContent;submitPostBtn.disabled=true;submitPostBtn.textContent='Đang xử lý...';const isNews=postType.value==='news',isService=postType.value==='service',isSimple=isNews||isService;const b={type:postType.value,transaction:isSimple?'':transaction.value,property_type:isSimple?'':propertyType.value,title:postTitle.value,price:isSimple?'':postPrice.value,area:isSimple?'':postArea.value,unit_price:isSimple?'':unitPrice.value,listing_code:listingCode.value,bedrooms:isSimple?null:(+bedrooms.value||null),bathrooms:isSimple?null:(+bathrooms.value||null),floors:isSimple?null:(+floors.value||null),frontage:isSimple?'':frontage.value,direction:isSimple?'':direction.value,legal:isSimple?'':legal.value,furniture:isSimple?'':furniture.value,province:isSimple?'':province.value,district:isSimple?'':district.value,ward:isSimple?'':ward.value,address:isSimple?'':postAddress.value,image:postImage.value,gallery:gallery.value,contact_name:isSimple?'':contactName.value,phone:isSimple?'':postPhone.value,category:postCategory.value,content:postContent.value,extra_json:JSON.stringify(collectProfileFields()),featured:featured.checked?1:0,verified:verified.checked?1:0,status:postStatus.value};const id=editingId.value;try{
+postForm.addEventListener('submit',async e=>{e.preventDefault();if(!validatePost())return;const normalizedContent=normalizeArticleHtml(richHtml());if(postContent)postContent.value=normalizedContent;if(nrTinyEditor)nrTinyEditor.setContent(normalizedContent);else if(richEditor)richEditor.innerHTML=normalizedContent;submitPostBtn.disabled=true;submitPostBtn.textContent='Đang xử lý...';const isNews=postType.value==='news',isService=postType.value==='service',isGame=postType.value==='game',isSimple=isNews||isService||isGame;const b={type:postType.value,transaction:isSimple?'':transaction.value,property_type:isSimple?'':propertyType.value,title:postTitle.value,price:isSimple?'':postPrice.value,area:isSimple?'':postArea.value,unit_price:isSimple?'':unitPrice.value,listing_code:listingCode.value,bedrooms:isSimple?null:(+bedrooms.value||null),bathrooms:isSimple?null:(+bathrooms.value||null),floors:isSimple?null:(+floors.value||null),frontage:isSimple?'':frontage.value,direction:isSimple?'':direction.value,legal:isSimple?'':legal.value,furniture:isSimple?'':furniture.value,province:isSimple?'':province.value,district:isSimple?'':district.value,ward:isSimple?'':ward.value,address:isSimple?'':postAddress.value,image:postImage.value,gallery:gallery.value,contact_name:isSimple?'':contactName.value,phone:isSimple?'':postPhone.value,category:postCategory.value,content:postContent.value,extra_json:JSON.stringify(collectProfileFields()),featured:featured.checked?1:0,verified:verified.checked?1:0,status:postStatus.value};const id=editingId.value;try{
 await api('/posts'+(id?'?id='+id:''),{method:id?'PUT':'POST',body:JSON.stringify(b)});
 postMsg.textContent=b.status==='draft'?'Đã lưu bản nháp.':(id?'Đã cập nhật tin thành công.':'Đã đăng tin thành công.');
-postMsg.classList.remove('hidden');postForm.reset();setRichContent('');renderProfileFields();uploadedImages=[];renderImages();editingId.value='';editorTitle.textContent=isServiceTemplate()?'Thêm gói dịch vụ':isNewsTemplate()?'Đăng bài tin tức':'Đăng tin bất động sản';if(isNewsTemplate())postType.value='news';if(isServiceTemplate())postType.value='service';updateContentTypeUI();clearFieldErrors();
+postMsg.classList.remove('hidden');postForm.reset();setRichContent('');renderProfileFields();uploadedImages=[];renderImages();editingId.value='';editorTitle.textContent=isGameTemplate()?'Đăng base Clash of Clans':isServiceTemplate()?'Thêm gói dịch vụ':isNewsTemplate()?'Đăng bài tin tức':'Đăng tin bất động sản';if(isNewsTemplate())postType.value='news';if(isServiceTemplate())postType.value='service';if(isGameTemplate())postType.value='game';updateContentTypeUI();clearFieldErrors();
 }catch(err){
 formErrors.innerHTML='<b>Không thể lưu tin.</b><div>'+String(err.message||err)+'</div>';formErrors.classList.remove('hidden');formErrors.scrollIntoView({behavior:'smooth',block:'center'});
 }finally{submitPostBtn.disabled=false;updateSubmitLabel()}});
 async function loadPosts(){
  const d=await api('/posts');allPosts=d.posts||[];
- const newsMode=isNewsTemplate();
- const rows=newsMode?allPosts.filter(x=>x.type==='news'):allPosts;
- postTable.innerHTML=`<div style="overflow:auto"><table class="table"><thead><tr><th>Tiêu đề</th>${newsMode?'<th>Chuyên mục</th>':'<th>Loại</th><th>Giá</th>'}<th>Trạng thái</th><th>Lượt xem</th><th></th></tr></thead><tbody>${rows.map(x=>`<tr><td><b>${x.title}</b><div>${newsMode?(x.category||'Tin tức'):(x.listing_code||'')}</div></td>${newsMode?`<td>${x.category||'Tin tức'}</td>`:`<td>${x.type==='property'?'BĐS':'Tin tức'}</td><td>${x.price||''}</td>`}<td><span class="status-pill ${x.status==='published'?'status-published':'status-draft'}">${x.status==='published'?'Đã đăng':'Bản nháp'}</span></td><td>${x.views||0}</td><td><button class="smallbtn soft" onclick="editPost(${x.id})">Sửa</button> <button class="smallbtn danger" onclick="delPost(${x.id})">Xóa</button></td></tr>`).join('')}</tbody></table></div>`;
+ const newsMode=isNewsTemplate(),serviceMode=isServiceTemplate(),gameMode=isGameTemplate();
+ const rows=newsMode?allPosts.filter(x=>x.type==='news'):serviceMode?allPosts.filter(x=>x.type==='service'):gameMode?allPosts.filter(x=>x.type==='game'):allPosts;
+ const simpleMode=newsMode||serviceMode||gameMode;
+ postTable.innerHTML=`<div style="overflow:auto"><table class="table"><thead><tr><th>Tiêu đề</th>${simpleMode?'<th>Chuyên mục</th>':'<th>Loại</th><th>Giá</th>'}<th>Trạng thái</th><th>Lượt xem</th><th></th></tr></thead><tbody>${rows.map(x=>`<tr><td><b>${x.title}</b><div>${simpleMode?(x.category||(gameMode?'Base':'Nội dung')):(x.listing_code||'')}</div></td>${simpleMode?`<td>${x.category||(gameMode?'Base':'Nội dung')}</td>`:`<td>${x.type==='property'?'BĐS':'Tin tức'}</td><td>${x.price||''}</td>`}<td><span class="status-pill ${x.status==='published'?'status-published':'status-draft'}">${x.status==='published'?'Đã đăng':'Bản nháp'}</span></td><td>${x.views||0}</td><td><button class="smallbtn soft" onclick="editPost(${x.id})">Sửa</button> <button class="smallbtn danger" onclick="delPost(${x.id})">Xóa</button></td></tr>`).join('')}</tbody></table></div>`;
 }
-function editPost(id){const x=allPosts.find(p=>p.id===id);uploadedImages=[x.image,...String(x.gallery||'').split(',').map(v=>v.trim()).filter(Boolean)].filter(Boolean);renderImages();editingId.value=x.id;postType.value=isServiceTemplate()?'service':isNewsTemplate()?'news':(x.type||'property');updateContentTypeUI();transaction.value=x.transaction||'sale';propertyType.value=x.property_type||'Nhà phố';postTitle.value=x.title||'';postPrice.value=x.price||'';postArea.value=x.area||'';unitPrice.value=x.unit_price||'';listingCode.value=x.listing_code||'';bedrooms.value=x.bedrooms||'';bathrooms.value=x.bathrooms||'';floors.value=x.floors||'';frontage.value=x.frontage||'';direction.value=x.direction||'';legal.value=x.legal||'';furniture.value=x.furniture||'';province.value=x.province||'';district.value=x.district||'';ward.value=x.ward||'';postAddress.value=x.address||'';postImage.value=x.image||'';gallery.value=x.gallery||'';contactName.value=x.contact_name||'';postPhone.value=x.phone||'';fillCategoryOptions(x.category||'');setRichContent(x.content||'');renderProfileFields(parseExtraJson(x.extra_json));featured.checked=!!x.featured;verified.checked=!!x.verified;postStatus.value=x.status||'published';editorTitle.textContent='Chỉnh sửa tin';showTab('newpost');updateSubmitLabel()}
+
+function editPost(id){const x=allPosts.find(p=>p.id===id);uploadedImages=[x.image,...String(x.gallery||'').split(',').map(v=>v.trim()).filter(Boolean)].filter(Boolean);renderImages();editingId.value=x.id;postType.value=isGameTemplate()?'game':isServiceTemplate()?'service':isNewsTemplate()?'news':(x.type||'property');updateContentTypeUI();transaction.value=x.transaction||'sale';propertyType.value=x.property_type||'Nhà phố';postTitle.value=x.title||'';postPrice.value=x.price||'';postArea.value=x.area||'';unitPrice.value=x.unit_price||'';listingCode.value=x.listing_code||'';bedrooms.value=x.bedrooms||'';bathrooms.value=x.bathrooms||'';floors.value=x.floors||'';frontage.value=x.frontage||'';direction.value=x.direction||'';legal.value=x.legal||'';furniture.value=x.furniture||'';province.value=x.province||'';district.value=x.district||'';ward.value=x.ward||'';postAddress.value=x.address||'';postImage.value=x.image||'';gallery.value=x.gallery||'';contactName.value=x.contact_name||'';postPhone.value=x.phone||'';fillCategoryOptions(x.category||'');setRichContent(x.content||'');renderProfileFields(parseExtraJson(x.extra_json));featured.checked=!!x.featured;verified.checked=!!x.verified;postStatus.value=x.status||'published';editorTitle.textContent='Chỉnh sửa tin';showTab('newpost');updateSubmitLabel()}
 async function delPost(id){if(confirm('Xóa tin này?')){await api('/posts?id='+id,{method:'DELETE'});loadPosts()}}
 async function loadStats(){const d=await api('/stats');stat7.textContent=d.last7;stat30.textContent=d.last30;statAll.textContent=d.all;topPosts.innerHTML=`<table class="table">${d.top.map(x=>`<tr><td>${x.title}</td><td>${x.views||0}</td></tr>`).join('')}</table>`}
 editWebsiteSettings?.addEventListener('click',()=>{
