@@ -173,7 +173,6 @@ async function ensureServiceDocuments(env){
 }
 function fmtMoneyVN(v){return Number(v||0).toLocaleString('vi-VN')+'đ'}
 async function createActivationServiceDocument(env,siteId,loginEmail){
-  await ensureServiceDocuments(env);await ensureCustomerTables(env);
   const row=await env.DB.prepare(`SELECT s.id,s.name,s.domain,s.template_key,s.preset,cp.full_name,cp.phone,cp.company,
     ss.plan_name,ss.sale_price,ss.payment_status,ss.started_at,ss.expires_at,
     coalesce(sp.term_months,12) term_months,coalesce(sp.first_price,ss.sale_price,0) first_price,coalesce(sp.renewal_price,0) renewal_price,
@@ -314,7 +313,6 @@ function renewalOrderCode(siteId){
   return `GH${stamp}-${String(siteId).padStart(5,'0')}-${tail}`;
 }
 async function createRenewalPayment(env,siteId,years=1){
-  await ensureRenewalPayments(env);
   years=Math.max(1,Math.min(3,Number(years||1)));
   const row=await env.DB.prepare(`SELECT s.id,s.name,s.domain,u.email admin_email,cp.full_name customer_name,cp.email customer_email,
     ss.expires_at,coalesce(sp.renewal_price,1999000) renewal_price
@@ -697,7 +695,6 @@ function cleanDomain(v=''){
 function activationToken(){return crypto.randomUUID().replace(/-/g,'')+crypto.randomUUID().replace(/-/g,'')}
 
 async function issuePasswordReset(env,{site,user,origin}){
-  await ensureCustomerTables(env);
   const raw=activationToken(),hash=await sha256(raw);
   // Only the newest reset link stays active for this account.
   await env.DB.prepare(`UPDATE password_reset_tokens SET used_at=datetime('now') WHERE site_id=? AND user_id=? AND used_at IS NULL`).bind(site.id,user.id).run();
@@ -1142,7 +1139,6 @@ async function masterOK(env,req){
   return t===await sha256('newsreal-master:'+env.MASTER_KEY);
 }
 async function syncFinancialLedger(env){
-  await ensureCustomerTables(env);
   // Initial payment: one immutable/idempotent ledger row per customer site.
   await env.DB.prepare(`INSERT INTO financial_transactions(site_id,kind,status,amount,cost,order_code,memo,cycle_start,cycle_end,paid_at,unique_key,note)
     SELECT s.id,'initial','paid',coalesce(sp.first_price,ss.sale_price,0),coalesce(ss.internal_cost,0),coalesce(cp.order_code,''),
@@ -1507,7 +1503,6 @@ async function buildTemplatePreviewBlueprint(env,templateKey,site={}){
 }
 
 async function nextOrderCode(env){
-  await ensureCustomerTables(env);
   const y=new Date().getUTCFullYear();
   const prefix=`NR-${y}-`;
   const row=await env.DB.prepare(`
@@ -1689,12 +1684,10 @@ export async function onRequest({request,env}){const u=new URL(request.url),rout
 // V20.8.1 — authenticated VPS -> Cloudflare content publishing bridge.
 if(route==='publisher/health'&&request.method==='GET'){
   if(!publisherAuthorized(request,env))return json({error:'Unauthorized'},401);
-  await ensurePublisherTables(env);
   return json({ok:true,contract:'content-publisher-v1',content_types:['game'],max_payload_bytes:262144});
 }
 if(route==='publisher/check'&&request.method==='GET'){
   if(!publisherAuthorized(request,env))return json({error:'Unauthorized'},401);
-  await ensurePublisherTables(env);
   const tenant=String(u.searchParams.get('tenant')||u.searchParams.get('domain')||'').trim();
   const externalKey=String(u.searchParams.get('external_key')||'').trim();
   const slug=nrSlug(u.searchParams.get('slug')||'');
@@ -1706,7 +1699,6 @@ if(route==='publisher/check'&&request.method==='GET'){
 }
 if(route==='publisher/base'&&request.method==='POST'){
   if(!publisherAuthorized(request,env))return json({error:'Unauthorized'},401);
-  await ensurePublisherTables(env);
   const b=await body(request);
   const tenant=String(b.tenant_domain||b.tenant||b.domain||'').trim();
   const target=await publisherSite(env,tenant);if(!target)return json({error:'Tenant không tồn tại hoặc chưa active'},404);
@@ -1736,7 +1728,7 @@ if(route==='publisher/base'&&request.method==='POST'){
     const r=await env.DB.prepare(`INSERT INTO posts(site_id,type,title,category,image,content,status,author_id,featured,verified,listing_code,views,is_sample,sample_key,extra_json) VALUES(?,?,?,?,?,?,'published',NULL,?,?,?,?,0,'',?)`).bind(target.id,'game',title,group,image,content,b.featured?1:0,1,`COC-${(await sha256(externalKey)).slice(0,12).toUpperCase()}`,Number(b.views||0),JSON.stringify(extra)).run();
     const postId=Number(r.meta.last_row_id);
     await env.DB.prepare(`INSERT INTO publisher_imports(site_id,post_id,external_key,slug,source_url,payload_hash) VALUES(?,?,?,?,?,?)`).bind(target.id,postId,externalKey,slug,sourceUrl,payloadHash).run();
-    try{await ensureGameStatsTables(env);await env.DB.prepare(`INSERT OR IGNORE INTO game_base_stats(site_id,slug,views) VALUES(?,?,?)`).bind(target.id,slug,Number(b.views||0)).run()}catch(e){}
+    try{await env.DB.prepare(`INSERT OR IGNORE INTO game_base_stats(site_id,slug,views) VALUES(?,?,?)`).bind(target.id,slug,Number(b.views||0)).run()}catch(e){}
     return json({ok:true,created:true,updated:false,duplicate:false,post_id:postId,slug,url:`https://${target.domain}/base/${slug}.html`},201);
   }
   const current=await env.DB.prepare(`SELECT id,extra_json FROM posts WHERE id=? AND site_id=? LIMIT 1`).bind(imp.post_id,target.id).first();
@@ -1748,7 +1740,6 @@ if(route==='publisher/base'&&request.method==='POST'){
 }
 // TRIAL WEBSITE MAINTENANCE — hourly/daily cron safe endpoint.
 if(route==='system/trial-maintenance'&&request.method==='POST'){
-  await ensureCustomerTables(env);await ensureTrialTables(env);
   const auth=request.headers.get('Authorization')||'';if(!env.CRON_SECRET||auth!==`Bearer ${env.CRON_SECRET}`)return json({error:'Unauthorized'},401);
   const expired=(await env.DB.prepare(`UPDATE website_trials SET status='expired',updated_at=CURRENT_TIMESTAMP WHERE status='active' AND datetime(expires_at)<=datetime('now') RETURNING id`).all()).results||[];
   const due=(await env.DB.prepare(`SELECT wt.id,wt.site_id FROM website_trials wt WHERE wt.status='expired' AND datetime(wt.grace_expires_at)<=datetime('now')`).all()).results||[];
@@ -1761,7 +1752,6 @@ if(route==='system/trial-maintenance'&&request.method==='POST'){
 
 // DAILY RENEWAL REMINDER JOB — called by a Cloudflare Cron Worker.
 if(route==='system/renewal-reminders'&&request.method==='POST'){
-  await ensureCustomerTables(env);
   const auth=request.headers.get('Authorization')||'';
   if(!env.CRON_SECRET||auth!==`Bearer ${env.CRON_SECRET}`)return json({error:'Unauthorized'},401);
   const {results}=await env.DB.prepare(`SELECT s.id,s.name,s.domain,u.email admin_email,cp.full_name customer_name,cp.email customer_email,ss.expires_at,
@@ -1789,7 +1779,6 @@ if(route==='system/renewal-reminders'&&request.method==='POST'){
 
 // Public renewal-response flow. YES creates a VietQR payment; service time changes only after real domain renewal.
 if(route==='renewal/payment-status'&&request.method==='GET'){
-  await ensureRenewalPayments(env);
   const orderCode=String(u.searchParams.get('order_code')||'').trim(),token=String(u.searchParams.get('token')||'').trim();
   if(!orderCode||!token)return json({error:'Thiếu thông tin thanh toán'},400);
   const hash=await sha256(token);
@@ -1810,7 +1799,6 @@ if(route==='renewal/info'&&request.method==='GET'){
   return json({ok:true,site:{name:row.name,domain:row.domain},customer_name:row.full_name||'',expires_at:row.service_expires_at||'',renewal_status:row.renewal_status,renewal_price:Number(row.renewal_price||0),responded:!!row.used_at});
 }
 if(route==='renewal/respond'&&request.method==='POST'){
-  await ensureCustomerTables(env);
   const b=await body(request),raw=String(b.token||''),decision=String(b.decision||'');
   if(!raw||!['yes','no'].includes(decision))return json({error:'Yêu cầu không hợp lệ'},400);
   const hash=await sha256(raw);
@@ -2137,7 +2125,6 @@ if(route==='template-inquiry'&&request.method==='POST'){
     await env.DB.prepare(`INSERT INTO customer_profiles(site_id,full_name,phone,email,company,order_code,internal_note,updated_at) VALUES(?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
       ON CONFLICT(site_id) DO UPDATE SET full_name=excluded.full_name,phone=excluded.phone,email=excluded.email,company=excluded.company,order_code=excluded.order_code,internal_note=excluded.internal_note,updated_at=CURRENT_TIMESTAMP`)
       .bind(siteId,String(b.customer_name||'').trim(),String(b.customer_phone||'').trim(),adminEmail,String(b.company||'').trim(),orderCode,String(b.internal_note||'').trim()).run();
-    await ensureSitePublicSettings(env);
     await env.DB.prepare(`INSERT INTO site_public_settings(site_id,contact_email,updated_at) VALUES(?,?,CURRENT_TIMESTAMP)
       ON CONFLICT(site_id) DO UPDATE SET contact_email=excluded.contact_email,updated_at=CURRENT_TIMESTAMP`).bind(siteId,publicEmail).run();
     const termMonths=Math.max(1,Math.min(60,Number(b.term_months||12)));
@@ -2157,7 +2144,6 @@ if(route==='template-inquiry'&&request.method==='POST'){
     // Activation links are intentionally NOT created at website creation time.
     // They are available only after the custom domain + SSL is active on Cloudflare Pages.
     if(leadId){
-      await ensureSalesLeads(env);
       await env.DB.prepare(`UPDATE sales_leads SET status='won',converted_site_id=?,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(siteId,leadId).run();
       try{await env.DB.prepare(`UPDATE website_trials SET status='converted',converted_site_id=?,updated_at=CURRENT_TIMESTAMP WHERE lead_id=?`).bind(siteId,leadId).run()}catch(e){}
     }
@@ -2246,8 +2232,6 @@ if(route==='template-inquiry'&&request.method==='POST'){
   }
   if(route==='master/customer'&&request.method==='GET'){
     const siteId=Number(u.searchParams.get('site_id'));
-    await ensureServiceDocuments(env);
-    await ensureCustomerTables(env);
     await syncCompletedRenewalExpiry(env,siteId);
     const row=await env.DB.prepare(`SELECT s.id,s.name,s.domain,s.status,s.preset,s.template_key,s.accent,s.created_at,
       coalesce((SELECT tc.name FROM template_catalog tc WHERE tc.template_key=s.template_key LIMIT 1),
@@ -2287,7 +2271,6 @@ if(route==='template-inquiry'&&request.method==='POST'){
   if(route==='master/update-service'&&request.method==='POST'){
     const b=await body(request),siteId=Number(b.site_id);
     if(!siteId)return json({error:'Thiếu website'},400);
-    await ensureCustomerTables(env);
     const paymentStatus=String(b.payment_status||'unpaid');
     const salePrice=Math.max(0,Number(b.sale_price||0));
     const paidAmount=paymentStatus==='paid'?salePrice:paymentStatus==='partial'?Math.max(0,Math.min(salePrice,Number(b.paid_amount||0))):0;
@@ -2680,7 +2663,6 @@ if(route==='template-inquiry'&&request.method==='POST'){
     return json({ok:true,stage});
   }
   if(route==='master/expenses'){
-    await ensureCustomerTables(env);
     if(request.method==='GET'){
       const {results}=await env.DB.prepare(`SELECT *,CASE category WHEN 'domain' THEN 'Domain' WHEN 'cloudflare' THEN 'Cloudflare / hạ tầng' WHEN 'email' THEN 'Email / Resend' WHEN 'ads' THEN 'Quảng cáo' WHEN 'software' THEN 'Phần mềm / API' ELSE 'Chi phí khác' END category_label FROM operating_expenses ORDER BY expense_date DESC,id DESC LIMIT 500`).all();
       return json({expenses:results||[]});
@@ -2697,7 +2679,6 @@ if(route==='template-inquiry'&&request.method==='POST'){
     }
   }
   if(route==='master/finance'){
-    await ensureCustomerTables(env);
     await syncFinancialLedger(env);
     const siteId=Number(u.searchParams.get('site_id')||0);
     const where=siteId?' WHERE ft.site_id=? ':'';
@@ -2736,7 +2717,6 @@ if(route==='template-inquiry'&&request.method==='POST'){
 
 
 if(route==='payment-status'&&request.method==='GET'){
-  await ensurePurchasePayments(env);
   const orderCode=String(u.searchParams.get('order_code')||'').trim(),token=String(u.searchParams.get('token')||'').trim();
   if(!orderCode||!token)return json({error:'Thiếu thông tin thanh toán'},400);
   const hash=await sha256(token);
@@ -2748,7 +2728,6 @@ if(route==='payment-status'&&request.method==='GET'){
 
 
 if(route==='payos-webhook'&&request.method==='POST'){
-  await ensurePurchasePayments(env);await ensureRenewalPayments(env);
   if(!payosReady(env))return json({error:'payOS chưa cấu hình'},503);
   const b=await body(request);if(!await payosVerifyWebhook(env,b))return json({error:'Invalid payOS signature'},400);
   const d=b.data||{};if(b.success!==true||String(d.code||'00')!=='00')return json({ok:true,ignored:'not_success'});
@@ -2762,7 +2741,6 @@ if(route==='payos-webhook'&&request.method==='POST'){
 }
 
 if((route==='payment-webhook'||route==='vietqr-callback')&&request.method==='POST'){
-  await ensurePurchasePayments(env);await ensureRenewalPayments(env);
   const secret=String(env.VIETQR_WEBHOOK_TOKEN||env.PAYMENT_WEBHOOK_SECRET||'').trim();
   if(!secret)return json({error:'VIETQR_WEBHOOK_TOKEN chưa cấu hình'},503);
   if(!paymentWebhookAuthorized(env,request))return json({error:'Webhook không hợp lệ'},401);
@@ -2812,7 +2790,6 @@ if((route==='payment-webhook'||route==='vietqr-callback')&&request.method==='POS
 
 if(route==='master/leads'&&request.method==='GET'){
   if(!await masterOK(env,request))return json({error:'Không có quyền'},401);
-  await ensureSalesLeads(env);
   // Trial registrations live in Trial CRM, not in the real purchase/request inbox.
   // They only enter the purchase inbox after the customer actually submits the registration form.
   const {results}=await env.DB.prepare(`SELECT * FROM sales_leads
@@ -2824,7 +2801,6 @@ if(route==='master/leads'&&request.method==='GET'){
 }
 if(route==='master/lead-update'&&request.method==='POST'){
   if(!await masterOK(env,request))return json({error:'Không có quyền'},401);
-  await ensureSalesLeads(env);
   const b=await body(request),id=Number(b.id);
   const allowed=['payment_pending','paid','new','contacted','qualified','won','lost'];
   const status=allowed.includes(String(b.status||''))?String(b.status):null;
@@ -2844,30 +2820,29 @@ if(route==='master/lead-update'&&request.method==='POST'){
 
 if(route==='master/lead-delete'&&request.method==='POST'){
   if(!await masterOK(env,request))return json({error:'Không có quyền'},401);
-  await ensureSalesLeads(env);const b=await body(request),id=Number(b.id);if(!id)return json({error:'Thiếu mã yêu cầu'},400);
+  const b=await body(request),id=Number(b.id);if(!id)return json({error:'Thiếu mã yêu cầu'},400);
   const row=await env.DB.prepare(`SELECT id,coalesce(lead_kind,'inquiry') lead_kind,coalesce(converted_site_id,0) converted_site_id FROM sales_leads WHERE id=?`).bind(id).first();
   if(!row)return json({error:'Không tìm thấy yêu cầu'},404);if(row.lead_kind==='trial')return json({error:'Lead dùng thử phải xóa trong Trial Website'},409);
   await env.DB.prepare(`DELETE FROM sales_leads WHERE id=?`).bind(id).run();return json({ok:true,id,kept_site_id:Number(row.converted_site_id||0)||null});
 }
 if(route==='master/favicon-upload'&&request.method==='POST'){
   if(!await masterOK(env,request))return json({error:'Không có quyền'},401);if(!env.IMAGES)return json({error:'Chưa cấu hình R2 binding IMAGES'},500);
-  await ensureServiceDocuments(env);const form=await request.formData(),siteId=Number(form.get('site_id')),file=form.get('file');if(!siteId)return json({error:'Thiếu website'},400);if(!file||typeof file==='string')return json({error:'Chưa chọn ảnh'},400);
+  const form=await request.formData(),siteId=Number(form.get('site_id')),file=form.get('file');if(!siteId)return json({error:'Thiếu website'},400);if(!file||typeof file==='string')return json({error:'Chưa chọn ảnh'},400);
   const allowed=['image/jpeg','image/png','image/webp'];if(!allowed.includes(file.type))return json({error:'Favicon chỉ hỗ trợ JPG, PNG, WEBP'},400);if(file.size>2*1024*1024)return json({error:'Favicon tối đa 2 MB'},400);
   const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg',key=`sites/${siteId}/branding/favicon-${crypto.randomUUID()}.${ext}`;await env.IMAGES.put(key,file.stream(),{httpMetadata:{contentType:file.type}});const url=`/api/image?key=${encodeURIComponent(key)}`;await env.DB.prepare(`UPDATE sites SET favicon_url=? WHERE id=?`).bind(url,siteId).run();return json({ok:true,url});
 }
 if(route==='master/favicon-clear'&&request.method==='POST'){
-  if(!await masterOK(env,request))return json({error:'Không có quyền'},401);await ensureServiceDocuments(env);const b=await body(request),siteId=Number(b.site_id);if(!siteId)return json({error:'Thiếu website'},400);await env.DB.prepare(`UPDATE sites SET favicon_url='' WHERE id=?`).bind(siteId).run();return json({ok:true});
+  if(!await masterOK(env,request))return json({error:'Không có quyền'},401);const b=await body(request),siteId=Number(b.site_id);if(!siteId)return json({error:'Thiếu website'},400);await env.DB.prepare(`UPDATE sites SET favicon_url='' WHERE id=?`).bind(siteId).run();return json({ok:true});
 }
 if(route==='master/service-documents'&&request.method==='GET'){
-  if(!await masterOK(env,request))return json({error:'Không có quyền'},401);await ensureServiceDocuments(env);const siteId=Number(u.searchParams.get('site_id'));const {results}=await env.DB.prepare(`SELECT id,site_id,document_type,document_code,document_version,customer_email,sent_customer_at,sent_master_at,created_at FROM service_documents WHERE site_id=? ORDER BY id DESC`).bind(siteId).all();return json({ok:true,documents:results||[]});
+  if(!await masterOK(env,request))return json({error:'Không có quyền'},401);const siteId=Number(u.searchParams.get('site_id'));const {results}=await env.DB.prepare(`SELECT id,site_id,document_type,document_code,document_version,customer_email,sent_customer_at,sent_master_at,created_at FROM service_documents WHERE site_id=? ORDER BY id DESC`).bind(siteId).all();return json({ok:true,documents:results||[]});
 }
 if(route==='master/service-document'&&request.method==='GET'){
-  if(!await masterOK(env,request))return json({error:'Không có quyền'},401);await ensureServiceDocuments(env);const id=Number(u.searchParams.get('id'));const row=await env.DB.prepare(`SELECT * FROM service_documents WHERE id=?`).bind(id).first();if(!row)return json({error:'Không tìm thấy biên bản'},404);return json({ok:true,document:row,html:row.content_html});
+  if(!await masterOK(env,request))return json({error:'Không có quyền'},401);const id=Number(u.searchParams.get('id'));const row=await env.DB.prepare(`SELECT * FROM service_documents WHERE id=?`).bind(id).first();if(!row)return json({error:'Không tìm thấy biên bản'},404);return json({ok:true,document:row,html:row.content_html});
 }
 
 if(route==='master/renewal-watch'&&request.method==='GET'){
   if(!await masterOK(env,request))return json({error:'Không có quyền'},401);
-  await ensureCustomerTables(env);
   const {results}=await env.DB.prepare(`SELECT s.id,s.name,s.domain,cp.full_name customer_name,cp.phone customer_phone,
     coalesce(sp.renewal_stage,'none') renewal_stage,coalesce(sp.renewal_status,'none') renewal_status,
     sp.renewal_requested_at,sp.renewal_paid_at,coalesce(sp.renewal_price,1999000) renewal_price,
@@ -3058,7 +3033,6 @@ if(route==='master/overview'){
   if(route==='master/seed-demo'&&request.method==='POST'){
     const b=await body(request),siteId=Number(b.site_id);
     if(!siteId)return json({error:'Thiếu website cần tạo dữ liệu mẫu'},400);
-    await ensureCustomerTables(env);
     const target=await env.DB.prepare(`SELECT s.id,s.template_key,cp.activated_at,coalesce(tc.sample_enabled,0) sample_enabled,coalesce(tc.sample_count,12) sample_count
       FROM sites s LEFT JOIN customer_profiles cp ON cp.site_id=s.id
       LEFT JOIN template_catalog tc ON tc.template_key=s.template_key WHERE s.id=?`).bind(siteId).first();
@@ -3086,9 +3060,6 @@ if(route==='master/overview'){
     const confirmText=String(b.confirm||'').trim();
     if(!preserveDomain)return json({error:'Thiếu domain cần giữ lại'},400);
     if(confirmText!=='XOA DU LIEU TEST')return json({error:'Xác nhận không đúng'},400);
-    await ensureCustomerTables(env);
-    await ensureSalesLeads(env);
-
     const keep=await env.DB.prepare(`SELECT id,name,domain FROM sites WHERE lower(domain)=lower(?) LIMIT 1`).bind(preserveDomain).first();
     if(!keep)return json({error:`Không tìm thấy website có domain ${preserveDomain}. Không xóa gì cả.`},404);
     const keepId=Number(keep.id);
@@ -3208,7 +3179,6 @@ if(route==='activation'&&request.method==='GET'){
   return json({site:{id:row.site_id,name:row.name,domain:row.domain},customer:{full_name:row.full_name||'',phone:row.phone||'',email:row.email||'',company:row.company||'',site_name:row.site_name||''},trial:trial?{is_trial:true,token:trial.trial_token,template_key:trial.template_key,template_name:trial.template_name||trial.template_key,status:trial.status}:null});
 }
 if(route==='activation'&&request.method==='POST'){
-  await ensureCustomerTables(env);
   const b=await body(request),raw=String(b.token||''),newPassword=String(b.password||''),loginEmail=String(b.email||'').trim().toLowerCase(),desiredSiteName=String(b.site_name||'').trim();
   if(!raw)return json({error:'Thiếu mã kích hoạt'},400);
   if(!loginEmail||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginEmail))return json({error:'Email đăng nhập không hợp lệ'},400);
@@ -3257,7 +3227,6 @@ if(route==='activation'&&request.method==='POST'){
   return json({ok:true,domain:at.domain,admin_url:`https://${at.domain}/admin?handover=${encodeURIComponent(magicRaw)}`});
 }
 if(route==='handover-login'&&request.method==='POST'){
-  await ensureCustomerTables(env);
   const b=await body(request),raw=String(b.token||'');
   if(!raw)return json({error:'Thiếu mã bàn giao'},400);
   const hash=await sha256(raw);
@@ -3394,7 +3363,7 @@ if(route==='site'&&request.method==='GET'){
  }
  const sql=hideSamples
   ?`SELECT * FROM posts WHERE site_id=? AND status='published' AND coalesce(is_sample,0)=0 AND coalesce(sample_key,'')='' AND coalesce(listing_code,'') NOT LIKE 'DEMO-%' AND coalesce(listing_code,'') NOT LIKE 'SAMPLE-%' ORDER BY id DESC LIMIT 100`
-  :`SELECT * FROM posts WHERE site_id=? AND status='published' ORDER BY id DESC LIMIT 100`;
+  :`SELECT *,count(*) OVER() __nr_total_posts,coalesce(sum(views) OVER(),0) __nr_total_views FROM posts WHERE site_id=? AND status='published' ORDER BY id DESC LIMIT 100`;
  const {results}=await env.DB.prepare(sql).bind(site.id).all();
  // V20.8.1 — production Game posts expose the same stable /base/<slug>.html route as showroom.
  for(const p of (results||[])){
@@ -3403,10 +3372,19 @@ if(route==='site'&&request.method==='GET'){
    const slug=nrSlug(ex.slug||p.title||('base-'+p.id));
    p.slug=slug;p.url=`/base/${slug}.html`;p.demo_url=p.url;
  }
- let st=await stats(env,site.id);
+ let st;
+ const published=results||[];
  if(hideSamples){
-   const published=results||[];
-   st={...st,posts:published.length,views:published.reduce((n,p)=>n+Number(p.views||0),0)};
+   // Trial/without-content mode already has the exact visible rows in memory.
+   // Only query today's traffic; do not scan posts a second time just for SUM/COUNT.
+   const today=(await env.DB.prepare(`SELECT count(*) c FROM pageviews WHERE site_id=? AND created_at>=datetime('now','start of day')`).bind(site.id).first())?.c||0;
+   st={posts:published.length,views:published.reduce((n,p)=>n+Number(p.views||0),0),today:Number(today||0)};
+ }else{
+   // Window aggregates piggyback on the same published-post scan used to return homepage rows.
+   const first=published[0]||{};
+   const today=(await env.DB.prepare(`SELECT count(*) c FROM pageviews WHERE site_id=? AND created_at>=datetime('now','start of day')`).bind(site.id).first())?.c||0;
+   st={posts:Number(first.__nr_total_posts||0),views:Number(first.__nr_total_views||0),today:Number(today||0)};
+   for(const row of published){delete row.__nr_total_posts;delete row.__nr_total_views}
  }
  return json({site:responseSite,posts:results,stats:st,preview:{client:true,template_simulation:templateSimulation,samples:hideSamples?0:1,trial_template_parity:!!__siteTrial}},200,{'Cache-Control':'no-store'});
 }
@@ -3453,7 +3431,6 @@ if(route==='article'&&request.method==='GET'){
  return json({site,post:p,related,latestNews,popularNews,newsCategories},200,publicCache(30,120));
 }
 if(route==='forgot-password'&&request.method==='POST'){
-  await ensureCustomerTables(env);
   const b=await body(request),email=String(b.email||'').trim().toLowerCase();
   // Always return the same public message to avoid revealing whether an email exists.
   const generic={ok:true,message:'Nếu email này thuộc tài khoản quản trị, NEWSREAL đã gửi liên kết đặt lại mật khẩu. Vui lòng kiểm tra Hộp thư đến và Spam.'};
@@ -3466,7 +3443,6 @@ if(route==='forgot-password'&&request.method==='POST'){
   return json(generic);
 }
 if(route==='reset-password'&&request.method==='POST'){
-  await ensureCustomerTables(env);
   const b=await body(request),raw=String(b.token||'').trim(),password=String(b.password||'');
   if(!raw)return json({error:'Liên kết đặt lại mật khẩu không hợp lệ'},400);
   if(password.length<8)return json({error:'Mật khẩu mới phải có ít nhất 8 ký tự'},400);
