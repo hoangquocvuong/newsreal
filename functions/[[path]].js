@@ -833,7 +833,6 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
    let html=inject(INDEX_HTML,metaTags({title,description:desc,image:seoImage,url:demo&&demo!=='marketplace'&&demo!=='legacy-center'?origin+demoPrefixForPath(rawPath,demo)+'/':origin+'/'}));
    if(!demo&&Number(site.seo_index)===0)html=html.replace(/<meta name="robots"[^>]*>/ig,'').replace('</head>','<meta name="robots" content="noindex,follow"></head>');
    return demo?htmlNoCache(demoInject(html,demo,trialCtx)):htmlResponse(themedHtml(html,site.preset));
-   }
  }
  if(path==='/favorites'){
    const title=`Tin đã lưu - ${siteName}`;
