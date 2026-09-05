@@ -173,7 +173,7 @@ async function ensureServiceDocuments(env){
 }
 function fmtMoneyVN(v){return Number(v||0).toLocaleString('vi-VN')+'đ'}
 async function createActivationServiceDocument(env,siteId,loginEmail){
-  await ensureServiceDocuments(env);await ensureCustomerTables(env);await ensureTemplateCatalog(env);
+  await ensureServiceDocuments(env);await ensureCustomerTables(env);
   const row=await env.DB.prepare(`SELECT s.id,s.name,s.domain,s.template_key,s.preset,cp.full_name,cp.phone,cp.company,
     ss.plan_name,ss.sale_price,ss.payment_status,ss.started_at,ss.expires_at,
     coalesce(sp.term_months,12) term_months,coalesce(sp.first_price,ss.sale_price,0) first_price,coalesce(sp.renewal_price,0) renewal_price,
@@ -1081,8 +1081,8 @@ async function ensureTemplateCatalog(env){
 
 
 async function ensureSiteTemplateIdentity(env){
-  try{await env.DB.prepare(`ALTER TABLE sites ADD COLUMN template_key TEXT NOT NULL DEFAULT ''`).run()}catch(e){}
-  await ensureTemplateCatalog(env);
+  // V20.9.24.2 — schema is migration-owned. Keep only a legacy data repair path;
+  // never run ALTER/CREATE/template seeding from request traffic.
   try{
     await env.DB.prepare(`UPDATE sites SET template_key=coalesce(
       (SELECT tc.template_key FROM template_catalog tc WHERE tc.preset=sites.preset ORDER BY tc.sort_order,tc.template_key LIMIT 1),'')
@@ -1233,7 +1233,24 @@ async function trialByToken(env,token){
 }
 async function trialEvent(env,trial,eventType,data={}){
   if(!trial)return;
-  try{await env.DB.prepare(`INSERT INTO trial_events(trial_id,lead_id,event_type,event_data) VALUES(?,?,?,?)`).bind(trial.id,trial.lead_id,eventType,JSON.stringify(data||{})).run()}catch(e){}
+  const lowValue=eventType==='trial_seen'||eventType==='api_write';
+  const payload=JSON.stringify(data||{});
+  if(lowValue){
+    // V20.9.24.2 — trial pages poll status every minute. Keep presence telemetry,
+    // but collapse repetitive heartbeat/API-write events into one row / 10 minutes.
+    try{await env.DB.prepare(`INSERT INTO trial_events(trial_id,lead_id,event_type,event_data)
+      SELECT ?,?,?,? WHERE NOT EXISTS(
+        SELECT 1 FROM trial_events
+        WHERE trial_id=? AND event_type=? AND created_at>=datetime('now','-10 minutes')
+        LIMIT 1
+      )`).bind(trial.id,trial.lead_id,eventType,payload,trial.id,eventType).run()}catch(e){}
+    try{await env.DB.prepare(`UPDATE website_trials SET last_seen_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP
+      WHERE id=? AND (last_seen_at IS NULL OR last_seen_at<datetime('now','-5 minutes'))`).bind(trial.id).run()}catch(e){}
+    try{await env.DB.prepare(`UPDATE sales_leads SET last_activity_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP
+      WHERE id=? AND (last_activity_at IS NULL OR last_activity_at<datetime('now','-5 minutes'))`).bind(trial.lead_id).run()}catch(e){}
+    return;
+  }
+  try{await env.DB.prepare(`INSERT INTO trial_events(trial_id,lead_id,event_type,event_data) VALUES(?,?,?,?)`).bind(trial.id,trial.lead_id,eventType,payload).run()}catch(e){}
   try{await env.DB.prepare(`UPDATE website_trials SET last_seen_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(trial.id).run()}catch(e){}
   try{await env.DB.prepare(`UPDATE sales_leads SET last_activity_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(trial.lead_id).run()}catch(e){}
 }
@@ -1271,8 +1288,7 @@ async function ensureSampleColumns(env){
 }
 
 async function seedDemoForSite(env,siteId,opts={}){
-  await ensureSiteTemplateIdentity(env);
-  await ensureSampleColumns(env);
+  // V20.9.24.2 — migrations own template/sample schema; seed only data here.
   const site=await env.DB.prepare(`SELECT id,name,coalesce(template_key,'') template_key,coalesce(preset,'') preset FROM sites WHERE id=?`).bind(siteId).first();
   if(!site)throw new Error('Website không tồn tại');
   const admin=await env.DB.prepare(`SELECT id FROM users WHERE site_id=? AND role='admin' ORDER BY id LIMIT 1`).bind(siteId).first();
@@ -1318,7 +1334,7 @@ async function seedDemoForSite(env,siteId,opts={}){
 // article/listing cards after render. This keeps section/category order identical
 // to the populated template without writing anything to a customer site.
 async function buildTemplatePreviewBlueprint(env,templateKey,site={}){
-  await ensureTemplateCatalog(env);
+  // V20.9.24.2 — read-only showroom preview must never seed/ALTER the catalogue.
   const key=String(templateKey||site?.template_key||'').trim();
   let t=null;
   if(key)try{t=await env.DB.prepare(`SELECT template_key,category,preset,coalesce(sample_count,12) sample_count,editor_profile,structure_profile FROM template_catalog WHERE template_key=? LIMIT 1`).bind(key).first()}catch(e){}
@@ -1690,7 +1706,7 @@ if(route==='publisher/check'&&request.method==='GET'){
 }
 if(route==='publisher/base'&&request.method==='POST'){
   if(!publisherAuthorized(request,env))return json({error:'Unauthorized'},401);
-  await ensurePublisherTables(env);await ensureTemplateCatalog(env);
+  await ensurePublisherTables(env);
   const b=await body(request);
   const tenant=String(b.tenant_domain||b.tenant||b.domain||'').trim();
   const target=await publisherSite(env,tenant);if(!target)return json({error:'Tenant không tồn tại hoặc chưa active'},404);
@@ -1782,7 +1798,7 @@ if(route==='renewal/payment-status'&&request.method==='GET'){
   return json({ok:true,status:row.status,amount:Number(row.amount||0),paid_amount:Number(row.paid_amount||0),paid_at:row.paid_at||null,order_code:row.order_code,years:Number(row.years||1)});
 }
 if(route==='renewal/info'&&request.method==='GET'){
-  await ensureCustomerTables(env);
+  // V20.9.24.2 — read path uses migrated schema directly.
   const raw=String(u.searchParams.get('token')||'');if(!raw)return json({error:'Thiếu mã xác nhận'},400);
   const hash=await sha256(raw);
   const row=await env.DB.prepare(`SELECT rt.id token_id,rt.expires_at,rt.used_at,s.id site_id,s.name,s.domain,ss.expires_at service_expires_at,cp.full_name,
@@ -1819,7 +1835,7 @@ if(route==='renewal/respond'&&request.method==='POST'){
 
 // TRIAL WEBSITE CONTRACT V1 — public lifecycle endpoints.
 if(route==='trial/create'&&request.method==='POST'){
-  await ensureCustomerTables(env);await ensureTemplateCatalog(env);await ensureTrialTables(env);await ensureSiteTemplateIdentity(env);
+  // V20.9.24.2 — trial schema/catalogue are migration-owned; no runtime DDL/seed here.
   const b=await body(request),name=String(b.name||'').trim(),phone=String(b.phone||'').trim(),email=String(b.email||'').trim().toLowerCase(),zalo=String(b.zalo||phone).trim(),siteName=String(b.site_name||'').trim();
   const templateKey=String(b.template_key||'').trim();
   if(!name||!phone||!email||!siteName||!templateKey)return json({error:'Vui lòng nhập họ tên, số điện thoại, email, tên website mong muốn và chọn giao diện'},400);
@@ -1906,7 +1922,7 @@ if(route==='trial/convert-request'&&request.method==='POST'){
 if(route==='trial/direct-checkout'&&request.method==='POST'){
   const b=await body(request),trialToken=String(b.token||'').trim();
   if(!trialToken)return json({error:'Thiếu mã website dùng thử'},400);
-  await ensureTemplateCatalog(env);await ensureSalesLeads(env);await ensurePurchasePayments(env);
+  // V20.9.24.2 — migrated tables are read/write directly; no request-time schema ensure.
   const tr=await trialByToken(env,trialToken);if(!tr)return json({error:'Website dùng thử không tồn tại'},404);
   const templateKey=String(tr.template_key||'').trim();
   const tpl=await env.DB.prepare(`SELECT template_key,name,price,renewal_price FROM template_catalog WHERE template_key=? AND is_active=1 LIMIT 1`).bind(templateKey).first();
@@ -1954,7 +1970,7 @@ if(route==='template-inquiry'&&request.method==='POST'){
   const marketingOptIn=b.marketing_opt_in===true||Number(b.marketing_opt_in)===1?1:0;
   if(!name||!phone||!email||!siteName)return json({error:'Vui lòng nhập họ tên, số điện thoại, email chính xác và tên website mong muốn'},400);
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json({error:'Email không hợp lệ. Đây là email dùng để nhận link kích hoạt website.'},400);
-  await ensureTemplateCatalog(env);await ensureSalesLeads(env);await ensurePurchasePayments(env);
+  // V20.9.24.2 — migrated tables are read/write directly; no request-time schema ensure.
   const tpl=templateKey?await env.DB.prepare(`SELECT template_key,name,price,renewal_price FROM template_catalog WHERE template_key=? AND is_active=1 LIMIT 1`).bind(templateKey).first():null;
   if(!tpl)return json({error:'Vui lòng chọn một giao diện đang mở bán trước khi thanh toán'},400);
   const templateName=String(tpl.name||b.template_name||templateKey).trim();
@@ -2076,12 +2092,10 @@ if(route==='template-inquiry'&&request.method==='POST'){
   }
   if(route==='master/create-site'&&request.method==='POST'){
     const b=await body(request);
-    await ensureCustomerTables(env);
-    await ensureSiteTemplateIdentity(env);
+    // V20.9.24.2 — schema/template identity are migration-owned.
     const name=String(b.name||'').trim(),domain=cleanDomain(b.domain||''),adminEmail=String(b.admin_email||'').trim().toLowerCase();
     if(!name||!domain||!adminEmail)return json({error:'Thiếu tên website, domain hoặc email Admin khách'},400);
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail))return json({error:'Email Admin khách không hợp lệ'},400);
-    await ensureTemplateCatalog(env);
     const requestedTemplateKey=String(b.template_key||'').trim();
     let templateRow=requestedTemplateKey?await env.DB.prepare(`SELECT template_key,preset,name,accent,coalesce(sample_enabled,0) sample_enabled,coalesce(sample_count,12) sample_count FROM template_catalog WHERE template_key=? LIMIT 1`).bind(requestedTemplateKey).first():null;
     const requestedPreset=String(b.theme_key||'').trim();
@@ -2235,7 +2249,6 @@ if(route==='template-inquiry'&&request.method==='POST'){
     await ensureServiceDocuments(env);
     await ensureCustomerTables(env);
     await syncCompletedRenewalExpiry(env,siteId);
-    await ensureSiteTemplateIdentity(env);
     const row=await env.DB.prepare(`SELECT s.id,s.name,s.domain,s.status,s.preset,s.template_key,s.accent,s.created_at,
       coalesce((SELECT tc.name FROM template_catalog tc WHERE tc.template_key=s.template_key LIMIT 1),
                (SELECT tc2.name FROM template_catalog tc2 WHERE tc2.preset=s.preset ORDER BY tc2.sort_order LIMIT 1),
@@ -2259,7 +2272,6 @@ if(route==='template-inquiry'&&request.method==='POST'){
   if(route==='master/set-theme'&&request.method==='POST'){
     const b=await body(request),siteId=Number(b.site_id);
     if(!siteId)return json({error:'Thiếu website'},400);
-    await ensureSiteTemplateIdentity(env);
     const templateKey=String(b.template_key||'').trim();
     const requestedPreset=String(b.theme_key||'').trim();
     let tpl=templateKey?await env.DB.prepare(`SELECT template_key,name,preset,accent FROM template_catalog WHERE template_key=? LIMIT 1`).bind(templateKey).first():null;
@@ -2878,7 +2890,6 @@ if(route==='master/template-catalog'&&request.method==='GET'){
 }
 if(route==='master/template-price'&&request.method==='POST'){
   if(!await masterOK(env,request))return json({error:'Không có quyền'},401);
-  await ensureTemplateCatalog(env);
   const b=await body(request);
   const key=String(b.template_key||'').trim();
   const price=Math.max(0,Math.round(Number(b.price)||0));
@@ -2894,7 +2905,6 @@ if(route==='master/template-price'&&request.method==='POST'){
 
 if(route==='master/template-save'&&request.method==='POST'){
   if(!await masterOK(env,request))return json({error:'Không có quyền'},401);
-  await ensureTemplateCatalog(env);
   const b=await body(request);
   const key=String(b.template_key||'').trim().toLowerCase().replace(/[^a-z0-9-_]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
   const name=String(b.name||'').trim();
@@ -2968,7 +2978,6 @@ if(route==='master/template-save'&&request.method==='POST'){
 
 if(route==='master/template-seed-existing'&&request.method==='POST'){
   if(!await masterOK(env,request))return json({error:'Không có quyền'},401);
-  await ensureTemplateCatalog(env);
   const b=await body(request),key=String(b.template_key||'').trim();
   if(!key)return json({error:'Thiếu mã template'},400);
   const t=await env.DB.prepare(`SELECT template_key,name,coalesce(sample_enabled,0) sample_enabled,coalesce(sample_count,12) sample_count FROM template_catalog WHERE template_key=?`).bind(key).first();
@@ -2989,7 +2998,6 @@ if(route==='master/template-seed-existing'&&request.method==='POST'){
 
 if(route==='master/template-toggle'&&request.method==='POST'){
   if(!await masterOK(env,request))return json({error:'Không có quyền'},401);
-  await ensureTemplateCatalog(env);
   const b=await body(request),key=String(b.template_key||'').trim(),active=Number(b.is_active)?1:0;
   if(!key)return json({error:'Thiếu mã template'},400);
   await env.DB.prepare(`UPDATE template_catalog SET is_active=?,updated_at=CURRENT_TIMESTAMP WHERE template_key=?`).bind(active,key).run();
@@ -2997,7 +3005,6 @@ if(route==='master/template-toggle'&&request.method==='POST'){
 }
 if(route==='master/template-archive'&&request.method==='POST'){
   if(!await masterOK(env,request))return json({error:'Không có quyền'},401);
-  await ensureTemplateCatalog(env);
   const b=await body(request),key=String(b.template_key||'').trim();
   if(!key)return json({error:'Thiếu mã template'},400);
   // Archive instead of hard delete so historical orders/links remain understandable.
@@ -3052,7 +3059,6 @@ if(route==='master/overview'){
     const b=await body(request),siteId=Number(b.site_id);
     if(!siteId)return json({error:'Thiếu website cần tạo dữ liệu mẫu'},400);
     await ensureCustomerTables(env);
-    await ensureTemplateCatalog(env);
     const target=await env.DB.prepare(`SELECT s.id,s.template_key,cp.activated_at,coalesce(tc.sample_enabled,0) sample_enabled,coalesce(tc.sample_count,12) sample_count
       FROM sites s LEFT JOIN customer_profiles cp ON cp.site_id=s.id
       LEFT JOIN template_catalog tc ON tc.template_key=s.template_key WHERE s.id=?`).bind(siteId).first();
@@ -3065,7 +3071,6 @@ if(route==='master/overview'){
   if(route==='master/clear-demo'&&request.method==='POST'){
     const b=await body(request),siteId=Number(b.site_id);
     if(!siteId)return json({error:'Thiếu website cần xóa dữ liệu mẫu'},400);
-    await ensureSampleColumns(env);
     const demoRows=await env.DB.prepare(`SELECT id FROM posts WHERE site_id=? AND (coalesce(is_sample,0)=1 OR listing_code LIKE 'DEMO-%' OR listing_code LIKE 'SAMPLE-%')`).bind(siteId).all();
     const count=demoRows.results?.length||0;
     if(count){
@@ -3153,7 +3158,7 @@ if(route==='master/overview'){
   if(route.startsWith('master/'))return json({error:'Master API không tồn tại'},404);
 
 if(route==='activation-status'&&request.method==='GET'){
-  await ensureCustomerTables(env);
+  // V20.9.24.2 — no runtime schema work on activation polling.
   const raw=String(u.searchParams.get('token')||'');
   if(!raw)return json({error:'Thiếu mã kích hoạt'},400);
   const hash=await sha256(raw);
@@ -3172,7 +3177,7 @@ if(route==='activation-status'&&request.method==='GET'){
 }
 
 if(route==='activation'&&request.method==='GET'){
-  await ensureCustomerTables(env);
+  // V20.9.24.2 — no runtime schema work on activation view.
   const raw=String(u.searchParams.get('token')||'');
   if(!raw)return json({error:'Thiếu mã kích hoạt'},400);
   const hash=await sha256(raw);
@@ -3282,7 +3287,7 @@ if(route==='image'&&request.method==='GET'){
 const site=await siteFor(env,request);if(!site)return json({error:'Website chưa được kích hoạt'},404);
 // V20.9.1 — Cloudflare-first CoC stats. Public, batched and non-blocking.
 if(route==='game/stats'&&request.method==='GET'){
-  await ensureGameStatsTables(env);
+  // V20.9.24.2 — game stats schema is created by migration 0040.
   const slugs=String(u.searchParams.get('slugs')||'').split(',').map(nrSlug).filter(Boolean).slice(0,60);
   if(!slugs.length)return json({ok:true,stats:{}},200,publicCache(15,60));
   const qs=slugs.map(()=>'?').join(',');
@@ -3291,7 +3296,7 @@ if(route==='game/stats'&&request.method==='GET'){
   return json({ok:true,stats:out},200,publicCache(15,60));
 }
 if(route==='game/stats/action'&&request.method==='POST'){
-  await ensureGameStatsTables(env);
+  // V20.9.24.2 — no CREATE/ALTER on public stats actions.
   const b=await body(request),slug=nrSlug(b.slug||''),action=String(b.action||'').toLowerCase();
   if(!slug||!['view','download','vote'].includes(action))return json({error:'Stats action không hợp lệ'},400);
   await env.DB.prepare(`INSERT OR IGNORE INTO game_base_stats(site_id,slug) VALUES(?,?)`).bind(site.id,slug).run();
@@ -3319,9 +3324,8 @@ if(route==='game/stats/action'&&request.method==='POST'){
 }
 let __siteTrial=null;try{__siteTrial=await env.DB.prepare(`SELECT * FROM website_trials WHERE site_id=? LIMIT 1`).bind(site.id).first()}catch(e){}
 if(__siteTrial){
-  // V17.5 — Repair legacy trial tenants that were bootstrapped with sample posts.
-  // Only generated sample rows are removed; posts created by the trial user are preserved.
-  try{await env.DB.prepare(`DELETE FROM posts WHERE site_id=? AND (coalesce(is_sample,0)=1 OR coalesce(sample_key,'')<>'' OR coalesce(listing_code,'') LIKE 'DEMO-%' OR coalesce(listing_code,'') LIKE 'SAMPLE-%')`).bind(site.id).run()}catch(e){}
+  // V20.9.24.2 — legacy sample cleanup moved to one-time migration 0049.
+  // Never issue DELETE on every trial API request.
   const st=trialPublicState(__siteTrial);
   if(st?.expired&&__siteTrial.status==='active'){await env.DB.prepare(`UPDATE website_trials SET status='expired',updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(__siteTrial.id).run();__siteTrial.status='expired'}
   const expired=st?.expired||__siteTrial.status==='expired';
@@ -3524,10 +3528,9 @@ if(route==='me'){
 }
 if(route==='service-info'&&request.method==='GET'){
  if(!user)return json({error:'Chưa đăng nhập'},401);
- // Keep the client dashboard resilient for sites created by older NEWSREAL versions.
- // Read each service block independently so one optional promotion column can never
+ // V20.9.24.2 — migrations own service schema; dashboard GET is read-first.
+ // Read each service block independently so one optional row can never
  // leave the whole Client Admin stuck at "Đang tải...".
- try{await ensureCustomerTables(env)}catch(e){console.log('service-info schema ensure:',e?.message||e)}
  try{await syncCompletedRenewalExpiry(env,site.id)}catch(e){console.log('service-info renewal sync:',e?.message||e)}
  let ss=null,cp=null,sp=null;
  try{ss=await env.DB.prepare(`SELECT plan_name,sale_price,payment_status,service_status,started_at,expires_at,domain_status,domain_registered_at,domain_expires_at,registrar FROM service_subscriptions WHERE site_id=?`).bind(site.id).first()}catch(e){console.log('service-info subscription:',e?.message||e)}
