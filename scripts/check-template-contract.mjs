@@ -107,7 +107,9 @@ const required=[
   ['Product Affiliate category scroll routing','data-pa-category'],
   ['Product Affiliate compact mobile accordion','pa-mobile-collapse'],
   ['Product Affiliate mobile sticky buy','pa-mobile-sticky-buy'],
-  ['Product Affiliate homepage review samples','pa-home-review-grid'],
+  ['Product Affiliate mobile detail nav hidden CSS','.theme-product-affiliate.pa-product-detail .pa-nav{display:none!important}'],
+  ['Product Affiliate mobile inline buy hidden CSS','.theme-product-affiliate.pa-product-detail .pa-buy{display:none!important}'],
+  ['Product Affiliate Buy Now CTA','Mua Ngay'],
   ['Product Affiliate no private SanVoucher API','No SanVoucher API/catalogue dependency'],
   ['backend Product preview contract',"contentType==='product'"],
   ['Product showroom self-contained',"isPublicProductDemo=demoTemplateKey==='san-pham-1'"],
@@ -127,6 +129,10 @@ for(const key of ['dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4','game-1','san-
   console.log(`${ok?'OK':'FAIL'}  profile ${key}`);
   if(!ok)failed++;
 }
+if(site.includes('BÀI REVIEW MẪU')||site.includes('Khám phá bài viết sản phẩm chi tiết')){
+  console.log('FAIL  Product Affiliate forced homepage review block still present');
+  failed++;
+}else console.log('OK  Product Affiliate no forced homepage review block');
 if(/designedRows\*cols/.test(site)){
   console.log('FAIL  legacy computed slot target still present');
   failed++;

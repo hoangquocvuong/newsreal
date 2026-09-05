@@ -9,3 +9,10 @@
 - Product detail supports gallery, price/current price, brand/model, rating/sold, promo, specification table, review content, affiliate link, related products, and responsive layout.
 - SEO and Production Commerce contracts of HoangVuongTech remain unchanged.
 - SANVOUCHER PRO remains a completely separate standalone project and is never merged into this commercial backend.
+
+
+## V20.9.23.9 Mobile Detail CTA Contract
+- Mobile product detail hides the category navigation/breadcrumb region above the product image, matching the compact original-theme flow.
+- Mobile keeps exactly one purchase CTA: the fixed bottom sticky CTA. The inline summary CTA is hidden on mobile.
+- Legacy default label `Xem nơi bán` is normalized to `Mua Ngay`; custom Admin labels other than the legacy default remain supported.
+- The forced homepage `BÀI REVIEW MẪU / Khám phá bài viết sản phẩm chi tiết` block is removed. Product cards remain clickable to real detail routes.
