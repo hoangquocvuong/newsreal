@@ -81,7 +81,6 @@ function nrGameStatsPublic(row){
 }
 
 async function siteFor(env,req){
-  await ensureSitePublicSettings(env);
   const h=host(req).replace(/^www\./,'').toLowerCase();
   const baseSql=`SELECT s.*,
     coalesce(ps.contact_email,'') contact_email,
@@ -1221,7 +1220,6 @@ function trialPublicState(row){
     remaining_seconds:expired?0:Math.max(0,Math.floor((end-now)/1000)),site_id:Number(row.site_id),lead_id:Number(row.lead_id),tenant:row.domain||''};
 }
 async function trialByToken(env,token){
-  await ensureTrialTables(env);
   const row=await env.DB.prepare(`SELECT wt.*,s.domain,s.name,s.preset,s.template_key site_template_key,sl.customer_name,sl.phone,sl.email,sl.zalo,sl.company,sl.facebook,sl.site_name,sl.note,sl.marketing_opt_in,sl.template_name,
       tc.price template_price,tc.renewal_price template_renewal_price,tc.demo_url template_demo_url,tc.category template_category
     FROM website_trials wt JOIN sites s ON s.id=wt.site_id LEFT JOIN sales_leads sl ON sl.id=wt.lead_id LEFT JOIN template_catalog tc ON tc.template_key=wt.template_key WHERE wt.trial_token=? LIMIT 1`).bind(String(token||'')).first();
@@ -1245,7 +1243,7 @@ async function masterOverview(env){
   const active=(await env.DB.prepare(`SELECT count(*) c FROM sites s WHERE s.status='active' AND NOT EXISTS(SELECT 1 FROM website_trials wt WHERE wt.site_id=s.id)`).first())?.c||0;
   const posts=(await env.DB.prepare(`SELECT count(*) c FROM posts`).first())?.c||0;
   const views=(await env.DB.prepare(`SELECT coalesce(sum(views),0) c FROM posts`).first())?.c||0;
-  const today=(await env.DB.prepare(`SELECT count(*) c FROM pageviews WHERE date(created_at)=date('now')`).first())?.c||0;
+  const today=(await env.DB.prepare(`SELECT count(*) c FROM pageviews WHERE created_at>=datetime('now','start of day')`).first())?.c||0;
   return {sites,active,posts,views,today};
 }
 
@@ -3291,7 +3289,6 @@ if(route==='game/stats/action'&&request.method==='POST'){
   const row=await env.DB.prepare(`SELECT slug,views,vote_sum,vote_count,downloads FROM game_base_stats WHERE site_id=? AND slug=?`).bind(site.id,slug).first();
   return json({ok:true,slug,stats:nrGameStatsPublic(row)},200,{'Cache-Control':'no-store'});
 }
-await ensureTrialTables(env);
 let __siteTrial=null;try{__siteTrial=await env.DB.prepare(`SELECT * FROM website_trials WHERE site_id=? LIMIT 1`).bind(site.id).first()}catch(e){}
 if(__siteTrial){
   // V17.5 — Repair legacy trial tenants that were bootstrapped with sample posts.
@@ -3303,7 +3300,6 @@ if(__siteTrial){
   if(expired&&request.method!=='GET'&&!['logout'].includes(route))return json({error:'Thời gian trải nghiệm website đã kết thúc.',code:'TRIAL_EXPIRED',trial:st},402);
   if(!expired&&request.method!=='GET'&&route!=='logout')await trialEvent(env,__siteTrial,'api_write',{route});
 }
-await ensurePerformanceIndexes(env);
 if(route==='site'&&request.method==='GET'){
  const hideSamples=!!__siteTrial||request.headers.get('X-NR-Preview-Samples')==='0';
  const templateSimulation=request.headers.get('X-NR-Template-Simulation')==='1';
@@ -3572,11 +3568,6 @@ if(!user)return json({error:'Chưa đăng nhập'},401);
 
 if(route==='seed-demo'){return json({error:'Dữ liệu mẫu chỉ có thể được khởi tạo từ Quản trị tổng'},403)}
 
-try{await env.DB.prepare(`ALTER TABLE posts ADD COLUMN extra_json TEXT NOT NULL DEFAULT '{}'`).run()}catch(e){}
-try{await env.DB.prepare(`ALTER TABLE posts ADD COLUMN is_sample INTEGER NOT NULL DEFAULT 0`).run()}catch(e){}
-try{await env.DB.prepare(`ALTER TABLE posts ADD COLUMN sample_key TEXT NOT NULL DEFAULT ''`).run()}catch(e){}
-try{await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_posts_site_sample ON posts(site_id,is_sample)`).run()}catch(e){}
-try{await env.DB.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_posts_site_sample_key ON posts(site_id,sample_key) WHERE sample_key<>''`).run()}catch(e){}
 if(route==='posts'){if(request.method==='GET'){const {results}=await env.DB.prepare(`SELECT * FROM posts WHERE site_id=? ORDER BY id DESC`).bind(site.id).all();return json({posts:results},200,user?{'Cache-Control':'no-store'}:publicCache(30,120))}
 const b=await body(request);
 const missing=[];
@@ -3609,8 +3600,7 @@ if(route==='settings'&&request.method==='PUT'){
  const seoTitle=String(b.seo_title||'').trim().slice(0,90),seoDescription=String(b.seo_description||'').trim().slice(0,180),seoOgImage=String(b.seo_og_image||'').trim().slice(0,1000),seoIndex=b.seo_index===false||b.seo_index===0||String(b.seo_index)==='0'?0:1;
  if(publicEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(publicEmail))return json({error:'Email liên hệ không hợp lệ'},400);
  if(seoOgImage&&!/^https?:\/\//i.test(seoOgImage)&&!seoOgImage.startsWith('/'))return json({error:'Ảnh chia sẻ SEO phải là URL http(s) hoặc đường dẫn bắt đầu bằng /'},400);
- await ensureSitePublicSettings(env);await ensureTemplateCatalog(env);
- let structure=defaultTemplateStructure(site.template_key||'');
+  let structure=defaultTemplateStructure(site.template_key||'');
  try{const tr=await env.DB.prepare(`SELECT structure_profile FROM template_catalog WHERE template_key=? LIMIT 1`).bind(site.template_key||'').first();if(tr?.structure_profile)structure=JSON.parse(tr.structure_profile)}catch(e){}
  const schema=Array.isArray(structure?.settings_schema)?structure.settings_schema:[],allowed=new Map(schema.map(x=>[String(x.key||''),x]));
  const incoming=b.template_settings&&typeof b.template_settings==='object'?b.template_settings:{},clean={};
@@ -3620,8 +3610,7 @@ if(route==='settings'&&request.method==='PUT'){
    env.DB.prepare(`INSERT INTO site_public_settings(site_id,contact_email,settings_json,seo_title,seo_description,seo_og_image,seo_index,updated_at) VALUES(?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
      ON CONFLICT(site_id) DO UPDATE SET contact_email=excluded.contact_email,settings_json=excluded.settings_json,seo_title=excluded.seo_title,seo_description=excluded.seo_description,seo_og_image=excluded.seo_og_image,seo_index=excluded.seo_index,updated_at=CURRENT_TIMESTAMP`).bind(site.id,publicEmail,JSON.stringify(clean),seoTitle,seoDescription,seoOgImage,seoIndex)
  ]);
- try{await env.DB.prepare(`ALTER TABLE sites ADD COLUMN email TEXT DEFAULT ''`).run()}catch(e){}
- try{await env.DB.prepare(`UPDATE sites SET email=? WHERE id=?`).bind(publicEmail,site.id).run()}catch(e){}
+ await env.DB.prepare(`UPDATE sites SET email=? WHERE id=?`).bind(publicEmail,site.id).run();
  return json({ok:true,email:publicEmail,template_settings:clean,seo_title:seoTitle,seo_description:seoDescription,seo_og_image:seoOgImage,seo_index:seoIndex})
 }
 if(route==='password'&&request.method==='PUT'){const b=await body(request),old=await sha256(b.old_password||'');if(old!==user.password_hash)return json({error:'Mật khẩu hiện tại không đúng'},400);if((b.new_password||'').length<8)return json({error:'Mật khẩu mới phải có ít nhất 8 ký tự'},400);await env.DB.prepare(`UPDATE users SET password_hash=? WHERE id=?`).bind(await sha256(b.new_password),user.id).run();return json({ok:true})}
