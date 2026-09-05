@@ -1239,12 +1239,17 @@ async function trialEvent(env,trial,eventType,data={}){
 }
 
 async function masterOverview(env){
-  const sites=(await env.DB.prepare(`SELECT count(*) c FROM sites s WHERE NOT EXISTS(SELECT 1 FROM website_trials wt WHERE wt.site_id=s.id)`).first())?.c||0;
-  const active=(await env.DB.prepare(`SELECT count(*) c FROM sites s WHERE s.status='active' AND NOT EXISTS(SELECT 1 FROM website_trials wt WHERE wt.site_id=s.id)`).first())?.c||0;
-  const posts=(await env.DB.prepare(`SELECT count(*) c FROM posts`).first())?.c||0;
-  const views=(await env.DB.prepare(`SELECT coalesce(sum(views),0) c FROM posts`).first())?.c||0;
-  const today=(await env.DB.prepare(`SELECT count(*) c FROM pageviews WHERE created_at>=datetime('now','start of day')`).first())?.c||0;
-  return {sites,active,posts,views,today};
+  const [siteAgg,postAgg,todayAgg]=await env.DB.batch([
+    env.DB.prepare(`WITH trial_sites AS (SELECT DISTINCT site_id FROM website_trials)
+      SELECT count(*) sites,
+             coalesce(sum(CASE WHEN s.status='active' THEN 1 ELSE 0 END),0) active
+      FROM sites s LEFT JOIN trial_sites t ON t.site_id=s.id
+      WHERE t.site_id IS NULL`),
+    env.DB.prepare(`SELECT count(*) posts,coalesce(sum(views),0) views FROM posts`),
+    env.DB.prepare(`SELECT count(*) today FROM pageviews WHERE created_at>=datetime('now','start of day')`)
+  ]);
+  const sr=siteAgg?.results?.[0]||{},pr=postAgg?.results?.[0]||{},tr=todayAgg?.results?.[0]||{};
+  return {sites:Number(sr.sites||0),active:Number(sr.active||0),posts:Number(pr.posts||0),views:Number(pr.views||0),today:Number(tr.today||0)};
 }
 
 const DEMO_CONTENT=[["property", "Căn hộ 2 phòng ngủ view hồ tại Vinhomes Ocean Park", "Bán căn hộ chung cư", "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=82", "4,25 tỷ", "72 m²", "Khu đô thị Vinhomes Ocean Park, Gia Lâm, Hà Nội", "0903668899", "sale", "Chung cư", "59 triệu/m²", 2, 2, 1, "Đông Nam", "Sổ hồng lâu dài", "Full nội thất", "Hà Nội", "Gia Lâm", "Đa Tốn", "Nguyễn Minh Anh", 1, 1, "DEMO-CH-001", ""], ["property", "Bán căn hộ 3 phòng ngủ trung tâm Cầu Giấy, nội thất đẹp", "Bán căn hộ chung cư", "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=82", "6,8 tỷ", "108 m²", "Đường Trần Thái Tông, Cầu Giấy, Hà Nội", "0988123456", "sale", "Chung cư", "63 triệu/m²", 3, 2, 1, "Nam", "Sổ hồng", "Nội thất cao cấp", "Hà Nội", "Cầu Giấy", "Dịch Vọng", "Trần Quốc Huy", 0, 1, "DEMO-CH-002", ""], ["property", "Nhà phố 5 tầng mặt phố Lê Chân, Hải Phòng, kinh doanh tốt", "Bán nhà đất", "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=82", "9,6 tỷ", "86 m²", "Lê Chân, Hải Phòng", "03899862876", "sale", "Nhà phố", "112 triệu/m²", 5, 5, 5, "Đông Bắc", "Sổ đỏ", "Cơ bản", "Hải Phòng", "Lê Chân", "Dư Hàng", "Vương Hoàng", 1, 1, "DEMO-NP-001", "5,2 m"], ["property", "Biệt thự song lập khu đô thị Vinhomes Riverside, hoàn thiện đẹp", "Bán nhà đất", "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?auto=format&fit=crop&w=1200&q=82", "29 tỷ", "180 m²", "Long Biên, Hà Nội", "0912555888", "sale", "Biệt thự", "161 triệu/m²", 4, 5, 3, "Tây Bắc", "Sổ đỏ lâu dài", "Full nội thất", "Hà Nội", "Long Biên", "Phúc Lợi", "Phạm Thu Trang", 1, 1, "DEMO-BT-001", "10 m"], ["property", "Cho thuê căn hộ 2 phòng ngủ Masteri Waterfront, đầy đủ nội thất", "Cho thuê nhà", "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=82", "17 triệu/tháng", "68 m²", "Ocean Park, Gia Lâm, Hà Nội", "0966222399", "rent", "Chung cư", "250 nghìn/m²/tháng", 2, 2, 1, "Đông", "Hợp đồng chính chủ", "Full nội thất", "Hà Nội", "Gia Lâm", "Đa Tốn", "Lê Hải Yến", 1, 1, "DEMO-RENT-001", ""], ["property", "Cho thuê nhà nguyên căn 4 tầng quận 7, phù hợp văn phòng", "Cho thuê nhà", "https://images.unsplash.com/photo-1600566753051-f0b89df2dd90?auto=format&fit=crop&w=1200&q=82", "32 triệu/tháng", "96 m²", "Phú Mỹ Hưng, Quận 7, TP. Hồ Chí Minh", "0938555119", "rent", "Nhà phố", "333 nghìn/m²/tháng", 5, 5, 4, "Nam", "Hợp đồng thuê", "Cơ bản", "TP. Hồ Chí Minh", "Quận 7", "Tân Phong", "Đỗ Thanh Tùng", 0, 1, "DEMO-RENT-002", "6 m"], ["property", "Kho xưởng 1.200 m² tại An Dương, xe container ra vào thuận tiện", "Kho xưởng & mặt bằng", "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=82", "78 triệu/tháng", "1.200 m²", "KCN An Dương, Hải Phòng", "0904818686", "rent", "Kho xưởng", "65 nghìn/m²/tháng", 0, 2, 1, "Tây", "Hợp đồng thuê rõ ràng", "Điện 3 pha", "Hải Phòng", "An Dương", "Lê Thiện", "Nguyễn Văn Nam", 1, 1, "DEMO-KX-001", "30 m"], ["property", "Mặt bằng kinh doanh góc 2 mặt tiền trung tâm Đà Nẵng", "Kho xưởng & mặt bằng", "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1200&q=82", "65 triệu/tháng", "220 m²", "Hải Châu, Đà Nẵng", "0905991228", "rent", "Mặt bằng", "295 nghìn/m²/tháng", 0, 2, 2, "Đông Nam", "Hợp đồng thuê", "Mặt bằng trống", "Đà Nẵng", "Hải Châu", "Hải Châu 1", "Hoàng Đức Long", 0, 1, "DEMO-MB-001", "12 m"], ["property", "Đất nền 100 m² khu đô thị Bắc Sông Cấm, vị trí đẹp", "Đất nền & đất dự án", "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=82", "3,9 tỷ", "100 m²", "Thủy Nguyên, Hải Phòng", "0915771338", "sale", "Đất", "39 triệu/m²", 0, 0, 0, "Nam", "Sổ đỏ", "", "Hải Phòng", "Thủy Nguyên", "Tân Dương", "Bùi Mạnh Cường", 1, 1, "DEMO-DAT-001", "5 m"], ["property", "Đất biệt thự 200 m² ven sông Hội An, Quảng Nam", "Đất nền & đất dự án", "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=82", "7,5 tỷ", "200 m²", "Cẩm Hà, Hội An, Quảng Nam", "0977334556", "sale", "Đất", "37,5 triệu/m²", 0, 0, 0, "Đông", "Sổ đỏ", "", "Quảng Nam", "Hội An", "Cẩm Hà", "Đặng Hoàng Sơn", 0, 1, "DEMO-DAT-002", "10 m"], ["property", "Shophouse 5 tầng khu đô thị mới, trục đường thương mại sầm uất", "Bán nhà đất", "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=82", "18,5 tỷ", "105 m²", "Hạ Long, Quảng Ninh", "0911202668", "sale", "Shophouse", "176 triệu/m²", 4, 6, 5, "Đông Nam", "Sổ đỏ", "Hoàn thiện cơ bản", "Quảng Ninh", "Hạ Long", "Bãi Cháy", "Vũ Đức Hải", 1, 1, "DEMO-SH-001", "7 m"], ["property", "Nhà vườn 160 m² tại Đà Lạt, không gian xanh, đường ô tô", "Bán nhà đất", "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=82", "8,2 tỷ", "160 m²", "Phường 10, Đà Lạt, Lâm Đồng", "0932667099", "sale", "Nhà phố", "51 triệu/m²", 4, 3, 2, "Tây Nam", "Sổ riêng", "Nội thất gỗ", "Lâm Đồng", "Đà Lạt", "Phường 10", "Nguyễn Thảo Vy", 0, 1, "DEMO-NV-001", "8 m"], ["news", "Thị trường căn hộ 2026: người mua ưu tiên pháp lý và tiện ích thật", "Thị trường", "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=82", "", "", "", "", "", "", "", "", "", "", "", "", "", "Hà Nội", "", "", "Ban biên tập", 1, 1, "DEMO-NEWS-001", ""], ["news", "5 bước kiểm tra pháp lý trước khi đặt cọc mua nhà đất", "Kiến thức", "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&q=82", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Ban biên tập", 0, 1, "DEMO-NEWS-002", ""], ["news", "Kinh nghiệm định giá nhà phố: 4 yếu tố quyết định mức giá thực tế", "Kinh nghiệm", "https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?auto=format&fit=crop&w=1200&q=82", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Ban biên tập", 0, 1, "DEMO-NEWS-003", ""], ["property", "Căn hộ 1 phòng ngủ gần trung tâm Mỹ Đình, phù hợp đầu tư cho thuê", "Bán căn hộ chung cư", "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=82", "3,15 tỷ", "52 m²", "Mỹ Đình, Nam Từ Liêm, Hà Nội", "0912333444", "sale", "Chung cư", "61 triệu/m²", 1, 1, 1, "Đông", "Sổ hồng", "Đầy đủ", "Hà Nội", "Nam Từ Liêm", "Mỹ Đình 1", "Lê Minh Quân", 0, 1, "DEMO-CH-003", ""], ["property", "Penthouse 4 phòng ngủ view sông Sài Gòn, nội thất nhập khẩu", "Bán căn hộ chung cư", "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=82", "22 tỷ", "210 m²", "Thảo Điền, TP. Thủ Đức, TP. Hồ Chí Minh", "0908999888", "sale", "Chung cư", "105 triệu/m²", 4, 4, 1, "Nam", "Sổ hồng", "Nội thất nhập khẩu", "TP. Hồ Chí Minh", "TP. Thủ Đức", "Thảo Điền", "Phan Hoàng Long", 1, 1, "DEMO-CH-004", ""], ["property", "Nhà phố 4 tầng ô tô vào nhà, trung tâm Ninh Kiều Cần Thơ", "Bán nhà đất", "https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=1200&q=82", "7,9 tỷ", "92 m²", "Ninh Kiều, Cần Thơ", "0939111222", "sale", "Nhà phố", "86 triệu/m²", 4, 4, 4, "Đông Nam", "Sổ đỏ", "Cơ bản", "Cần Thơ", "Ninh Kiều", "An Khánh", "Trịnh Văn Đức", 0, 1, "DEMO-NP-002", "5 m"], ["property", "Nhà mặt tiền 3 tầng gần biển Nha Trang, phù hợp kinh doanh", "Bán nhà đất", "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1200&q=82", "13,2 tỷ", "110 m²", "Lộc Thọ, Nha Trang, Khánh Hòa", "0905111777", "sale", "Nhà phố", "120 triệu/m²", 5, 4, 3, "Đông", "Sổ đỏ", "Đầy đủ", "Khánh Hòa", "Nha Trang", "Lộc Thọ", "Ngô Minh Hải", 1, 1, "DEMO-NP-003", "6 m"], ["property", "Cho thuê căn hộ studio cao cấp Bình Thạnh, gần Landmark 81", "Cho thuê nhà", "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=82", "11 triệu/tháng", "38 m²", "Bình Thạnh, TP. Hồ Chí Minh", "0968123123", "rent", "Chung cư", "289 nghìn/m²/tháng", 1, 1, 1, "Tây Bắc", "Hợp đồng thuê", "Full nội thất", "TP. Hồ Chí Minh", "Bình Thạnh", "Phường 22", "Võ Thanh Hà", 0, 1, "DEMO-RENT-003", ""], ["property", "Cho thuê biệt thự 3 tầng khu đô thị Ciputra, có sân vườn", "Cho thuê nhà", "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1200&q=82", "58 triệu/tháng", "220 m²", "Ciputra, Tây Hồ, Hà Nội", "0903222666", "rent", "Biệt thự", "264 nghìn/m²/tháng", 5, 5, 3, "Nam", "Hợp đồng chính chủ", "Full nội thất", "Hà Nội", "Tây Hồ", "Phú Thượng", "Đinh Thu Hương", 1, 1, "DEMO-RENT-004", "12 m"], ["property", "Kho logistics 2.500 m² gần cao tốc Hà Nội - Hải Phòng", "Kho xưởng & mặt bằng", "https://images.unsplash.com/photo-1587293852726-70cdb56c2866?auto=format&fit=crop&w=1200&q=82", "145 triệu/tháng", "2.500 m²", "Văn Lâm, Hưng Yên", "0981888777", "rent", "Kho xưởng", "58 nghìn/m²/tháng", 0, 4, 1, "Bắc", "Hợp đồng dài hạn", "PCCC, điện 3 pha", "Hưng Yên", "Văn Lâm", "Tân Quang", "Phạm Văn Thắng", 1, 1, "DEMO-KX-002", "45 m"], ["property", "Cho thuê văn phòng 350 m² hạng B tại quận Cầu Giấy", "Kho xưởng & mặt bằng", "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=82", "92 triệu/tháng", "350 m²", "Duy Tân, Cầu Giấy, Hà Nội", "0977666555", "rent", "Văn phòng", "263 nghìn/m²/tháng", 0, 4, 1, "Đông Nam", "Hợp đồng thuê", "Trần sàn, điều hòa", "Hà Nội", "Cầu Giấy", "Dịch Vọng Hậu", "Bùi Ngọc Mai", 0, 1, "DEMO-VP-001", "18 m"], ["property", "Đất nền 125 m² gần biển Phú Quốc, đường ô tô", "Đất nền & đất dự án", "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=82", "4,6 tỷ", "125 m²", "Dương Tơ, Phú Quốc, Kiên Giang", "0917000111", "sale", "Đất", "36,8 triệu/m²", 0, 0, 0, "Tây Nam", "Sổ riêng", "", "Kiên Giang", "Phú Quốc", "Dương Tơ", "Hoàng Quốc Bảo", 1, 1, "DEMO-DAT-003", "5 m"], ["property", "Đất 150 m² khu dân cư Biên Hòa, Đồng Nai, sổ riêng", "Đất nền & đất dự án", "https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=1200&q=82", "5,1 tỷ", "150 m²", "Biên Hòa, Đồng Nai", "0933444555", "sale", "Đất", "34 triệu/m²", 0, 0, 0, "Đông Bắc", "Sổ đỏ", "", "Đồng Nai", "Biên Hòa", "Long Bình", "Trần Đức Khánh", 0, 1, "DEMO-DAT-004", "7,5 m"], ["property", "Shophouse góc 2 mặt tiền tại khu đô thị Ecopark", "Bán nhà đất", "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1200&q=82", "16,8 tỷ", "118 m²", "Ecopark, Văn Giang, Hưng Yên", "0909888666", "sale", "Shophouse", "142 triệu/m²", 3, 5, 4, "Đông Nam", "Sổ đỏ", "Hoàn thiện", "Hưng Yên", "Văn Giang", "Xuân Quan", "Phạm Minh Tú", 1, 1, "DEMO-SH-002", "9 m"], ["property", "Biệt thự nghỉ dưỡng 300 m² ven biển Hồ Tràm", "Bán nhà đất", "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=82", "24 tỷ", "300 m²", "Hồ Tràm, Xuyên Mộc, Bà Rịa - Vũng Tàu", "0918888999", "sale", "Biệt thự", "80 triệu/m²", 4, 5, 2, "Đông", "Sổ lâu dài", "Full nội thất", "Bà Rịa - Vũng Tàu", "Xuyên Mộc", "Phước Thuận", "Nguyễn Hoài Nam", 1, 1, "DEMO-BT-002", "15 m"], ["news", "Xu hướng chọn nhà gần metro: tiện đi lại đang tác động giá bất động sản", "Thị trường", "https://images.unsplash.com/photo-1516939884455-1445c8652f83?auto=format&fit=crop&w=1200&q=82", "", "", "", "", "", "", "", "", "", "", "", "", "", "TP. Hồ Chí Minh", "", "", "Ban biên tập", 1, 1, "DEMO-NEWS-004", ""], ["news", "Cách đọc thông tin trên sổ đỏ trước khi giao dịch nhà đất", "Kiến thức", "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1200&q=82", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Ban biên tập", 0, 1, "DEMO-NEWS-005", ""], ["news", "Những chi phí người mua nhà cần dự trù ngoài giá bán", "Kinh nghiệm", "https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&w=1200&q=82", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Ban biên tập", 0, 1, "DEMO-NEWS-006", ""]];
@@ -2000,10 +2005,19 @@ if(route==='template-inquiry'&&request.method==='POST'){
 
   if(route==='master/trials'&&request.method==='GET'){
     try{
-      const {results}=await env.DB.prepare(`SELECT wt.*,s.name site_name,s.domain,s.preset,tc.demo_url,tc.category template_category,sl.customer_name,sl.phone,sl.email,coalesce(sl.zalo,'') zalo,coalesce(sl.company,'') company,sl.template_name,sl.status lead_status,coalesce(sl.care_status,'new') care_status,
-        (SELECT count(*) FROM trial_events te WHERE te.trial_id=wt.id) event_count,
-        (SELECT count(*) FROM posts p WHERE p.site_id=wt.site_id AND coalesce(p.is_sample,0)=0) real_post_count
-        FROM website_trials wt JOIN sites s ON s.id=wt.site_id LEFT JOIN template_catalog tc ON tc.template_key=wt.template_key LEFT JOIN sales_leads sl ON sl.id=wt.lead_id ORDER BY wt.id DESC LIMIT 500`).all();
+      const {results}=await env.DB.prepare(`WITH event_agg AS (
+          SELECT trial_id,count(*) event_count FROM trial_events GROUP BY trial_id
+        ), real_post_agg AS (
+          SELECT site_id,count(*) real_post_count FROM posts WHERE coalesce(is_sample,0)=0 GROUP BY site_id
+        )
+        SELECT wt.*,s.name site_name,s.domain,s.preset,tc.demo_url,tc.category template_category,sl.customer_name,sl.phone,sl.email,coalesce(sl.zalo,'') zalo,coalesce(sl.company,'') company,sl.template_name,sl.status lead_status,coalesce(sl.care_status,'new') care_status,
+          coalesce(ea.event_count,0) event_count,coalesce(rpa.real_post_count,0) real_post_count
+        FROM website_trials wt JOIN sites s ON s.id=wt.site_id
+        LEFT JOIN template_catalog tc ON tc.template_key=wt.template_key
+        LEFT JOIN sales_leads sl ON sl.id=wt.lead_id
+        LEFT JOIN event_agg ea ON ea.trial_id=wt.id
+        LEFT JOIN real_post_agg rpa ON rpa.site_id=wt.site_id
+        ORDER BY wt.id DESC LIMIT 500`).all();
       for(const x of results||[]){if(x.status==='active'&&Date.parse(String(x.expires_at).replace(' ','T')+'Z')<=Date.now())x.status='expired'}
       const stats=await env.DB.prepare(`SELECT count(*) total,
         sum(CASE WHEN status='active' AND datetime(expires_at)>datetime('now') THEN 1 ELSE 0 END) active,
@@ -2856,7 +2870,6 @@ if(route==='master/renewal-watch'&&request.method==='GET'){
 }
 if(route==='master/template-catalog'&&request.method==='GET'){
   if(!await masterOK(env,request))return json({error:'Không có quyền'},401);
-  await ensureTemplateCatalog(env);
   const {results}=await env.DB.prepare(`SELECT template_key,name,category,preset,price,renewal_price,is_active,sort_order,
     image_url,demo_url,badge,description,features,accent,editor_profile,
     coalesce(sample_enabled,0) sample_enabled,coalesce(sample_count,12) sample_count,layout_profile,structure_profile,updated_at
@@ -2993,17 +3006,25 @@ if(route==='master/template-archive'&&request.method==='POST'){
 }
 
 if(route==='master/overview'){
-  await ensureCustomerTables(env);
-  await ensureSiteTemplateIdentity(env);
-
-    const {results}=await env.DB.prepare(`SELECT s.id,s.name,s.domain,s.status,s.created_at,s.preset,s.template_key,
-      coalesce((SELECT tc.name FROM template_catalog tc WHERE tc.template_key=s.template_key LIMIT 1),
-               (SELECT tc2.name FROM template_catalog tc2 WHERE tc2.preset=s.preset ORDER BY tc2.sort_order LIMIT 1),
-               s.preset) template_name,
-      (SELECT count(*) FROM posts p WHERE p.site_id=s.id) posts,
-      (SELECT coalesce(sum(p.views),0) FROM posts p WHERE p.site_id=s.id) views,
-      (SELECT email FROM users u WHERE u.site_id=s.id AND u.role='admin' ORDER BY u.id LIMIT 1) admin_email,
-      (SELECT count(*) FROM posts p WHERE p.site_id=s.id AND p.listing_code LIKE 'DEMO-%') demo_posts,
+    const {results}=await env.DB.prepare(`WITH post_agg AS (
+        SELECT site_id,count(*) posts,coalesce(sum(views),0) views,
+               coalesce(sum(CASE WHEN listing_code LIKE 'DEMO-%' THEN 1 ELSE 0 END),0) demo_posts
+        FROM posts GROUP BY site_id
+      ), admin_ranked AS (
+        SELECT site_id,email,row_number() OVER(PARTITION BY site_id ORDER BY id) rn
+        FROM users WHERE role='admin'
+      ), pending_activation AS (
+        SELECT DISTINCT site_id FROM site_activation_tokens
+        WHERE used_at IS NULL AND expires_at>datetime('now')
+      ), trial_sites AS (
+        SELECT DISTINCT site_id FROM website_trials
+      ), preset_templates AS (
+        SELECT preset,name,row_number() OVER(PARTITION BY preset ORDER BY sort_order,template_key) rn
+        FROM template_catalog
+      )
+      SELECT s.id,s.name,s.domain,s.status,s.created_at,s.preset,s.template_key,
+      coalesce(tc.name,pt.name,s.preset) template_name,
+      coalesce(pa.posts,0) posts,coalesce(pa.views,0) views,ar.email admin_email,coalesce(pa.demo_posts,0) demo_posts,
       cp.full_name customer_name,cp.phone customer_phone,cp.email customer_email,cp.company customer_company,
       cp.order_code,cp.activated_at,
       ss.plan_name,ss.sale_price,ss.internal_cost,ss.payment_status,ss.service_status,
@@ -3011,12 +3032,19 @@ if(route==='master/overview'){
       coalesce(sp.term_months,12) term_months,coalesce(sp.promotion_name,'') promotion_name,coalesce(sp.list_price,1999000) list_price,coalesce(sp.first_discount,0) first_discount,coalesce(sp.first_price,ss.sale_price,1999000) first_price,coalesce(sp.renewal_price,1999000) renewal_price,
       coalesce(sp.renewal_status,'none') renewal_status,sp.renewal_notified_at,sp.renewal_decision_at,sp.renewal_requested_at,coalesce(sp.renewal_stage,'none') renewal_stage,sp.renewal_payment_sent_at,sp.renewal_paid_at,sp.renewal_completed_at,coalesce(sp.renewal_selected_months,sp.term_months,12) renewal_selected_months,coalesce(sp.renewal_order_code,'') renewal_order_code,
       CASE WHEN cp.activated_at IS NOT NULL THEN 'activated'
-           WHEN EXISTS(SELECT 1 FROM site_activation_tokens at WHERE at.site_id=s.id AND at.used_at IS NULL AND at.expires_at>datetime('now')) THEN 'pending'
+           WHEN pact.site_id IS NOT NULL THEN 'pending'
            ELSE 'not_created' END onboarding_status
-      FROM sites s LEFT JOIN customer_profiles cp ON cp.site_id=s.id
+      FROM sites s
+      LEFT JOIN template_catalog tc ON tc.template_key=s.template_key
+      LEFT JOIN preset_templates pt ON pt.preset=s.preset AND pt.rn=1
+      LEFT JOIN post_agg pa ON pa.site_id=s.id
+      LEFT JOIN admin_ranked ar ON ar.site_id=s.id AND ar.rn=1
+      LEFT JOIN pending_activation pact ON pact.site_id=s.id
+      LEFT JOIN trial_sites ts ON ts.site_id=s.id
+      LEFT JOIN customer_profiles cp ON cp.site_id=s.id
       LEFT JOIN service_subscriptions ss ON ss.site_id=s.id
       LEFT JOIN service_promotions sp ON sp.site_id=s.id
-      WHERE NOT EXISTS(SELECT 1 FROM website_trials wt WHERE wt.site_id=s.id)
+      WHERE ts.site_id IS NULL
       ORDER BY s.id DESC`).all();
     return json({stats:await masterOverview(env),sites:results});
   }
@@ -3481,7 +3509,6 @@ if(route==='image'&&request.method==='GET'){
 }
 if(route==='me'){
  if(!user)return json({error:'Chưa đăng nhập'},401);
- await ensureTemplateCatalog(env);
  let tc=null;
  try{tc=await env.DB.prepare(`SELECT template_key,category,editor_profile,structure_profile FROM template_catalog WHERE template_key=? OR (template_key='' AND preset=?) ORDER BY CASE WHEN template_key=? THEN 0 ELSE 1 END LIMIT 1`).bind(site.template_key||'',site.preset||'',site.template_key||'').first()}catch(e){}
  if(!tc)try{tc=await env.DB.prepare(`SELECT template_key,category,editor_profile,structure_profile FROM template_catalog WHERE preset=? ORDER BY sort_order,template_key LIMIT 1`).bind(site.preset||'').first()}catch(e){}
@@ -3614,7 +3641,15 @@ if(route==='settings'&&request.method==='PUT'){
  return json({ok:true,email:publicEmail,template_settings:clean,seo_title:seoTitle,seo_description:seoDescription,seo_og_image:seoOgImage,seo_index:seoIndex})
 }
 if(route==='password'&&request.method==='PUT'){const b=await body(request),old=await sha256(b.old_password||'');if(old!==user.password_hash)return json({error:'Mật khẩu hiện tại không đúng'},400);if((b.new_password||'').length<8)return json({error:'Mật khẩu mới phải có ít nhất 8 ký tự'},400);await env.DB.prepare(`UPDATE users SET password_hash=? WHERE id=?`).bind(await sha256(b.new_password),user.id).run();return json({ok:true})}
-if(route==='stats'){const all=(await stats(env,site.id)).views,last7=(await env.DB.prepare(`SELECT count(*)c FROM pageviews WHERE site_id=? AND created_at>=datetime('now','-7 day')`).bind(site.id).first())?.c||0,last30=(await env.DB.prepare(`SELECT count(*)c FROM pageviews WHERE site_id=? AND created_at>=datetime('now','-30 day')`).bind(site.id).first())?.c||0;const {results}=await env.DB.prepare(`SELECT title,views FROM posts WHERE site_id=? ORDER BY views DESC LIMIT 10`).bind(site.id).all();return json({all,last7,last30,top:results})}
+if(route==='stats'){
+ const [postAgg,pvAgg,topRows]=await env.DB.batch([
+   env.DB.prepare(`SELECT coalesce(sum(views),0) all_views FROM posts WHERE site_id=? AND status='published'`).bind(site.id),
+   env.DB.prepare(`SELECT coalesce(sum(CASE WHEN created_at>=datetime('now','-7 day') THEN 1 ELSE 0 END),0) last7,count(*) last30 FROM pageviews WHERE site_id=? AND created_at>=datetime('now','-30 day')`).bind(site.id),
+   env.DB.prepare(`SELECT title,views FROM posts WHERE site_id=? ORDER BY views DESC LIMIT 10`).bind(site.id)
+ ]);
+ const pr=postAgg?.results?.[0]||{},vr=pvAgg?.results?.[0]||{};
+ return json({all:Number(pr.all_views||0),last7:Number(vr.last7||0),last30:Number(vr.last30||0),top:topRows?.results||[]})
+}
 return json({error:'API không tồn tại'},404)}catch(e){return json({error:e.message||String(e)},500)}}
 async function registryDomainInfo(domain){
   domain=normalizeDomain(domain); if(!domain)return {ok:false,error:'Tên miền không hợp lệ'};
