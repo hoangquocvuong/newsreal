@@ -152,7 +152,7 @@ for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','d
 // V20.9.25.4 — hard pathname dispatch must run before all legacy tenant fallbacks.
 const hardProFn=fn.indexOf('function proDemoKeyFromPath(path)');
 const hardProCall=fn.indexOf('const hardProDemo=proDemoKeyFromPath(rawPath)');
-const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.25.8'");
+const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.25.9'");
 const legacyTenantPos=fn.indexOf("const demoReq=new Request('https://batdongsan2027.org.uk'");
 if(hardProFn<0||hardProCall<0||hardProReturn<0||legacyTenantPos<0||hardProCall>legacyTenantPos){
   console.log('FAIL  hard professional demo pathname dispatch before BDS fallback');failed++;
@@ -170,7 +170,7 @@ for(const pair of [
   if(!ok)failed++;
 }
 
-// V20.9.25.8 — professional demo renderer contract.
+// V20.9.25.9 — professional demo renderer contract.
 for(const needle of [
   'const PRO_DEMO_KEYS=new Set',
   'const PRO_REAL_DEMO_DATA=',
@@ -181,9 +181,9 @@ for(const needle of [
   "if(c.kind==='industrial')return industrialHome",
   "if(c.kind==='ev')return evHome",
   'Tìm điểm sạc',
-  'Business newsroom',
-  'Inside the plant',
-  'EV knowledge hub',
+  'Bản tin doanh nghiệp',
+  'Bên trong nhà máy',
+  'Thư viện kiến thức xe điện',
   '/bai-viet/'
 ]){
   const ok=fn.includes(needle);
@@ -215,11 +215,11 @@ if(/designedRows\*cols/.test(site)){
 }else console.log('OK  no computed slot target');
 
 // V20.9.25.7 — professional real-content demo regression checks
-for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo sử dụng ảnh chụp thực tế từ Unsplash','Thương hiệu cá nhân','Creator business','Dữ liệu & BI','Cơ khí & CNC','Kiến thức sạc']){
+for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo sử dụng ảnh chụp thực tế từ Unsplash','Thương hiệu cá nhân','Kinh doanh nội dung','Dữ liệu & BI','Cơ khí & CNC','Kiến thức sạc']){
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  rich demo content ${needle}`); if(!ok) failed++;
 }
 
-for(const needle of ['Business newsroom','Inside the plant','Core capabilities','EV knowledge hub','Creator business','Cover stories & bài được đọc nhiều','Nguồn tham khảo chuyên môn','IEA · Electric vehicle charging 2026']){
+for(const needle of ['Bản tin doanh nghiệp','Bên trong nhà máy','Năng lực cốt lõi','Thư viện kiến thức xe điện','Kinh doanh nội dung','Bài nổi bật & bài được đọc nhiều','Nguồn tham khảo chuyên môn','IEA · Electric vehicle charging 2026']){
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  pro real-world layout ${needle}`); if(!ok) failed++;
 }
 const richSections=['blog-ca-nhan-1','blog-ca-nhan-2','doanh-nghiep-1','doanh-nghiep-2','dich-vu-5'];
@@ -241,4 +241,5 @@ if(failed){
   console.error(`Template contract failed: ${failed}`);
   process.exit(1);
 }
+
 console.log('Template contract smoke: PASS');
