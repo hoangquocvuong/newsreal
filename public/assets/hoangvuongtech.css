@@ -138,3 +138,95 @@
   .payment-status{min-height:72px;padding:12px 14px}
   .payment-status-copy b{font-size:14px}
 }
+
+
+/* FINAL MOBILE UX + SEO CTA FIX — 2026-09-13 */
+/* Make the white CTA inside SEO blue panels readable. Global .hv-btn uses color !important. */
+.seo-cta .hv-btn{background:#fff!important;color:#0f67ff!important;border-color:#fff!important}
+.seo-cta .hv-btn:hover{background:#f4f8ff!important;color:#0b55d4!important}
+
+@media(max-width:560px){
+  html,body{max-width:100%;overflow-x:hidden}
+  .hv-wrap{width:calc(100% - 28px)}
+
+  /* Compact mobile header: brand and trial CTA must stay on one clean row. */
+  .hv-head{height:60px}
+  .hv-nav{gap:10px;min-width:0}
+  .hv-brand{min-width:0;gap:2px;line-height:1;white-space:nowrap}
+  .hv-brand b,.hv-brand strong{font-size:18px;letter-spacing:-.35px}
+  .hv-brand span{display:none}
+  .hv-nav nav{margin-left:auto;gap:0;min-width:0}
+  .hv-nav nav>a:not(.hv-btn){display:none}
+  .hv-nav .hv-btn.small{padding:9px 10px;border-radius:10px;font-size:10.5px;line-height:1.2;max-width:152px;text-align:center;white-space:normal}
+
+  /* Homepage hero */
+  .hv-hero{padding:34px 0 38px}
+  .hero-grid{gap:24px}
+  .eyebrow,.section-title>span{font-size:10px;letter-spacing:.08em}
+  .hv-hero h1{font-size:34px;line-height:1.06;letter-spacing:-.035em;margin:13px 0 16px}
+  .hv-hero p{font-size:15px;line-height:1.65}
+  .hero-actions{gap:9px;margin-top:22px}
+  .hero-actions .hv-btn{width:100%;padding:13px 14px;font-size:13px;text-align:center}
+  .trust-row{gap:7px;margin-top:18px}
+  .trust-row span{font-size:10px;padding:7px 9px}
+  .hero-card{padding:21px 18px;border-radius:17px}
+  .hero-card h3{font-size:21px;line-height:1.28;margin:10px 0 7px}
+  .hero-card p{font-size:14px;line-height:1.6}
+  .hero-card ul{gap:8px;margin-bottom:18px}
+
+  /* General sections: denser but still touch-friendly. */
+  .hv-section{padding:44px 0}
+  .section-title{margin-bottom:25px}
+  .section-title h2,.register-copy h2{font-size:27px;line-height:1.12;letter-spacing:-.025em;margin:7px 0 9px}
+  .section-title p,.register-copy>p{font-size:14px;line-height:1.6}
+  .benefits,.steps{gap:11px}
+  .benefits article,.steps article{padding:18px;border-radius:14px}
+  .benefits h3,.steps h3{font-size:16px}
+  .benefits p,.steps p{font-size:12.5px}
+
+  /* Checkout/register section: prevent long contact data from overflowing. */
+  .register-grid{gap:20px}
+  .contact-box{margin-top:18px;padding:17px 16px;border-radius:14px;min-width:0;overflow:hidden}
+  .contact-box span{font-size:10px;margin-top:5px}
+  .contact-box strong{font-size:16px;line-height:1.35;overflow-wrap:anywhere;word-break:break-word;min-width:0}
+  .hv-form{padding:16px 14px;border-radius:16px;gap:12px;box-shadow:0 10px 32px rgba(27,60,110,.06)}
+  .chosen{padding:13px;border-radius:11px;min-width:0}
+  .chosen strong{font-size:16px;line-height:1.3}
+  .chosen-package{font-size:10px;gap:5px}
+  .chosen-price{align-items:flex-start;flex-direction:column;gap:3px}
+  .chosen-price b{font-size:18px}
+  .hv-form input,.hv-form textarea{font-size:16px;padding:11px 12px} /* avoids iOS input zoom */
+  .hv-form label{font-size:11px}
+
+  /* SEO landing pages */
+  .seo-page-hero{padding:36px 0 32px!important}
+  .seo-page-hero h1{font-size:34px!important;line-height:1.08!important;margin:11px 0 15px!important}
+  .seo-page-hero p{font-size:15px!important;line-height:1.65!important}
+  .seo-badges{gap:7px!important;margin:18px 0!important}
+  .seo-badges span{padding:8px 10px!important;font-size:11px!important}
+  .seo-content article{padding:21px 0!important}
+  .seo-content article h2{font-size:23px!important;line-height:1.2!important;margin-bottom:8px!important}
+  .seo-content article p{font-size:15px!important;line-height:1.7!important}
+  .seo-cta{padding:25px 16px!important;border-radius:18px!important}
+  .seo-cta h2{font-size:24px!important;line-height:1.2!important;margin-bottom:8px!important}
+  .seo-cta p{font-size:14px!important;line-height:1.55!important}
+  .seo-cta .hv-btn{display:flex!important;width:100%!important;max-width:360px;margin:18px auto 0;padding:13px 14px!important;font-size:13px!important}
+  .seo-page-faq details{padding:15px 16px!important;border-radius:12px!important}
+  .seo-page-faq summary{font-size:14px!important;line-height:1.4!important}
+  .seo-page-faq p{font-size:13.5px!important}
+  .seo-related{gap:10px!important}
+  .seo-related a{padding:16px!important;font-size:14px!important;line-height:1.35!important}
+
+  /* Footer */
+  .hv-footer{padding:22px 0}
+  .hv-footer .hv-wrap{gap:8px}
+  .hv-footer span{font-size:11px;line-height:1.5}
+}
+
+@media(max-width:380px){
+  .hv-brand b,.hv-brand strong{font-size:16px}
+  .hv-nav .hv-btn.small{max-width:132px;font-size:9.5px;padding:8px 8px}
+  .hv-hero h1,.seo-page-hero h1{font-size:31px!important}
+  .register-copy h2,.section-title h2{font-size:25px}
+  .contact-box strong{font-size:14px}
+}
