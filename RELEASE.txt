@@ -1,3 +1,8 @@
-HoangVuongTech V20.9.25.3
-Professional demo templates: Blog Minimal, Creator Notes, Modern Solutions, Industrial Pro, EV Charging.
-Dedicated renderers + realistic sample articles + responsive mobile + marketplace previews.
+HoangVuongTech V20.9.25.4 — PRO DEMO HARD ROUTE CLEAN
+
+Fixes:
+- Professional demos dispatch by exact pathname before any legacy NEWSREAL/BDS tenant fallback.
+- EV route /demo/dich-vu/tram-sac-vinfast/ cannot fall back to real-estate shell, including with nr_client/nr_samples query strings.
+- Blog, corporate, industrial and EV demos remain fully self-contained with realistic sample content and responsive styling.
+- Adds runtime response markers X-HVT-Demo-Build: 20.9.25.4 and X-HVT-Demo-Renderer for verification.
+- Keeps SEO/catalog/preview/showcase assets and all existing project features.

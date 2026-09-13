@@ -148,6 +148,61 @@ for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','d
   if(!ok)failed++;
 }
 
+
+// V20.9.25.4 — hard pathname dispatch must run before all legacy tenant fallbacks.
+const hardProFn=fn.indexOf('function proDemoKeyFromPath(path)');
+const hardProCall=fn.indexOf('const hardProDemo=proDemoKeyFromPath(rawPath)');
+const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.25.4'");
+const legacyTenantPos=fn.indexOf("const demoReq=new Request('https://batdongsan2027.org.uk'");
+if(hardProFn<0||hardProCall<0||hardProReturn<0||legacyTenantPos<0||hardProCall>legacyTenantPos){
+  console.log('FAIL  hard professional demo pathname dispatch before BDS fallback');failed++;
+}else console.log('OK  hard professional demo pathname dispatch before BDS fallback');
+for(const pair of [
+  ['/demo/blog-ca-nhan/mau-1','blog-ca-nhan-1'],
+  ['/demo/blog-ca-nhan/mau-2','blog-ca-nhan-2'],
+  ['/demo/doanh-nghiep/mau-1','doanh-nghiep-1'],
+  ['/demo/doanh-nghiep/mau-2','doanh-nghiep-2'],
+  ['/demo/dich-vu/tram-sac-vinfast','dich-vu-5']
+]){
+  const marker=`return '${pair[1]}'`;
+  const ok=fn.includes(marker);
+  console.log(`${ok?'OK':'FAIL'}  hard route renderer ${pair[0]} -> ${pair[1]}`);
+  if(!ok)failed++;
+}
+
+// V20.9.25.3 — premium demo renderer contract.
+for(const needle of [
+  'const PRO_DEMO_KEYS=new Set',
+  "'blog-ca-nhan-1':{kind:'blog-minimal'",
+  "'blog-ca-nhan-2':{kind:'creator'",
+  "'doanh-nghiep-1':{kind:'corporate'",
+  "'doanh-nghiep-2':{kind:'industrial'",
+  "'dich-vu-5':{kind:'ev'",
+  'function proDemoHtml(demo,rawPath)',
+  'PRO_DEMO_KEYS.has(demo)',
+  'Tìm điểm sạc gần bạn',
+  'Nội dung đang được đọc',
+  '/bai-viet/'
+]){
+  const ok=fn.includes(needle);
+  console.log(`${ok?'OK':'FAIL'}  professional demo contract ${needle}`);
+  if(!ok)failed++;
+}
+const proDispatch=fn.indexOf('PRO_DEMO_KEYS.has(demo)');
+const sharedDemoTenant=fn.indexOf("const demoReq=new Request('https://batdongsan2027.org.uk'");
+if(proDispatch<0||sharedDemoTenant<0||proDispatch>sharedDemoTenant){
+  console.log('FAIL  professional demos bypass shared BDS shell');failed++;
+}else console.log('OK  professional demos bypass shared BDS shell');
+const evPrefixSpecial=fn.indexOf("if(demo==='dich-vu-5')return '/demo/dich-vu/tram-sac-vinfast'");
+const genericServicePrefix=fn.indexOf("if(/^dich-vu-\\d+$/.test(demo))return '/demo/dich-vu/mau-'");
+if(evPrefixSpecial<0||genericServicePrefix<0||evPrefixSpecial>genericServicePrefix){
+  console.log('FAIL  EV route prefix precedence');failed++;
+}else console.log('OK  EV route prefix precedence');
+for(const asset of ['blog1-hero.webp','blog2-hero.webp','corp1-hero.webp','corp2-hero.webp','ev-hero.webp','ev-1.webp']){
+  const ok=fs.existsSync('public/assets/showcase/'+asset);
+  console.log(`${ok?'OK':'FAIL'}  showcase asset ${asset}`);if(!ok)failed++;
+}
+
 if(site.includes('BÀI REVIEW MẪU')||site.includes('Khám phá bài viết sản phẩm chi tiết')){
   console.log('FAIL  Product Affiliate forced homepage review block still present');
   failed++;
