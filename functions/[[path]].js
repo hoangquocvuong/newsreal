@@ -740,21 +740,21 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
  if(marketHost && rawPath==='/'){
    const r=await env.ASSETS.fetch(new URL('/marketing.html',u.origin));
    let body=await r.text();
-   const seo=`<title>Thiết Kế Website Trọn Gói, Giao Diện Chuyên Nghiệp | HoangVuongTech</title>
-<meta name="description" content="HoangVuongTech cung cấp website trọn gói với tên miền, hosting, giao diện chuyên nghiệp và trang quản trị dễ dùng cho tin tức, bất động sản, dịch vụ và cộng đồng game.">
+   const seo=`<title>Thiết Kế Website Trọn Gói Giá Rẻ, Dễ Sử Dụng | HoangVuongTech</title>
+<meta name="description" content="Thiết kế website trọn gói từ 1.499.000đ/năm, dễ sử dụng, không cần biết code. Dùng thử miễn phí 1 ngày, khách mới ưu đãi 500K, tặng tên miền và hosting.">
 <link rel="canonical" href="https://hoangvuongtech.com/">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="HoangVuongTech">
-<meta property="og:title" content="Thiết Kế Website Trọn Gói | HoangVuongTech">
-<meta property="og:description" content="Website trọn gói cho tin tức, bất động sản, dịch vụ và cộng đồng game: tên miền, hosting, giao diện, quản trị và hỗ trợ bàn giao.">
+<meta property="og:title" content="Thiết Kế Website Trọn Gói Từ 1.499K | HoangVuongTech">
+<meta property="og:description" content="Website dễ sử dụng, dùng thử miễn phí 1 ngày. Tặng tên miền, hosting và ưu đãi 500K cho khách đăng ký lần đầu.">
 <meta property="og:url" content="https://hoangvuongtech.com/">
 <meta property="og:image" content="https://hoangvuongtech.com/assets/marketing-demo.webp">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Thiết Kế Website Trọn Gói | HoangVuongTech">
-<meta name="twitter:description" content="Website trọn gói với giao diện chuyên nghiệp, tên miền, hosting và trang quản trị dễ dùng.">
+<meta name="twitter:title" content="Thiết Kế Website Trọn Gói Từ 1.499K | HoangVuongTech">
+<meta name="twitter:description" content="Dùng thử website miễn phí 1 ngày, quản trị dễ dùng, tặng tên miền và hosting, khách mới ưu đãi 500K.">
 <meta name="twitter:image" content="https://hoangvuongtech.com/assets/marketing-demo.webp">
-<script type="application/ld+json">${JSON.stringify({"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://hoangvuongtech.com/#organization","name":"HoangVuongTech","url":"https://hoangvuongtech.com/","email":"hoangquocvuong.hp89@gmail.com","telephone":"+84389986287","logo":"https://hoangvuongtech.com/favicons/favicon-16x16.png","contactPoint":{"@type":"ContactPoint","telephone":"+84389986287","contactType":"customer service","areaServed":"VN","availableLanguage":["vi"]}},{"@type":"WebSite","@id":"https://hoangvuongtech.com/#website","url":"https://hoangvuongtech.com/","name":"HoangVuongTech","publisher":{"@id":"https://hoangvuongtech.com/#organization"}},{"@type":"Service","name":"Thiết kế website trọn gói","provider":{"@id":"https://hoangvuongtech.com/#organization"},"areaServed":"VN","url":"https://hoangvuongtech.com/templates/"}]})}</script>`;
+<script type="application/ld+json">${JSON.stringify({"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://hoangvuongtech.com/#organization","name":"HoangVuongTech","url":"https://hoangvuongtech.com/","email":"hoangquocvuong.hp89@gmail.com","telephone":"+84389986287","logo":"https://hoangvuongtech.com/favicons/favicon-16x16.png","contactPoint":{"@type":"ContactPoint","telephone":"+84389986287","contactType":"customer service","areaServed":"VN","availableLanguage":["vi"]}},{"@type":"WebSite","@id":"https://hoangvuongtech.com/#website","url":"https://hoangvuongtech.com/","name":"HoangVuongTech","publisher":{"@id":"https://hoangvuongtech.com/#organization"}},{"@type":"Service","@id":"https://hoangvuongtech.com/#service","name":"Thiết kế website trọn gói","serviceType":["Thiết kế website","Thiết kế website giá rẻ","Thiết kế website bán hàng","Thiết kế website bất động sản","Thiết kế website doanh nghiệp","Thiết kế website tin tức"],"description":"Dịch vụ thiết kế website trọn gói dễ sử dụng, có tên miền, hosting, trang quản trị và trải nghiệm miễn phí 1 ngày.","provider":{"@id":"https://hoangvuongtech.com/#organization"},"areaServed":{"@type":"Country","name":"Việt Nam"},"url":"https://hoangvuongtech.com/","offers":{"@type":"Offer","priceCurrency":"VND","price":"1499000","description":"Giá từ 1.499.000đ/năm; ưu đãi khách đăng ký lần đầu 500.000đ theo chương trình áp dụng."}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Tôi có cần biết lập trình để sử dụng website không?","acceptedAnswer":{"@type":"Answer","text":"Không. Website có trang quản trị dễ sử dụng để đăng bài, hình ảnh và cập nhật nội dung cơ bản."}},{"@type":"Question","name":"Có được dùng thử website trước khi đăng ký không?","acceptedAnswer":{"@type":"Answer","text":"Có. Khách hàng có thể chọn mẫu và trải nghiệm website miễn phí 1 ngày trước khi quyết định đăng ký."}},{"@type":"Question","name":"Gói website có tên miền và hosting không?","acceptedAnswer":{"@type":"Answer","text":"Có. Gói website bao gồm tên miền riêng và hosting theo chính sách của gói."}},{"@type":"Question","name":"Khách đăng ký lần đầu có ưu đãi gì?","acceptedAnswer":{"@type":"Answer","text":"Khách đăng ký lần đầu được ưu đãi 500.000đ theo chương trình áp dụng."}}]}]})}</script>`;
    body=body.replace(/<title>.*?<\/title>/is,'').replace('</head>',seo+'</head>');
    return new Response(body,{status:200,headers:{'Content-Type':'text/html; charset=UTF-8','Cache-Control':'public, max-age=300'}});
  }
