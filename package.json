@@ -2,6 +2,7 @@
   "name": "newsreal-v5-full-realestate",
   "private": true,
   "scripts": {
+    "check": "node --check \"functions/[[path]].js\" && node --check scripts/check-template-contract.mjs && node scripts/check-template-contract.mjs",
     "check:templates": "node scripts/check-template-contract.mjs"
   }
 }
