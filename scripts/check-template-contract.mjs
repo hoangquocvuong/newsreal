@@ -152,7 +152,7 @@ for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','d
 // V20.9.25.4 — hard pathname dispatch must run before all legacy tenant fallbacks.
 const hardProFn=fn.indexOf('function proDemoKeyFromPath(path)');
 const hardProCall=fn.indexOf('const hardProDemo=proDemoKeyFromPath(rawPath)');
-const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.25.5'");
+const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.25.6'");
 const legacyTenantPos=fn.indexOf("const demoReq=new Request('https://batdongsan2027.org.uk'");
 if(hardProFn<0||hardProCall<0||hardProReturn<0||legacyTenantPos<0||hardProCall>legacyTenantPos){
   console.log('FAIL  hard professional demo pathname dispatch before BDS fallback');failed++;
@@ -214,6 +214,17 @@ if(/designedRows\*cols/.test(site)){
   console.log('FAIL  legacy computed slot target still present');
   failed++;
 }else console.log('OK  no computed slot target');
+
+// V20.9.25.6 — rich real-content demo regression checks
+for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo: ảnh chụp thực tế từ Unsplash','Thương hiệu cá nhân','Creator business','Dữ liệu & BI','Cơ khí & CNC','Kiến thức sạc']){
+  const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  rich demo content ${needle}`); if(!ok) failed++;
+}
+const richSections=['blog-ca-nhan-1','blog-ca-nhan-2','doanh-nghiep-1','doanh-nghiep-2','dich-vu-5'];
+for(const k of richSections){
+ const marker=`'${k}':{version:6`;
+ const ok=api.includes(marker); console.log(`${ok?'OK':'FAIL'}  rich structure ${k}`); if(!ok) failed++;
+}
+
 if(failed){
   console.error(`Template contract failed: ${failed}`);
   process.exit(1);
