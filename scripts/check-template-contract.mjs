@@ -124,11 +124,30 @@ for(const [name,needle] of required){
   console.log(`${ok?'OK':'FAIL'}  ${name}`);
   if(!ok)failed++;
 }
-for(const key of ['dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4','game-1','san-pham-1']){
+for(const key of ['dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4','dich-vu-5','blog-ca-nhan-1','blog-ca-nhan-2','doanh-nghiep-1','doanh-nghiep-2','game-1','san-pham-1']){
   const ok=api.includes(`'${key}'`);
   console.log(`${ok?'OK':'FAIL'}  profile ${key}`);
   if(!ok)failed++;
 }
+
+// Regression: demoInject must declare new template flags before demoLabel reads them.
+const demoFlagDecl=Math.min(...['const isBlogDemo=','const isCorpDemo=','const isEvDemo='].map(x=>fn.indexOf(x)).filter(x=>x>=0));
+const demoLabelUse=fn.indexOf('const demoLabel=');
+if(demoFlagDecl<0||demoLabelUse<0||demoFlagDecl>demoLabelUse){
+  console.log('FAIL  marketplace demo runtime flag declaration order');
+  failed++;
+}else console.log('OK  marketplace demo runtime flag declaration order');
+for(const route of ['/demo/blog-ca-nhan/mau-1','/demo/blog-ca-nhan/mau-2','/demo/doanh-nghiep/mau-1','/demo/doanh-nghiep/mau-2','/demo/dich-vu/tram-sac-vinfast']){
+  const ok=fn.includes(route);
+  console.log(`${ok?'OK':'FAIL'}  demo route ${route}`);
+  if(!ok)failed++;
+}
+for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','doanh-nghiep-1-preview.png','doanh-nghiep-2-preview.png','dich-vu-5-preview.png']){
+  const ok=fs.existsSync('public/assets/demo/'+asset);
+  console.log(`${ok?'OK':'FAIL'}  preview asset ${asset}`);
+  if(!ok)failed++;
+}
+
 if(site.includes('BÀI REVIEW MẪU')||site.includes('Khám phá bài viết sản phẩm chi tiết')){
   console.log('FAIL  Product Affiliate forced homepage review block still present');
   failed++;
