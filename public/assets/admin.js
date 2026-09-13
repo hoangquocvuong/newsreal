@@ -100,10 +100,21 @@ const BUILTIN_CONTENT_PROFILES={
   ]
  }
 };
+const BUILTIN_PROFESSIONAL_PROFILES={
+ 'blog-ca-nhan-1':{id:'news',label:'Bài viết blog cá nhân',content_type:'news',categories:['Thương hiệu cá nhân','Freelance','Năng suất','Sách & công cụ','Lối sống sáng tạo','Góc nhìn'],contentLabel:'Nội dung bài viết',contentHelp:'Chọn đúng chuyên mục để bài tự hiển thị vào đúng khối trên trang chủ.',custom_fields:[{key:'author_name',label:'Tên tác giả',type:'text'},{key:'reading_time',label:'Thời gian đọc',type:'text',placeholder:'6 phút'}]},
+ 'blog-ca-nhan-2':{id:'news',label:'Bài viết người sáng tạo',content_type:'news',categories:['Kinh doanh nội dung','Video & sản xuất','Chiến lược nội dung','Câu chuyện dự án','Công cụ','Kiếm tiền nội dung'],contentLabel:'Nội dung bài viết',contentHelp:'Chọn đúng chuyên mục để bài tự hiển thị vào đúng khối trên trang chủ.',custom_fields:[{key:'author_name',label:'Tên tác giả',type:'text'},{key:'reading_time',label:'Thời gian đọc',type:'text'}]},
+ 'doanh-nghiep-1':{id:'news',label:'Bài viết doanh nghiệp',content_type:'news',categories:['Chuyển đổi số','Vận hành','Dữ liệu & phân tích','Khách hàng','Nhân sự','Tin doanh nghiệp'],contentLabel:'Nội dung bài viết / dự án',contentHelp:'Chọn đúng chuyên mục để bài xuất hiện chính xác trên trang chủ doanh nghiệp.',custom_fields:[{key:'company_author',label:'Bộ phận / tác giả',type:'text'},{key:'project_client',label:'Khách hàng / dự án',type:'text'}]},
+ 'doanh-nghiep-2':{id:'news',label:'Bài viết kỹ thuật & dự án',content_type:'news',categories:['Sản xuất','Cơ khí & CNC','Quản lý chất lượng','An toàn lao động','Dự án','Bảo trì'],contentLabel:'Nội dung kỹ thuật / dự án',contentHelp:'Chọn đúng chuyên mục để bài hiển thị vào khối năng lực, dự án hoặc chuyên san.',custom_fields:[{key:'project_location',label:'Địa điểm dự án',type:'text'},{key:'project_scope',label:'Phạm vi công việc',type:'text'}]},
+ 'dich-vu-5':{id:'service',label:'Điểm sạc & kiến thức xe điện',content_type:'service',categories:['Kiến thức sạc','Lắp đặt tại nhà','Điểm sạc công cộng','Kỹ thuật điện','Bảo trì','Vận hành đội xe'],contentLabel:'Nội dung dịch vụ / bài kiến thức',contentHelp:'Chọn đúng chuyên mục để nội dung hiển thị đúng khu vực trên trang chủ.',custom_fields:[{key:'service_price',label:'Giá / chi phí tham khảo',type:'text'},{key:'service_area',label:'Khu vực phục vụ',type:'text'},{key:'service_cta',label:'Nhãn nút liên hệ',type:'text'}]}
+};
+function professionalAdminKey(){const o=adminTemplateOverride();if(BUILTIN_PROFESSIONAL_PROFILES[o])return o;if(BUILTIN_PROFESSIONAL_PROFILES[CLIENT_TEMPLATE_KEY])return CLIENT_TEMPLATE_KEY;const byPreset={personal_blog_1:'blog-ca-nhan-1',personal_blog_2:'blog-ca-nhan-2',corporate_modern_1:'doanh-nghiep-1',corporate_industry_2:'doanh-nghiep-2',service_ev_charge_5:'dich-vu-5'};return byPreset[CLIENT_PRESET]||''}
+function isProfessionalContactTemplate(){return !!professionalAdminKey()}
 function resolvedContentProfile(){
  const override=adminTemplateOverride();
  let base;
- if(/^san-pham-\d+$/i.test(override))base=BUILTIN_CONTENT_PROFILES.product;
+ const proKey=professionalAdminKey();
+ if(proKey)base=BUILTIN_PROFESSIONAL_PROFILES[proKey];
+ else if(/^san-pham-\d+$/i.test(override))base=BUILTIN_CONTENT_PROFILES.product;
  else if(/^tin-tuc-\d+$/i.test(override))base=BUILTIN_CONTENT_PROFILES.news;
  else if(/^game-\d+$/i.test(override))base=BUILTIN_CONTENT_PROFILES.game;
  else if(override==='mau-1'||override==='mau-2')base=BUILTIN_CONTENT_PROFILES.property;
@@ -197,7 +208,7 @@ function isProductTemplate(){const override=adminTemplateOverride();if(override)
 function isServiceTemplate(){const override=adminTemplateOverride();if(override)return /^dich-vu-\d+$/i.test(override);return CLIENT_CATEGORY==='dich-vu'||CLIENT_PROFILE?.content_type==='service'||CLIENT_PROFILE?.id==='service'||String(CLIENT_PRESET||'').startsWith('service_')}
 function isNewsTemplate(){
  const override=adminTemplateOverride();
- if(override)return /^tin-tuc-\d+$/i.test(override);
+ if(override)return /^tin-tuc-\d+$/i.test(override)||/^blog-ca-nhan-[12]$/i.test(override)||/^doanh-nghiep-[12]$/i.test(override);
  return CLIENT_TEMPLATE_KEY==='tin-tuc-1'||CLIENT_PRESET==='news_portal_1'||CLIENT_CATEGORY==='tin-tuc'||CLIENT_PROFILE?.content_type==='news'||CLIENT_PROFILE?.id==='news';
 }
 function isGameTemplate(){
@@ -240,15 +251,20 @@ function configureAdminForTemplate(){
  }else if(service){
    document.getElementById('menuServiceLeads')?.classList.remove('hidden');
    postType.value='service';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
-   if(menuNew)menuNew.textContent='Thêm gói dịch vụ';if(menuPosts)menuPosts.textContent='Quản lý dịch vụ';if(overviewBtn)overviewBtn.textContent='＋ Thêm gói dịch vụ';
-   if(postTitle)postTitle.placeholder='Ví dụ: Gói Internet Home 500';
+   if(menuNew)menuNew.textContent=professionalAdminKey()==='dich-vu-5'?'Đăng nội dung mới':'Thêm gói dịch vụ';if(menuPosts)menuPosts.textContent=professionalAdminKey()==='dich-vu-5'?'Quản lý nội dung':'Quản lý dịch vụ';if(overviewBtn)overviewBtn.textContent=professionalAdminKey()==='dich-vu-5'?'＋ Đăng nội dung mới':'＋ Thêm gói dịch vụ';
+   if(postTitle)postTitle.placeholder=professionalAdminKey()==='dich-vu-5'?'Ví dụ: Khảo sát lắp sạc tại nhà cần kiểm tra những gì?':'Ví dụ: Gói Internet Home 500';
  }else if(news){
+   if(isProfessionalContactTemplate())document.getElementById('menuServiceLeads')?.classList.remove('hidden');
    postType.value='news';
    postType.disabled=true;
    picker?.classList.add('hidden');
    notice?.classList.remove('hidden');
    if(menuNew)menuNew.textContent='Đăng bài mới';
    if(menuPosts)menuPosts.textContent='Quản lý bài viết';
+   if(isProfessionalContactTemplate()){
+     document.querySelector('#tab-serviceleads h1')?.replaceChildren(document.createTextNode('Yêu cầu liên hệ'));
+     document.querySelector('#tab-serviceleads .admin-subtext')?.replaceChildren(document.createTextNode('Quản lý thông tin khách gửi từ khối Liên hệ trên website.'));
+   }
    if(overviewBtn)overviewBtn.textContent='＋ Đăng bài mới';
    if(postTitle)postTitle.placeholder='Ví dụ: Những xu hướng công nghệ đáng chú ý hôm nay';
    document.querySelector('#tab-overview .admin-page-head p')?.replaceChildren(document.createTextNode('Quản lý bài viết, chuyên mục và theo dõi hiệu quả website tin tức.'));
