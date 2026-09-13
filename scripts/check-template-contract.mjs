@@ -152,7 +152,7 @@ for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','d
 // V20.9.25.4 — hard pathname dispatch must run before all legacy tenant fallbacks.
 const hardProFn=fn.indexOf('function proDemoKeyFromPath(path)');
 const hardProCall=fn.indexOf('const hardProDemo=proDemoKeyFromPath(rawPath)');
-const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.25.6'");
+const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.25.7'");
 const legacyTenantPos=fn.indexOf("const demoReq=new Request('https://batdongsan2027.org.uk'");
 if(hardProFn<0||hardProCall<0||hardProReturn<0||legacyTenantPos<0||hardProCall>legacyTenantPos){
   console.log('FAIL  hard professional demo pathname dispatch before BDS fallback');failed++;
@@ -215,9 +215,13 @@ if(/designedRows\*cols/.test(site)){
   failed++;
 }else console.log('OK  no computed slot target');
 
-// V20.9.25.6 — rich real-content demo regression checks
-for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo: ảnh chụp thực tế từ Unsplash','Thương hiệu cá nhân','Creator business','Dữ liệu & BI','Cơ khí & CNC','Kiến thức sạc']){
+// V20.9.25.7 — professional real-content demo regression checks
+for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo sử dụng ảnh chụp thực tế từ Unsplash','Thương hiệu cá nhân','Creator business','Dữ liệu & BI','Cơ khí & CNC','Kiến thức sạc']){
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  rich demo content ${needle}`); if(!ok) failed++;
+}
+
+for(const needle of ['Business newsroom','Inside the plant','Core capabilities','EV knowledge hub','Creator business','Cover stories & bài được đọc nhiều','Nguồn tham khảo chuyên môn','IEA · Electric vehicle charging 2026']){
+  const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  pro real-world layout ${needle}`); if(!ok) failed++;
 }
 const richSections=['blog-ca-nhan-1','blog-ca-nhan-2','doanh-nghiep-1','doanh-nghiep-2','dich-vu-5'];
 for(const k of richSections){
@@ -225,10 +229,17 @@ for(const k of richSections){
  const ok=api.includes(marker); console.log(`${ok?'OK':'FAIL'}  rich structure ${k}`); if(!ok) failed++;
 }
 
+for(const [label,needle] of [
+  ['professional extra article corpus','PRO_EXTRA_DEMO_ARTICLES'],
+  ['real-photo catalog refresh','const proRefresh=['],
+  ['real-photo corporate cover','photo-1521737711867-e3b97375f902'],
+  ['real-photo industrial cover','photo-1504917595217-d4dc5ebe6122'],
+  ['real-photo EV cover','photo-1755555707544-5f2cea7413c1']
+]){
+  const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  ${label}`); if(!ok) failed++;
+}
 if(failed){
   console.error(`Template contract failed: ${failed}`);
   process.exit(1);
 }
-
-
 console.log('Template contract smoke: PASS');
