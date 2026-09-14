@@ -1698,7 +1698,8 @@ async function nrBootMain(){
    // are requested in parallel. Subsequent demo pages reuse session cache.
    const isPublicGameDemo=demoTemplateKey==='game-1'&&!window.NR_TRIAL_TOKEN&&!window.NR_CLIENT_SIM;
    const isPublicProductDemo=demoTemplateKey==='san-pham-1'&&!window.NR_TRIAL_TOKEN&&!window.NR_CLIENT_SIM;
-   const selfContainedDemo=isPublicGameDemo||isPublicProductDemo;
+   const localShowroomPackage=(window.NR_LOCAL_SHOWROOM_PACKAGE&&typeof window.NR_LOCAL_SHOWROOM_PACKAGE==='object')?window.NR_LOCAL_SHOWROOM_PACKAGE:null;
+   const selfContainedDemo=isPublicGameDemo||isPublicProductDemo||!!localShowroomPackage;
    const sitePromise=selfContainedDemo?null:nrFetchJsonCached(tenantApiUrl('/api/site'),{kind:'site',key:demoTemplateKey||'site',ttl:300000});
    const demoCatalogPromise=(demoTemplateKey&&!selfContainedDemo)?nrFetchJsonCached(tenantApiUrl('/api/template-catalog?key='+encodeURIComponent(demoTemplateKey)),{kind:'catalog',key:demoTemplateKey,ttl:1800000,options:{cache:'force-cache'}}):null;
    // V20.9.5: the public Clash of Clans showroom is a self-contained demo package.
@@ -1708,6 +1709,8 @@ async function nrBootMain(){
    if(isPublicGameDemo){
      await Promise.resolve();
      d={site:{id:0,name:'COC Base Portal',template_key:'game-1',preset:'game_clash_1',template_settings:{donate_url:'https://buymeacoffee.com/cocbase',about_title:'About COC Base Portal',about_content:'Thư viện base cộng đồng dành cho Town Hall, Builder Hall và Clan Capital.',terms_title:'Điều khoản sử dụng',terms_content:'Base được chia sẻ cho cộng đồng.',footer_text:'Community Clash of Clans base sharing · Not affiliated with Supercell.'},structure_profile:{version:7,content_type:'game',sections:[{key:'hero',type:'section',bind_required:0},{key:'filters',type:'section',bind_required:0},{key:'town-hall',type:'category',category:'Town Hall',slots:17,desktop_columns:4,tablet_columns:3,mobile_columns:2,bind_required:1},{key:'builder-hall',type:'category',category:'Builder Hall',slots:9,desktop_columns:4,tablet_columns:2,mobile_columns:2,bind_required:1},{key:'clan-capital',type:'category',category:'Clan Capital',slots:10,desktop_columns:4,tablet_columns:2,mobile_columns:2,bind_required:1}] }},posts:Array.isArray(GAME_REAL_SAMPLE_POSTS)?GAME_REAL_SAMPLE_POSTS:[],stats:{posts:Array.isArray(GAME_REAL_SAMPLE_POSTS)?GAME_REAL_SAMPLE_POSTS.length:0},preview:{demo:true,template_demo:true,source:'local-game-showroom'}};
+   }else if(localShowroomPackage){
+     d=localShowroomPackage;
    }else if(isPublicProductDemo){
      await Promise.resolve();
      const sample=nrBuildProductShowroomPosts();
@@ -2301,7 +2304,7 @@ function sxProfile(site={},key=''){let st=site.structure_profile;if(typeof st===
  'dich-vu-6':['Gói múa lân','Múa rồng','Trống hội','Sự kiện đã thực hiện','Tin hoạt động','Kiến thức & phong tục']
 };const cats=Array.isArray(st?.sections)?st.sections.filter(x=>x?.type==='category'&&x.category).map(x=>String(x.category)):[];return cats.length?cats:(fallback[key]||[])}
 function sxText(html=''){const d=document.createElement('div');d.innerHTML=String(html||'');return (d.textContent||'').replace(/\s+/g,' ').trim()}
-function sxPostUrl(p){return '/bai-viet/'+sxSlug(p.title||('bai-'+p.id))+'/?id='+encodeURIComponent(p.id||'')}
+function sxPostUrl(p){const raw='/bai-viet/'+sxSlug(p.title||('bai-'+p.id))+'/?id='+encodeURIComponent(p.id||'');return typeof nrDemoUrl==='function'?nrDemoUrl(raw):raw}
 function sxCard(p){const img=getImages(p)[0]||p.image||'/assets/marketing-demo.webp',txt=sxText(p.content||'').slice(0,135);return `<article class="sxp-card"><a class="sxp-card-img" href="${sxPostUrl(p)}"><img src="${esc(img)}" alt="${esc(p.title||'Bài viết')}"></a><div><small>${esc(p.category||'Bài viết')}</small><h3><a href="${sxPostUrl(p)}">${esc(p.title||'Bài viết')}</a></h3>${txt?`<p>${esc(txt)}${txt.length>=135?'…':''}</p>`:''}<a class="sxp-more" href="${sxPostUrl(p)}">Đọc chi tiết →</a></div></article>`}
 function sxAdminNewPostUrl(key=''){
  const q=new URLSearchParams();

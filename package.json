@@ -2,7 +2,7 @@
   "name": "newsreal-v5-full-realestate",
   "private": true,
   "scripts": {
-    "check": "node --check \"functions/[[path]].js\" && node --check \"functions/api/[[path]].js\" && node scripts/check-worker-runtime.mjs && node scripts/check-template-contract.mjs && node scripts/check-template-ssot-v2.mjs && node scripts/check-template-global-ssot-v3.mjs && node scripts/check-trial-live-site-routing.mjs && node scripts/check-template-live-demo-parity-v4.mjs",
+    "check": "node --check \"functions/[[path]].js\" && node --check \"functions/api/[[path]].js\" && node scripts/check-worker-runtime.mjs && node scripts/check-template-contract.mjs && node scripts/check-template-ssot-v2.mjs && node scripts/check-template-global-ssot-v3.mjs && node scripts/check-trial-live-site-routing.mjs && node scripts/check-template-live-demo-parity-v4.mjs && node scripts/check-lion-hero-parity-v5.mjs && node scripts/check-one-renderer-v6.mjs",
     "check:templates": "node scripts/check-template-contract.mjs",
     "check:ssot": "node scripts/check-template-ssot-v2.mjs",
     "check:global-ssot": "node scripts/check-template-global-ssot-v3.mjs"

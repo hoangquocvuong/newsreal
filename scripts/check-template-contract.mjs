@@ -270,7 +270,7 @@ for(const needle of ["const evSettings=","ev_station_api_url","station_data_cont
 
 
 // V20.9.26.9 — new professional templates must share the legacy customer-preview contract.
-for (const marker of ['function injectProClientSimulation(html,url)','GIẢ LẬP KHÁCH HÀNG','data-pro-samples=\"1\"','data-pro-samples=\"0\"','nr-pro-empty','injectProClientSimulation(proDemoHtml(hardProDemo,rawPath),u)']) {
+for (const marker of ['function injectProClientSimulation(html,url)','GIẢ LẬP KHÁCH HÀNG','data-pro-samples=\"1\"','data-pro-samples=\"0\"','nr-pro-empty','unifiedProfessionalDemoHtml(hardProDemo,rawPath,u)']) {
   const ok=fn.includes(marker); console.log(`${ok?'OK':'FAIL'}  professional customer simulation ${marker}`); if(!ok)failed++;
 }
 for(const needle of ['service_lion_dance_6','function lionDemoHome','function lionDemoArticle','Gói 2 đầu lân','Gói 7 đầu lân','Liên hệ báo giá','Giá tiền']){const ok=fn.includes(needle)||site.includes(needle)||api.includes(needle);console.log(`${ok?'OK':'FAIL'}  lion premium contract ${needle}`);if(!ok)failed++;}

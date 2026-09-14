@@ -787,6 +787,32 @@ function realArticle(c,a,p,d){return `<!doctype html><html lang="vi"><head><meta
  return html;
 }
 function proDemoHtml(demo,rawPath){const c=realDemoData(demo);if(!c)return '';const p=demoPrefixForPath(rawPath,demo),rel=stripDemoPath(rawPath,demo),m=rel.match(/^\/bai-viet\/([^/]+)\/?$/i);let html='';if(m){const a=c.articles.find(x=>x.slug===m[1]);if(a)html=c.kind==='lion'?lionDemoArticle(c,a,p,demo):realArticle(c,a,p,demo)}if(!html&&c.kind==='blog-minimal')html=blogMinimalHome(c,p,demo);if(!html&&c.kind==='creator')html=creatorHome(c,p,demo);if(!html&&c.kind==='corporate')html=corpHome(c,p,demo);if(!html&&c.kind==='industrial')html=industrialHome(c,p,demo);if(!html&&c.kind==='ev')html=evHome(c,p,demo);if(!html&&c.kind==='lion')html=lionDemoHome(c,p,demo);return proPlatformContract(html,demo)}
+function professionalPresetForKey(key){return ({'blog-ca-nhan-1':'personal_blog_1','blog-ca-nhan-2':'personal_blog_2','doanh-nghiep-1':'corporate_modern_1','doanh-nghiep-2':'corporate_industry_2','dich-vu-5':'service_ev_charge_5','dich-vu-6':'service_lion_dance_6'})[String(key||'')]||''}
+function professionalShowroomPackage(key){
+ const c=realDemoData(key);if(!c)return null;
+ const contract=professionalSimulationContract(key)||{};
+ const type=(c.kind==='lion'||c.kind==='ev')?'service':'news';
+ const posts=(c.articles||[]).map((a,i)=>{
+   const specs=a.specs||{};
+   const extra=c.kind==='lion'?{
+     service_price:a.price||'',lion_count:specs['Lân']||specs['Rồng']||'',drum_count:specs['Trống']||'',performers_count:specs['Nhân sự']||'',performance_duration:specs['Thời lượng']||'',fireworks:specs['Pháo sáng']||'',confetti:specs['Kim tuyến']||'',couplets:specs['Câu đối']||'',video_embeds:''
+   }:{};
+   const body=Array.isArray(a.body)?a.body.map(x=>`<h2>${rEsc(x[0]||'')}</h2><p>${rEsc(x[1]||'')}</p>`).join(''):'';
+   const content=`<p>${rEsc(a.excerpt||'')}</p>${body}`;
+   return {id:960000+i,type,status:'published',title:a.title||'',category:a.cat||'',image:a.img||'',images:JSON.stringify(Array.isArray(a.gallery)&&a.gallery.length?a.gallery:[a.img].filter(Boolean)),content,excerpt:a.excerpt||'',featured:i===0?1:0,extra_json:JSON.stringify(extra),created_at:'2026-09-01 00:00:00'};
+ });
+ const templateSettings=c.kind==='lion'?{troupe_intro:'Đoàn tập trung vào đội hình đẹp, nhịp trống chắc, tác phong đúng giờ và kịch bản phù hợp từng không gian.',contact_title:'Kết nối với HẢI PHÒNG LÂN ĐƯỜNG',contact_intro:'Trao đổi nhu cầu, nhận tư vấn và thông tin phù hợp.',footer_intro:'Lân Sư Rồng biểu diễn sự kiện chuyên nghiệp.'}:{};
+ return {site:{id:0,name:c.brand||'Website Demo',template_key:key,preset:professionalPresetForKey(key),template_settings:templateSettings,structure_profile:{version:contract.version||1,content_type:contract.content_type||type,sections:contract.sections||[]},editor_profile:contract.editor||{}},posts,stats:{posts:posts.length},preview:{demo:true,template_demo:true,samples:1,source:'one-renderer-showroom-v6'}};
+}
+function unifiedProfessionalDemoHtml(key,rawPath,u){
+ const pack=professionalShowroomPackage(key);if(!pack)return '';
+ const c=realDemoData(key)||{};
+ let html=inject(INDEX_HTML,metaTags({title:`${c.brand||'Website Demo'} · Demo`,description:c.lead||'Giao diện website demo',image:c.hero||'',url:u.origin+rawPath,type:'website'}));
+ html=demoInject(html,key,null);
+ html=html.replace('</head>',`<script id="nr-one-renderer-showroom">window.NR_LOCAL_SHOWROOM_PACKAGE=${JSON.stringify(pack).replace(/</g,'\\u003c')};window.NR_RENDER_MODE=${JSON.stringify(u.searchParams.get('nr_client')==='1'?(u.searchParams.get('nr_samples')==='0'?'empty':'sample'):'sample')};</script></head>`);
+ return injectProClientSimulation(html,u);
+}
+
 
 // V20.9.26.9 — Professional templates now obey the same Master Control
 // customer-simulation contract as legacy templates. The empty state keeps the
@@ -889,7 +915,7 @@ export async function onRequest(context){
  // ?nr_client=1&nr_samples=0 must never alter the selected renderer.
  const hardProDemo=proDemoKeyFromPath(rawPath);
  if(marketHost&&hardProDemo&&!trialToken){
-   const html=injectProClientSimulation(proDemoHtml(hardProDemo,rawPath),u);
+   const html=unifiedProfessionalDemoHtml(hardProDemo,rawPath,u);
    if(html)return new Response(html,{status:200,headers:{'Content-Type':'text/html; charset=UTF-8','Cache-Control':'no-store, no-cache, must-revalidate, max-age=0','CDN-Cache-Control':'no-store','Cloudflare-CDN-Cache-Control':'no-store','X-HVT-Demo-Build':'20.9.27.17','X-HVT-Demo-Renderer':hardProDemo}});
  }
  const trialLaunch=TRIAL_LAUNCH_HOSTS.has(host)?rawPath.match(/^\/trial\/([a-zA-Z0-9]+)(?:\/(admin))?\/?$/):null;
@@ -1027,7 +1053,7 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
  // V20.9.26.9 — secondary professional renderer guard.
  // These five templates must never reuse the NEWSREAL/BDS shell.
  if(marketHost&&PRO_DEMO_KEYS.has(demo)&&!trialToken){
-   const html=injectProClientSimulation(proDemoHtml(demo,rawPath),u);
+   const html=unifiedProfessionalDemoHtml(demo,rawPath,u);
    if(html)return new Response(html,{status:200,headers:{'Content-Type':'text/html; charset=UTF-8','Cache-Control':'no-cache, no-store, must-revalidate'}});
  }
 
