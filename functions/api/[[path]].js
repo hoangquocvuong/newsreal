@@ -1152,6 +1152,39 @@ async function ensureSalesLeads(env){
   try{await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_sales_leads_email ON sales_leads(email)`).run()}catch(e){}
 }
 
+
+async function ensureSalesChatTables(env){
+  await env.DB.batch([
+    env.DB.prepare(`CREATE TABLE IF NOT EXISTS sales_chat_threads(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      public_token TEXT NOT NULL UNIQUE,
+      customer_name TEXT NOT NULL DEFAULT '',
+      phone TEXT NOT NULL DEFAULT '',
+      email TEXT NOT NULL DEFAULT '',
+      source_url TEXT NOT NULL DEFAULT '',
+      source_title TEXT NOT NULL DEFAULT '',
+      template_key TEXT NOT NULL DEFAULT '',
+      template_name TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'new',
+      last_sender TEXT NOT NULL DEFAULT 'customer',
+      unread_master INTEGER NOT NULL DEFAULT 0,
+      unread_customer INTEGER NOT NULL DEFAULT 0,
+      last_message_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`),
+    env.DB.prepare(`CREATE TABLE IF NOT EXISTS sales_chat_messages(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      thread_id INTEGER NOT NULL,
+      sender TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_sales_chat_threads_status ON sales_chat_threads(status,last_message_at DESC)`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_sales_chat_messages_thread ON sales_chat_messages(thread_id,id)`)
+  ]);
+}
+
 async function masterOK(env,req){
   if(!env.MASTER_KEY)return false;
   const auth=req.headers.get('Authorization')||'';
@@ -1760,6 +1793,61 @@ if(route==='publisher/base'&&request.method==='POST'){
   await env.DB.prepare(`UPDATE publisher_imports SET source_url=?,payload_hash=?,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(sourceUrl,payloadHash,imp.id).run();
   return json({ok:true,created:false,updated:true,duplicate:imp.payload_hash===payloadHash,post_id:Number(imp.post_id),slug:imp.slug,url:`https://${target.domain}/base/${imp.slug}.html`});
 }
+
+// V20.9.26.4 — HoangVuongTech-owned sales chat. This is intentionally global to
+// hoangvuongtech.com and is NOT tied to client/tenant websites.
+if(route==='sales-chat'){
+  await ensureSalesChatTables(env);
+  if(request.method==='POST'){
+    const b=await body(request),token=String(b.thread_token||'').trim().slice(0,120),msg=String(b.message||'').trim().slice(0,2000);
+    if(!token||token.length<16)return json({error:'Phiên trò chuyện không hợp lệ'},400);
+    if(!msg)return json({error:'Vui lòng nhập nội dung tin nhắn'},400);
+    let th=await env.DB.prepare(`SELECT * FROM sales_chat_threads WHERE public_token=? LIMIT 1`).bind(token).first();
+    if(!th){
+      const r=await env.DB.prepare(`INSERT INTO sales_chat_threads(public_token,customer_name,phone,email,source_url,source_title,template_key,template_name,status,unread_master) VALUES(?,?,?,?,?,?,?,?, 'new',1)`).bind(token,String(b.customer_name||'Khách hàng').trim().slice(0,120)||'Khách hàng',String(b.phone||'').trim().slice(0,40),String(b.email||'').trim().slice(0,160),String(b.source_url||'').slice(0,700),String(b.source_title||'').slice(0,250),String(b.template_key||'').slice(0,100),String(b.template_name||'').slice(0,180)).run();
+      th={id:Number(r.meta.last_row_id)};
+    }else{
+      await env.DB.prepare(`UPDATE sales_chat_threads SET customer_name=CASE WHEN ?<>'' THEN ? ELSE customer_name END,phone=CASE WHEN ?<>'' THEN ? ELSE phone END,email=CASE WHEN ?<>'' THEN ? ELSE email END,source_url=?,source_title=?,template_key=CASE WHEN ?<>'' THEN ? ELSE template_key END,template_name=CASE WHEN ?<>'' THEN ? ELSE template_name END,status=CASE WHEN status='closed' THEN 'contacted' ELSE status END,last_sender='customer',unread_master=unread_master+1,last_message_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(String(b.customer_name||'').trim(),String(b.customer_name||'').trim().slice(0,120),String(b.phone||'').trim(),String(b.phone||'').trim().slice(0,40),String(b.email||'').trim(),String(b.email||'').trim().slice(0,160),String(b.source_url||'').slice(0,700),String(b.source_title||'').slice(0,250),String(b.template_key||'').trim(),String(b.template_key||'').trim().slice(0,100),String(b.template_name||'').trim(),String(b.template_name||'').trim().slice(0,180),th.id).run();
+    }
+    const burst=await env.DB.prepare(`SELECT count(*) c FROM sales_chat_messages WHERE thread_id=? AND sender='customer' AND created_at>datetime('now','-1 minute')`).bind(th.id).first();
+    if(Number(burst?.c||0)>=10)return json({error:'Bạn gửi tin nhắn quá nhanh. Vui lòng thử lại sau một chút.'},429);
+    await env.DB.prepare(`INSERT INTO sales_chat_messages(thread_id,sender,message) VALUES(?,'customer',?)`).bind(th.id,msg).run();
+    return json({ok:true,thread_id:th.id},200,{'Cache-Control':'no-store'});
+  }
+  if(request.method==='GET'){
+    const token=String(u.searchParams.get('thread_token')||'').trim();if(!token)return json({ok:true,messages:[],status:'new'},200,{'Cache-Control':'no-store'});
+    const th=await env.DB.prepare(`SELECT id,status FROM sales_chat_threads WHERE public_token=? LIMIT 1`).bind(token).first();
+    if(!th)return json({ok:true,messages:[],status:'new'},200,{'Cache-Control':'no-store'});
+    const {results}=await env.DB.prepare(`SELECT id,sender,message,created_at FROM sales_chat_messages WHERE thread_id=? ORDER BY id ASC LIMIT 200`).bind(th.id).all();
+    await env.DB.prepare(`UPDATE sales_chat_threads SET unread_customer=0,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(th.id).run();
+    return json({ok:true,status:th.status,messages:results||[]},200,{'Cache-Control':'no-store'});
+  }
+}
+if(route==='master/sales-chats'&&request.method==='GET'){
+  if(!await masterOK(env,request))return json({error:'Không có quyền'},401);await ensureSalesChatTables(env);
+  const {results}=await env.DB.prepare(`SELECT t.*, (SELECT message FROM sales_chat_messages m WHERE m.thread_id=t.id ORDER BY m.id DESC LIMIT 1) last_message FROM sales_chat_threads t ORDER BY datetime(t.last_message_at) DESC LIMIT 300`).all();
+  return json({ok:true,chats:results||[]},200,{'Cache-Control':'no-store'});
+}
+if(route==='master/sales-chat-thread'&&request.method==='GET'){
+  if(!await masterOK(env,request))return json({error:'Không có quyền'},401);await ensureSalesChatTables(env);const id=Number(u.searchParams.get('id'));
+  const thread=await env.DB.prepare(`SELECT * FROM sales_chat_threads WHERE id=?`).bind(id).first();if(!thread)return json({error:'Không tìm thấy cuộc trò chuyện'},404);
+  const {results}=await env.DB.prepare(`SELECT id,sender,message,created_at FROM sales_chat_messages WHERE thread_id=? ORDER BY id ASC LIMIT 300`).bind(id).all();
+  await env.DB.prepare(`UPDATE sales_chat_threads SET unread_master=0,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(id).run();
+  return json({ok:true,thread,messages:results||[]},200,{'Cache-Control':'no-store'});
+}
+if(route==='master/sales-chat-reply'&&request.method==='POST'){
+  if(!await masterOK(env,request))return json({error:'Không có quyền'},401);await ensureSalesChatTables(env);const b=await body(request),id=Number(b.id),msg=String(b.message||'').trim().slice(0,2000);if(!id||!msg)return json({error:'Thiếu nội dung trả lời'},400);
+  const th=await env.DB.prepare(`SELECT id FROM sales_chat_threads WHERE id=?`).bind(id).first();if(!th)return json({error:'Không tìm thấy cuộc trò chuyện'},404);
+  await env.DB.prepare(`INSERT INTO sales_chat_messages(thread_id,sender,message) VALUES(?,'master',?)`).bind(id,msg).run();
+  await env.DB.prepare(`UPDATE sales_chat_threads SET status=CASE WHEN status='new' THEN 'contacted' ELSE status END,last_sender='master',unread_customer=unread_customer+1,last_message_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(id).run();
+  return json({ok:true});
+}
+if(route==='master/sales-chat-update'&&request.method==='POST'){
+  if(!await masterOK(env,request))return json({error:'Không có quyền'},401);await ensureSalesChatTables(env);const b=await body(request),id=Number(b.id),status=String(b.status||'contacted');
+  if(!['new','contacted','won','lost','closed'].includes(status))return json({error:'Trạng thái không hợp lệ'},400);
+  await env.DB.prepare(`UPDATE sales_chat_threads SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(status,id).run();return json({ok:true});
+}
+
 // TRIAL WEBSITE MAINTENANCE — hourly/daily cron safe endpoint.
 if(route==='system/trial-maintenance'&&request.method==='POST'){
   const auth=request.headers.get('Authorization')||'';if(!env.CRON_SECRET||auth!==`Bearer ${env.CRON_SECRET}`)return json({error:'Unauthorized'},401);
