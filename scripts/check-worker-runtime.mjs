@@ -12,7 +12,7 @@ for (const [path, renderer, marker] of routes) {
   const response = await mod.onRequest({request, env:{}, next:()=>new Response('NEXT')});
   const html = await response.text();
   if (response.status !== 200) throw new Error(`${path}: status ${response.status}`);
-  if (response.headers.get('X-HVT-Demo-Build') !== '20.9.26.8') throw new Error(`${path}: wrong build header`);
+  if (response.headers.get('X-HVT-Demo-Build') !== '20.9.26.9') throw new Error(`${path}: wrong build header`);
   if (response.headers.get('X-HVT-Demo-Renderer') !== renderer) throw new Error(`${path}: wrong renderer`);
   if (!html.includes(marker)) throw new Error(`${path}: missing marker ${marker}`);
   if (html.includes('NEWS REAL') || html.includes('Bất động sản</a>')) throw new Error(`${path}: leaked legacy NEWSREAL/BDS shell`);
@@ -30,3 +30,16 @@ const article = await mod.onRequest({request:new Request('https://hoangvuongtech
 const articleHtml=await article.text();
 if(article.status!==200 || !articleHtml.includes('Checklist thực hành')) throw new Error('professional article runtime failed');
 console.log('OK  runtime professional article route');
+
+
+const simEmpty = await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/blog-ca-nhan/mau-1/?nr_client=1&nr_samples=0'),env:{},next:()=>new Response('NEXT')});
+const simEmptyHtml = await simEmpty.text();
+for(const marker of ['GIẢ LẬP KHÁCH HÀNG','Không bài mẫu','nr-pro-empty','href="/demo/blog-ca-nhan/mau-1/']) if(!simEmptyHtml.includes(marker)) throw new Error('professional empty simulation missing: '+marker);
+if(!simEmptyHtml.includes('a[href*="/bai-viet/"]')) throw new Error('professional empty simulation does not preserve 1:1 article-card scaffold');
+console.log('OK  runtime professional client simulation EMPTY keeps 1:1 layout scaffold');
+
+const simFull = await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/doanh-nghiep/mau-1/?nr_client=1&nr_samples=1'),env:{},next:()=>new Response('NEXT')});
+const simFullHtml = await simFull.text();
+for(const marker of ['GIẢ LẬP KHÁCH HÀNG','Có bài mẫu','nr-pro-client-sim']) if(!simFullHtml.includes(marker)) throw new Error('professional populated simulation missing: '+marker);
+if(simFullHtml.includes('<body class="nr-pro-client-sim nr-pro-empty">')) throw new Error('professional populated simulation incorrectly empty');
+console.log('OK  runtime professional client simulation WITH SAMPLES');
