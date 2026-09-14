@@ -1,4 +1,5 @@
 export const PROFESSIONAL_TEMPLATE_KEYS=['blog-ca-nhan-1','blog-ca-nhan-2','doanh-nghiep-1','doanh-nghiep-2','dich-vu-5','dich-vu-6'];
+export const GLOBAL_TEMPLATE_KEYS=['mau-1','mau-2','mau-3','mau-4','mau-5','tin-tuc-1','tin-tuc-2','tin-tuc-3','tin-tuc-4','dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4','dich-vu-5','dich-vu-6','san-pham-1','game-1','blog-ca-nhan-1','blog-ca-nhan-2','doanh-nghiep-1','doanh-nghiep-2'];
 
 const commonCardSelectors='article,.rcard,.news-card,.post-card,.card,.knowledge-card';
 const registry={
@@ -73,3 +74,72 @@ export function professionalTemplateContract(key){
 
 export function professionalEditorProfile(key){return professionalTemplateContract(key)?.editor||null}
 export function professionalSimulationContract(key){const c=professionalTemplateContract(key);return c?{contract_version:c.contract_version,hero:c.hero,simulation:c.simulation}:null}
+
+
+// V20.9.27.14 — Global SSOT contract. Every marketplace template must be
+// registered here, even when its visual renderer is legacy/specialized.
+// The structure passed to templateUsageGuide is the same structure used by
+// runtime rendering/Admin, so the guide can never drift from real sections.
+const globalMeta={
+ 'mau-1':{name:'Mẫu 1 · Tin tức & BĐS',family:'bat-dong-san'},
+ 'mau-2':{name:'Mẫu 2 · BĐS hiện đại',family:'bat-dong-san'},
+ 'mau-3':{name:'Mẫu 3 · BĐS Luxury',family:'bat-dong-san'},
+ 'mau-4':{name:'Mẫu 4 · BĐS Minimal',family:'bat-dong-san'},
+ 'mau-5':{name:'Mẫu 5 · BĐS Urban',family:'bat-dong-san'},
+ 'tin-tuc-1':{name:'Tin tức Mẫu 1 · Tạp chí hiện đại',family:'tin-tuc'},
+ 'tin-tuc-2':{name:'Tin tức Mẫu 2 · Báo điện tử',family:'tin-tuc'},
+ 'tin-tuc-3':{name:'Tin tức Mẫu 3 · Magazine hiện đại',family:'tin-tuc'},
+ 'tin-tuc-4':{name:'Tin tức Mẫu 4 · Minimal SEO',family:'tin-tuc'},
+ 'dich-vu-1':{name:'FPT',family:'dich-vu'},
+ 'dich-vu-2':{name:'VNPT',family:'dich-vu'},
+ 'dich-vu-3':{name:'Viettel',family:'dich-vu'},
+ 'dich-vu-4':{name:'Camera Store',family:'dich-vu'},
+ 'dich-vu-5':{name:'Điểm sạc xe điện',family:'dich-vu'},
+ 'dich-vu-6':{name:'Lân Sư Rồng',family:'dich-vu'},
+ 'san-pham-1':{name:'Product Store · Affiliate',family:'ban-hang'},
+ 'game-1':{name:'Clash of Clans · Base Portal',family:'game'},
+ 'blog-ca-nhan-1':{name:'Blog cá nhân · Nhật ký tối giản',family:'blog-ca-nhan'},
+ 'blog-ca-nhan-2':{name:'Blog cá nhân · Góc người sáng tạo',family:'blog-ca-nhan'},
+ 'doanh-nghiep-1':{name:'Doanh nghiệp · Giải pháp hiện đại',family:'doanh-nghiep'},
+ 'doanh-nghiep-2':{name:'Doanh nghiệp · Hồ sơ năng lực',family:'doanh-nghiep'}
+};
+
+export function globalTemplateMeta(key){
+ const k=String(key||'');
+ const meta=globalMeta[k];
+ if(!meta)return null;
+ const pro=professionalTemplateContract(k);
+ return {contract_version:'template-global-ssot-v3',contract_key:k,geometry_locked:1,...meta,professional:!!pro,hero:pro?.hero||null,simulation:pro?.simulation||null,editor:pro?.editor||null};
+}
+
+export function templateUsageGuide(key,structure={},editor={}){
+ const meta=globalTemplateMeta(key)||{contract_key:String(key||''),name:String(key||'Mẫu website'),family:'generic'};
+ const sections=Array.isArray(structure?.sections)?structure.sections:[];
+ const cats=Array.isArray(editor?.categories)?editor.categories:[];
+ const tx=editor?.categoriesByTransaction&&typeof editor.categoriesByTransaction==='object'?editor.categoriesByTransaction:null;
+ const steps=[];
+ for(let i=0;i<sections.length;i++){
+  const x=sections[i]||{},type=String(x.type||'section'),title=String(x.title||x.category||x.key||`Khối ${i+1}`),cat=String(x.category||'');
+  const postBound=Number(x.bind_required||0)===1 || ['category','latest','breaking','ticker','trending','hero','special','explore','property_list','property_projects','property_split','property_areas','news'].includes(type);
+  let source='Cài đặt website',instruction='Khối bố cục cố định của giao diện; chỉnh thông tin tương ứng trong Cài đặt website nếu có trường cấu hình.';
+  if(type==='category'&&cat){source=`Đăng bài → ${cat}`;instruction=`Muốn nội dung xuất hiện tại khối “${title}”, khi đăng bài hãy chọn chính xác chuyên mục “${cat}”.`;}
+  else if(type==='latest'||type==='breaking'||type==='ticker'||type==='trending'||type==='explore'){source='Đăng bài';instruction=`Khối “${title}” lấy bài theo quy tắc ${type==='latest'?'mới nhất':type==='trending'?'nổi bật/xu hướng':'tự động'}; hãy đăng bài đúng chuyên mục và trạng thái Đăng ngay.`;}
+  else if(type==='hero'||type==='special'){source='Bài nổi bật / Cài đặt Hero';instruction=`Khối “${title}” ưu tiên nội dung nổi bật hoặc trường Hero của mẫu. Nếu muốn bài được ưu tiên, bật “Tin nổi bật” khi đăng.`;}
+  else if(type.startsWith('property_')){source='Đăng bất động sản';instruction=`Khối “${title}” được hệ thống phân phối từ tin BĐS theo loại giao dịch, loại hình và trạng thái nổi bật phù hợp.`;}
+  else if(type==='news'){source='Đăng bài tin tức';instruction=`Khối “${title}” lấy bài tin tức đã xuất bản.`;}
+  else if(postBound){source='Đăng bài';instruction=`Khối “${title}” lấy dữ liệu bài đăng theo quy tắc của mẫu.`;}
+  steps.push({order:i+1,key:String(x.key||''),title,type,category:cat,source,instruction,slots:Number(x.slots||0),columns:{desktop:Number(x.desktop_columns||0),tablet:Number(x.tablet_columns||0),mobile:Number(x.mobile_columns||0)}});
+ }
+ const structuralCats=[...new Set(steps.filter(x=>x.category).map(x=>x.category))];
+ const guideCats=structuralCats.length?structuralCats:cats;
+ const categoryRules=guideCats.map(c=>({category:String(c),instruction:`Chọn “${c}” trong ô Chuyên mục để bài đi vào đúng khu vực mang tên “${c}” trên giao diện.`}));
+ const transactionRules=tx?Object.entries(tx).map(([k,v])=>({transaction:k,categories:Array.isArray(v)?v:[]})):[];
+ return {
+  version:'template-admin-guide-v1',template_key:meta.contract_key,template_name:meta.name,family:meta.family,
+  contract_version:'template-global-ssot-v3',geometry_locked:1,
+  intro:'Sơ đồ này được sinh trực tiếp từ cùng cấu trúc mà website đang dùng. Thứ tự khối bên dưới chính là thứ tự bố cục trang chủ.',
+  publish_checklist:['Chọn đúng loại nội dung/chuyên mục theo sơ đồ.','Điền tiêu đề, ảnh đại diện và nội dung đầy đủ.','Nếu mẫu có trường riêng (giá, thông số, level, dịch vụ...), điền đủ trước khi đăng.','Chọn Đăng ngay để nội dung xuất hiện trên website.','Sau khi đăng, bấm Xem website để kiểm tra đúng khối.'],
+  sections:steps,category_rules:categoryRules,transaction_rules:transactionRules,
+  empty_mode_note:'Website bàn giao không có bài vẫn giữ bố cục 1:1 bằng skeleton. Khi bạn đăng đúng nội dung, skeleton tương ứng sẽ được thay bằng bài thật.'
+ };
+}

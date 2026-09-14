@@ -1,4 +1,4 @@
-import {professionalTemplateContract,professionalEditorProfile,PROFESSIONAL_TEMPLATE_KEYS} from '../_shared/template-contracts.js';
+import {professionalTemplateContract,professionalEditorProfile,PROFESSIONAL_TEMPLATE_KEYS,GLOBAL_TEMPLATE_KEYS,globalTemplateMeta,templateUsageGuide} from '../_shared/template-contracts.js';
 
 function json(data,status=200,headers={}){return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8',...headers}})}
 function cookies(req){return Object.fromEntries((req.headers.get('Cookie')||'').split(';').map(x=>x.trim()).filter(Boolean).map(x=>{const i=x.indexOf('=');return [x.slice(0,i),decodeURIComponent(x.slice(i+1))]}))}
@@ -782,12 +782,15 @@ function defaultTemplateStructure(key){
   'dich-vu-6':{version:2,layout_contract:'universal-layout-v1',hero_contract:'three-image-editable-slider-v2',content_type:'service',geometry_locked:1,settings_schema:lionSettings,lead_contract:'service-lead-v1',gallery_contract:'multi-image-slider-v1',pricing_contract:'service-package-detail-v1',sections:[sec('hero','section','Lân Sư Rồng',{content_source:'none',bind_required:0}),sec('packages','category','Gói múa lân',{category:'Gói múa lân',slots:6,desktop_columns:3,tablet_columns:2,mobile_columns:1,bind_required:1}),cat(2,'Múa rồng',{slots:3,desktop_columns:3}),cat(3,'Trống hội',{slots:3,desktop_columns:3}),sec('trust','section','Kinh nghiệm & danh hiệu',{content_source:'none',bind_required:0}),cat(4,'Sự kiện đã thực hiện',{slots:6,desktop_columns:3}),cat(5,'Tin hoạt động',{slots:6,desktop_columns:3}),cat(6,'Kiến thức & phong tục',{slots:6,desktop_columns:3}),sec('contact','section','Liên hệ báo giá',{content_source:'none',bind_required:0})]},
   'game-1':{version:17,layout_contract:'universal-layout-v1',content_type:'game',geometry_locked:1,route_contract:'game-community-base-v1',card_contract:'game-base-card-one-line-v6',article_contract:'game-base-detail-v7',article_sidebar_contract:'game-unified-sticky-sidebar-v3',navigation_contract:'game-mobile-hamburger-v2',saved_contract:'local-first-saved-toast-v2',filter_contract:'smart-progressive-filter-v4',pagination_contract:'game-results-pagination-v1',mobile_results_contract:'two-column-mobile-v1',related_contract:'same-group-level-visible-v2',boot_contract:'game-runtime-symbol-complete-v3',mobile_cta_contract:'sticky-copy-v1',preference_contract:'remember-hall-v1',stats_contract:'cloudflare-d1-batch-v1',settings_contract:'template-personalization-v1',hero_contract:'daily-hero-skin-rotation-v2',settings_schema:[{key:'donate_url',label:'Link Donate / Buy Me a Coffee',type:'url',placeholder:'https://buymeacoffee.com/ten-cua-ban',default:'https://buymeacoffee.com/cocbase',help:'Nút Donate trên header, footer và nút nổi sẽ dùng link này.'},{key:'about_title',label:'Tiêu đề trang Thông tin',type:'text',default:'About COC Base Portal'},{key:'about_content',label:'Nội dung trang Thông tin',type:'textarea',default:'Thư viện base cộng đồng dành cho Town Hall, Builder Hall và Clan Capital.'},{key:'terms_title',label:'Tiêu đề trang Điều khoản',type:'text',default:'Điều khoản sử dụng'},{key:'terms_content',label:'Nội dung Điều khoản',type:'textarea',default:'Base được chia sẻ cho cộng đồng. Người dùng tự chịu trách nhiệm khi sử dụng liên kết bên thứ ba.'},{key:'footer_text',label:'Thông tin ngắn dưới Footer',type:'textarea',default:'Community Clash of Clans base sharing · Not affiliated with Supercell.'}],sidebars:[],sections:[sec('hero','section','Clash of Clans Community Base Portal',{content_source:'none',bind_required:0}),sec('filters','section','Bộ lọc Base',{content_source:'none',bind_required:0}),sec('town-hall','category','Town Hall',{category:'Town Hall',slots:17,slot_contract:'exact',desktop_columns:4,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1}),sec('builder-hall','category','Builder Hall',{category:'Builder Hall',slots:9,slot_contract:'exact',desktop_columns:4,tablet_columns:2,mobile_columns:2,fill_policy:'complete_rows',bind_required:1}),sec('clan-capital','category','Clan Capital',{category:'Clan Capital',slots:10,slot_contract:'exact',desktop_columns:4,tablet_columns:2,mobile_columns:2,fill_policy:'complete_rows',bind_required:1})]}
  };
- const legacy=p[String(key||'')];
+ const templateKey=String(key||'');
+ const legacy=p[templateKey];
+ const global=globalTemplateMeta(templateKey);
  if(ssot&&legacy){
-   const out={...legacy,...ssot,settings_schema:legacy.settings_schema||[],editor:ssot.editor};
+   const out={...legacy,...ssot,contract_version:'template-global-ssot-v3',global_ssot:1,geometry_locked:1,settings_schema:legacy.settings_schema||[],editor:ssot.editor};
    return out;
  }
- return legacy||{version:5,content_type:'generic',geometry_locked:0,sidebars:[],sections:[]};
+ if(legacy&&global)return {...legacy,contract_version:'template-global-ssot-v3',global_ssot:1,geometry_locked:1};
+ return legacy||{version:5,contract_version:'template-global-ssot-v3',global_ssot:0,content_type:'generic',geometry_locked:0,sidebars:[],sections:[]};
 }
 function structureSectionDefaults(type='section'){
  const t=String(type||'section');
@@ -1131,7 +1134,7 @@ async function ensureTemplateCatalog(env){
   }catch(e){}
 
   // V15.2: backfill đúng khung riêng cho 9 template hiện tại.
-  for(const k of ['mau-1','mau-2','mau-3','mau-4','mau-5','tin-tuc-1','tin-tuc-2','tin-tuc-3','tin-tuc-4','dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4','dich-vu-5','blog-ca-nhan-1','blog-ca-nhan-2','doanh-nghiep-1','doanh-nghiep-2','game-1','san-pham-1']){try{const row=await env.DB.prepare(`SELECT structure_profile FROM template_catalog WHERE template_key=?`).bind(k).first();let cur={};try{cur=JSON.parse(String(row?.structure_profile||'{}'))}catch(e){}const def=defaultTemplateStructure(k);const requiredVersion=Math.max(1,Number(def?.version||1));if(!row?.structure_profile||Number(cur?.version||0)<requiredVersion||!Array.isArray(cur?.sections)||!cur.sections.some(x=>Number(x?.slots||0)>0)){await env.DB.prepare(`UPDATE template_catalog SET structure_profile=? WHERE template_key=?`).bind(JSON.stringify(def),k).run()}}catch(e){}}
+  for(const k of GLOBAL_TEMPLATE_KEYS){try{const row=await env.DB.prepare(`SELECT structure_profile FROM template_catalog WHERE template_key=?`).bind(k).first();let cur={};try{cur=JSON.parse(String(row?.structure_profile||'{}'))}catch(e){}const def=defaultTemplateStructure(k);const requiredVersion=Math.max(1,Number(def?.version||1));if(!row?.structure_profile||Number(cur?.version||0)<requiredVersion||!Array.isArray(cur?.sections)||!cur.sections.some(x=>Number(x?.slots||0)>0)){await env.DB.prepare(`UPDATE template_catalog SET structure_profile=? WHERE template_key=?`).bind(JSON.stringify(def),k).run()}}catch(e){}}
 
 
 }
@@ -3647,6 +3650,8 @@ if(route==='me'){
  if(!categoryStructure||!Array.isArray(categoryStructure.sections)||!categoryStructure.sections.length)categoryStructure=defaultTemplateStructure(site.template_key||tc?.template_key||'');
  content_profile=templateCategoryContract(categoryStructure,content_profile,profileType);
  content_profile.settings_schema=Array.isArray(categoryStructure?.settings_schema)?categoryStructure.settings_schema:[];
+ content_profile.template_contract=globalTemplateMeta(site.template_key||tc?.template_key||'');
+ content_profile.usage_guide=templateUsageGuide(site.template_key||tc?.template_key||'',categoryStructure,content_profile);
  try{site.template_settings=JSON.parse(String(site.template_settings_json||'{}'))}catch(e){site.template_settings={}}
  return json({user:{id:user.id,email:user.email,role:user.role},site,content_profile,stats:await stats(env,site.id)})
 }

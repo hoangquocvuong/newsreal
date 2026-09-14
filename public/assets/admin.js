@@ -252,7 +252,7 @@ function configureAdminForTemplate(){
  }else if(service){
    document.getElementById('menuServiceLeads')?.classList.remove('hidden');
    postType.value='service';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
-   if(menuNew)menuNew.textContent=professionalAdminKey()==='dich-vu-5'?'Đăng nội dung mới':'Thêm gói dịch vụ';if(menuPosts)menuPosts.textContent=professionalAdminKey()==='dich-vu-5'?'Quản lý nội dung':'Quản lý dịch vụ';if(overviewBtn)overviewBtn.textContent=professionalAdminKey()==='dich-vu-5'?'＋ Đăng nội dung mới':'＋ Thêm gói dịch vụ';
+   if(menuNew)menuNew.textContent='Đăng bài';if(menuPosts)menuPosts.textContent='Quản lý bài';if(overviewBtn)overviewBtn.textContent='＋ Đăng bài';
    if(postTitle)postTitle.placeholder=professionalAdminKey()==='dich-vu-5'?'Ví dụ: Khảo sát lắp sạc tại nhà cần kiểm tra những gì?':'Ví dụ: Gói Internet Home 500';
  }else if(news){
    if(isProfessionalContactTemplate())document.getElementById('menuServiceLeads')?.classList.remove('hidden');
@@ -280,9 +280,20 @@ function configureAdminForTemplate(){
  }
  updateContentTypeUI();
 }
-function showTab(n){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));document.getElementById('tab-'+n).classList.remove('hidden');document.querySelectorAll('.menu-btn').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));if(n==='posts')loadPosts();if(n==='stats')loadStats();if(n==='service')loadService();if(n==='serviceleads')loadServiceLeads()}
+function showTab(n){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));document.getElementById('tab-'+n).classList.remove('hidden');document.querySelectorAll('.menu-btn').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));if(n==='posts')loadPosts();if(n==='stats')loadStats();if(n==='service')loadService();if(n==='serviceleads')loadServiceLeads();if(n==='guide')renderTemplateUsageGuide()}
 document.querySelectorAll('.menu-btn').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 let websiteSettingsSnapshot=null,CLIENT_TEMPLATE_SETTINGS={};
+
+function escGuide(v=''){return String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]||m))}
+function renderTemplateUsageGuide(){
+ const host=document.getElementById('templateUsageGuide');if(!host)return;
+ const g=CLIENT_PROFILE?.usage_guide;if(!g){host.innerHTML='<div class="template-guide-empty">Mẫu này chưa có dữ liệu hướng dẫn. Vui lòng liên hệ hỗ trợ.</div>';return}
+ const sections=Array.isArray(g.sections)?g.sections:[],cats=Array.isArray(g.category_rules)?g.category_rules:[],checks=Array.isArray(g.publish_checklist)?g.publish_checklist:[];
+ const map=sections.map((x,i)=>`<div class="template-guide-node"><div class="guide-order">${Number(x.order||i+1)}</div><div><h3>${escGuide(x.title)}</h3><p>${escGuide(x.instruction)}</p>${x.slots?`<p><b>Khung bài:</b> ${x.slots}${x.columns?.desktop?` · PC ${x.columns.desktop} cột`:''}${x.columns?.tablet?` · Tablet ${x.columns.tablet} cột`:''}${x.columns?.mobile?` · Mobile ${x.columns.mobile} cột`:''}</p>`:''}</div><div class="template-guide-source"><b>Nơi chỉnh / cách đăng</b>${escGuide(x.source)}</div></div>${i<sections.length-1?'<div class="template-guide-arrow">↓</div>':''}`).join('');
+ const catHtml=cats.length?cats.map(x=>`<div class="template-guide-category"><code>${escGuide(x.category)}</code><span>${escGuide(x.instruction)}</span></div>`).join(''):'<div class="muted">Mẫu này không phân phối bài bằng chuyên mục cố định.</div>';
+ const tx=Array.isArray(g.transaction_rules)&&g.transaction_rules.length?`<div class="template-guide-card"><h3>Bất động sản · loại giao dịch</h3>${g.transaction_rules.map(x=>`<div class="template-guide-category"><code>${escGuide(x.transaction)}</code><span>${(x.categories||[]).map(escGuide).join(' · ')}</span></div>`).join('')}</div>`:'';
+ host.innerHTML=`<div class="template-guide-head"><div><small>${escGuide(g.contract_version||'GLOBAL SSOT')}</small><h2>${escGuide(g.template_name||CLIENT_TEMPLATE_KEY)}</h2><p>${escGuide(g.intro||'')}</p></div><span class="template-guide-badge">Sơ đồ tự đồng bộ</span></div><div class="template-guide-note"><b>Website trắng vẫn giữ layout 1:1</b><br>${escGuide(g.empty_mode_note||'')}</div><h2>Sơ đồ trang chủ & vị trí đăng bài</h2><div class="template-guide-map">${map}</div><div class="template-guide-grid"><div class="template-guide-card"><h3>Đăng bài đúng chuyên mục</h3>${catHtml}</div><div class="template-guide-card"><h3>Checklist trước khi đăng</h3><ol class="template-guide-list">${checks.map(x=>`<li>${escGuide(x)}</li>`).join('')}</ol></div>${tx}</div>`;
+}
 function templateSettingsSchema(){return Array.isArray(CLIENT_PROFILE?.settings_schema)?CLIENT_PROFILE.settings_schema:[]}
 function renderTemplateSettingsFields(values={}){const panel=document.getElementById('templateSettingsPanel'),host=document.getElementById('templateSettingsFields'),schema=templateSettingsSchema();if(!panel||!host)return;panel.classList.toggle('hidden',!schema.length);host.innerHTML=schema.map(def=>{const key=String(def.key||''),type=String(def.type||'text'),val=String(values[key]??def.default??''),help=def.help?`<small class="field-help">${def.help}</small>`:'';if(type==='textarea')return `<label>${def.label||key}<textarea data-template-setting="${key}" rows="5" disabled>${val.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</textarea>${help}</label>`;return `<label>${def.label||key}<input data-template-setting="${key}" type="${type==='url'?'url':'text'}" value="${val.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" placeholder="${String(def.placeholder||'').replace(/"/g,'&quot;')}" disabled>${help}</label>`}).join('')}
 function collectTemplateSettings(){const out={};document.querySelectorAll('[data-template-setting]').forEach(el=>out[el.dataset.templateSetting]=el.value||'');return out}
@@ -308,7 +319,7 @@ async function boot(){try{
  setName.value=cleanSiteName(d.site.name||'');setPhone.value=d.site.phone||'';setZalo.value=d.site.zalo||'';setEmail.value=d.site.email||'';setFacebook.value=d.site.facebook||'';if(setSeoTitle)setSeoTitle.value=d.site.seo_title||'';if(setSeoDescription)setSeoDescription.value=d.site.seo_description||'';if(setSeoOgImage)setSeoOgImage.value=d.site.seo_og_image||'';if(setSeoIndex)setSeoIndex.checked=Number(d.site.seo_index??1)!==0;
  CLIENT_TEMPLATE_SETTINGS=d.site.template_settings&&typeof d.site.template_settings==='object'?d.site.template_settings:(()=>{try{return JSON.parse(d.site.template_settings_json||'{}')}catch(e){return {}}})();renderTemplateSettingsFields(CLIENT_TEMPLATE_SETTINGS);
  websiteSettingsSnapshot=captureWebsiteSettings();setWebsiteSettingsEditing(false);
- configureAdminForTemplate();
+ configureAdminForTemplate();renderTemplateUsageGuide();
  const wanted=new URLSearchParams(location.search).get('tab');if(wanted==='newpost')showTab('newpost')
 }catch(err){console.error('BOOT ERROR',err);document.documentElement.classList.remove('nr-admin-auth-boot','nr-handover-boot');loginPanel.classList.remove('hidden');dashboard.classList.add('hidden');}}
 loginForm.addEventListener('submit',async e=>{e.preventDefault();try{const d=await api('/login',{method:'POST',body:JSON.stringify({email:email.value,password:password.value})});if(d.token)localStorage.setItem('nr_client_token',d.token);loginMsg.classList.add('hidden');document.documentElement.classList.add('nr-admin-auth-boot');await boot()}catch(err){document.documentElement.classList.remove('nr-admin-auth-boot');loginMsg.textContent=err.message;loginMsg.classList.remove('hidden')}});
