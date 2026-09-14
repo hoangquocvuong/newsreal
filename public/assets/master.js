@@ -828,8 +828,13 @@ function tmClientSimulationUrl(t){
  if(!base){
    if(t?.category==='tin-tuc'){
      const m=key.match(/(\d+)$/);base=`/demo/tin-tuc/mau-${m?m[1]:'1'}/`;
+   }else if(t?.category==='blog-ca-nhan'){
+     const m=key.match(/(\d+)$/);base=`/demo/blog-ca-nhan/mau-${m?m[1]:'1'}/`;
+   }else if(t?.category==='doanh-nghiep'){
+     const m=key.match(/(\d+)$/);base=`/demo/doanh-nghiep/mau-${m?m[1]:'1'}/`;
    }else if(t?.category==='dich-vu'){
-     const m=key.match(/(\d+)$/);base=`/demo/dich-vu/mau-${m?m[1]:'1'}/`;
+     if(key==='dich-vu-5')base='/demo/dich-vu/tram-sac-vinfast/';
+     else{const m=key.match(/(\d+)$/);base=`/demo/dich-vu/mau-${m?m[1]:'1'}/`;}
    }else{
      const m=key.match(/mau-(\d+)/);base=`/demo/bat-dong-san/mau-${m?m[1]:'1'}/`;
    }
@@ -843,7 +848,25 @@ function tmClientSimulationUrl(t){
    return base+(base.includes('?')?'&':'?')+'nr_client=1&nr_samples=0';
  }
 }
-const tmCatName=k=>({'bat-dong-san':'Bất động sản','tin-tuc':'Tin tức','ban-hang':'Bán hàng','landing-page':'Landing Page','dich-vu':'Dịch vụ','game':'Game'}[k]||k||'Khác');
+const TM_CATEGORY_LABELS={'bat-dong-san':'Bất động sản','tin-tuc':'Tin tức','blog-ca-nhan':'Blog cá nhân','doanh-nghiep':'Doanh nghiệp','ban-hang':'Bán hàng','landing-page':'Landing Page','dich-vu':'Dịch vụ','game':'Game'};
+const tmCatName=k=>TM_CATEGORY_LABELS[k]||k||'Khác';
+function tmSyncCategoryOptions(){
+ const live=[...new Set((tmData||[]).map(x=>String(x?.category||'').trim()).filter(Boolean))];
+ const preferred=['bat-dong-san','tin-tuc','blog-ca-nhan','doanh-nghiep','ban-hang','landing-page','dich-vu','game'];
+ const cats=[...preferred.filter(x=>live.includes(x)||['blog-ca-nhan','doanh-nghiep'].includes(x)),...live.filter(x=>!preferred.includes(x))];
+ if(tmCategoryFilter){
+  const cur=tmCategoryFilter.value||'';
+  tmCategoryFilter.innerHTML='<option value="">Tất cả danh mục</option>'+cats.map(k=>`<option value="${tmEsc(k)}">${tmEsc(tmCatName(k))}</option>`).join('');
+  tmCategoryFilter.value=cats.includes(cur)?cur:'';
+ }
+ const editor=document.getElementById('teCategory');
+ if(editor){
+  const cur=editor.value||'';
+  const editorCats=[...preferred,...live.filter(x=>!preferred.includes(x))];
+  editor.innerHTML=editorCats.map(k=>`<option value="${tmEsc(k)}">${tmEsc(tmCatName(k))}</option>`).join('');
+  if(cur&&editorCats.includes(cur))editor.value=cur;
+ }
+}
 
 function tmUpdateStats(){
  const active=tmData.filter(x=>Number(x.is_active)===1).length;
@@ -894,7 +917,7 @@ async function loadTemplateManager(){
  tmList.innerHTML='<div class="empty-state">Đang tải dữ liệu template…</div>';
  try{
   const r=await mapi('template-catalog');
-  tmData=r.templates||[];tmUpdateStats();tmRender();renderCreateThemePicker(csTemplateKey?.value||'');
+  tmData=r.templates||[];tmSyncCategoryOptions();tmUpdateStats();tmRender();renderCreateThemePicker(csTemplateKey?.value||'');
  }catch(e){tmList.innerHTML='<div class="empty-state">Không tải được Template Manager.</div>'}
 }
 function tmSeoSlugify(v=''){
@@ -906,6 +929,8 @@ function tmSeoDefaults(name='',category=''){
  let primary='template website',secondary='mẫu website, giao diện website, website chuyên nghiệp';
  if(c==='bat-dong-san'){primary='template website bất động sản';secondary='mẫu website bất động sản, website nhà đất, website môi giới bất động sản'}
  else if(c==='tin-tuc'){primary='template website tin tức';secondary='mẫu website tin tức, giao diện báo điện tử, template tạp chí online'}
+ else if(c==='blog-ca-nhan'){primary='template blog cá nhân';secondary='mẫu website blog cá nhân, website blogger, website thương hiệu cá nhân, portfolio cá nhân'}
+ else if(c==='doanh-nghiep'){primary='template website doanh nghiệp';secondary='mẫu website công ty, website giới thiệu doanh nghiệp, website hồ sơ năng lực, giao diện doanh nghiệp'}
  else if(c==='dich-vu'){primary='template website dịch vụ';secondary='mẫu website dịch vụ, website tư vấn dịch vụ, landing page dịch vụ'}
  else if(c==='game'){primary='template website game';secondary='mẫu website game, website cộng đồng game, giao diện website game'}
  const clean=n.replace(/^Mẫu\s*\d+\s*[·.-]?\s*/i,'').trim();

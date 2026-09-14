@@ -152,7 +152,7 @@ for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','d
 // V20.9.25.4 — hard pathname dispatch must run before all legacy tenant fallbacks.
 const hardProFn=fn.indexOf('function proDemoKeyFromPath(path)');
 const hardProCall=fn.indexOf('const hardProDemo=proDemoKeyFromPath(rawPath)');
-const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.26.7'");
+const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.26.8'");
 const legacyTenantPos=fn.indexOf("const demoReq=new Request('https://batdongsan2027.org.uk'");
 if(hardProFn<0||hardProCall<0||hardProReturn<0||legacyTenantPos<0||hardProCall>legacyTenantPos){
   console.log('FAIL  hard professional demo pathname dispatch before BDS fallback');failed++;
@@ -251,13 +251,27 @@ for(const needle of [
 ]){const ok=api.includes(needle);console.log(`${ok?'OK':'FAIL'}  professional admin/contact ${needle}`);if(!ok)failed++;}
 for(const needle of ['BUILTIN_PROFESSIONAL_PROFILES','professionalAdminKey()','isProfessionalContactTemplate()','sxpContactForm','sxp-category']){const ok=site.includes(needle)||fs.readFileSync('public/assets/admin.js','utf8').includes(needle);console.log(`${ok?'OK':'FAIL'}  professional client/admin ${needle}`);if(!ok)failed++;}
 
-// V20.9.26.7 — device preview + EV map/API-ready regression.
+// V20.9.26.8 — device preview + EV map/API-ready regression.
 for(const needle of ['hvtPreviewDevice','Máy tính bảng','Điện thoại','id="evMap"','tile.openstreetmap.org','HVT_EV_API_ENDPOINT','hvt-ev-api-endpoint']){const ok=fn.includes(needle);console.log(`${ok?'OK':'FAIL'}  preview/EV ${needle}`);if(!ok)failed++;}
 for(const needle of ["const evSettings=","ev_station_api_url","station_data_contract:'authorized-api-or-demo-v1'","map_contract:'leaflet-osm-v1'"]){const ok=api.includes(needle);console.log(`${ok?'OK':'FAIL'}  EV admin/API ${needle}`);if(!ok)failed++;}
 
 if(failed){
   console.error(`Template contract failed: ${failed}`);
   process.exit(1);
+}
+
+
+// V20.9.26.8 — Master Control must discover new template categories dynamically.
+{
+  const masterJs = fs.readFileSync('public/assets/master.js','utf8');
+  const masterHtml = fs.readFileSync('public/control-center/index.html','utf8');
+  for (const marker of ['TM_CATEGORY_LABELS','tmSyncCategoryOptions','blog-ca-nhan','doanh-nghiep']) {
+    if (!masterJs.includes(marker)) throw new Error(`Master template category sync missing: ${marker}`);
+  }
+  for (const marker of ['value=\"blog-ca-nhan\"','value=\"doanh-nghiep\"','master.js?v=20.9.26.8']) {
+    if (!masterHtml.includes(marker)) throw new Error(`Master template category HTML missing: ${marker}`);
+  }
+  console.log('OK  Master Control dynamic professional categories');
 }
 
 console.log('Template contract smoke: PASS');
