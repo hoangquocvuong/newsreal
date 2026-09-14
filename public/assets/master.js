@@ -50,6 +50,50 @@ const dmRegistrar=document.getElementById('dmRegistrar');
 const dmRegisteredAt=document.getElementById('dmRegisteredAt');
 const dmExpiresAt=document.getElementById('dmExpiresAt');
 
+
+
+// V20.9.27.0 — compact tab navigation for Master Control.
+const MASTER_TAB_MAP={
+ overview:['registrarStatus','.master-info-strip','.master-kpis','masterWorkflow','renewalMasterAlert','provisionNotice'],
+ orders:['leadCRM'],
+ sites:['siteOps'],
+ renewals:['renewalOps'],
+ finance:['financeDashboard'],
+ sales:['salesChatTools'],
+ trials:['trialTools'],
+ templates:['templateTools'],
+ tools:['masterUtilities']
+};
+const MASTER_TAB_LABELS={overview:'Tổng quan vận hành',orders:'Đơn hàng & thanh toán',sites:'Website & bàn giao',renewals:'Gia hạn cần xử lý',finance:'Tài chính & sổ giao dịch',sales:'Tư vấn trực tuyến',trials:'Khách dùng thử',templates:'Kho giao diện / Template Manager',tools:'Công cụ & thao tác ngoại lệ'};
+let __activeMasterTab='overview';
+function masterTabNodes(ref){
+ if(ref.startsWith('.'))return Array.from(document.querySelectorAll(ref));
+ const el=document.getElementById(ref);return el?[el]:[];
+}
+function setMasterTab(key,{scroll=true,persist=true}={}){
+ if(!MASTER_TAB_MAP[key])key='overview';__activeMasterTab=key;
+ Object.entries(MASTER_TAB_MAP).forEach(([tab,refs])=>refs.forEach(ref=>masterTabNodes(ref).forEach(el=>{
+  const active=tab===key;el.classList.toggle('master-tab-panel-hidden',!active);el.classList.toggle('master-tab-panel-active',active);
+  if(active&&el.tagName==='DETAILS')el.open=true;
+ })));
+ document.querySelectorAll('[data-master-tab]').forEach(btn=>{const active=btn.dataset.masterTab===key;btn.classList.toggle('is-active',active);btn.setAttribute('aria-selected',active?'true':'false')});
+ const note=document.getElementById('masterTabNote');if(note)note.textContent=(MASTER_TAB_LABELS[key]||'')+' · nội dung giữ nguyên thứ tự vận hành hiện tại.';
+ if(persist){try{localStorage.setItem('nr_master_active_tab',key)}catch{}}
+ if(scroll){document.getElementById('masterTabbar')?.scrollIntoView({behavior:'smooth',block:'start'})}
+}
+function tabForMasterTarget(id){for(const [tab,refs] of Object.entries(MASTER_TAB_MAP)){if(refs.includes(id))return tab}return 'overview'}
+function initMasterTabs(){
+ document.querySelectorAll('[data-master-tab]').forEach(btn=>btn.addEventListener('click',()=>setMasterTab(btn.dataset.masterTab)));
+ let saved='overview';try{saved=localStorage.getItem('nr_master_active_tab')||'overview'}catch{}
+ setMasterTab(MASTER_TAB_MAP[saved]?saved:'overview',{scroll:false,persist:false});document.body.classList.add('master-tabs-ready');
+}
+function syncMasterSalesTabBadge(){
+ const src=document.getElementById('salesChatUnread'),dst=document.getElementById('masterTabSalesBadge');if(!src||!dst)return;
+ const n=Math.max(0,parseInt(src.textContent||'0',10)||0);dst.textContent=String(n);dst.classList.toggle('hidden',n<1);
+}
+document.addEventListener('DOMContentLoaded',initMasterTabs);
+new MutationObserver(syncMasterSalesTabBadge).observe(document.documentElement,{subtree:true,childList:true,characterData:true});
+
 const dmOpenCloudflare=document.getElementById('dmOpenCloudflare');
 const dmMarkPurchased=document.getElementById('dmMarkPurchased');
 const dmCompleteDomain=document.getElementById('dmCompleteDomain');
@@ -1131,6 +1175,7 @@ function renderRenewalOps(){
 }
 function jumpWorkflow(btn){
  const target=document.getElementById(btn.dataset.jump||'');if(!target)return;
+ setMasterTab(tabForMasterTarget(target.id),{scroll:false});
  if(btn.dataset.filter!==undefined){const f=document.getElementById('leadStatusFilter');if(f){f.value=btn.dataset.filter;__leadPage=1;renderLeadCRM()}}
  if(btn.dataset.siteFilter!==undefined){const f=document.getElementById('siteStatusFilter');if(f){f.value=btn.dataset.siteFilter;__sitePage=1;renderSiteRows()}}
  target.scrollIntoView({behavior:'smooth',block:'start'});
