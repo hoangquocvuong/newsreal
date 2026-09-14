@@ -14,6 +14,7 @@ async function consumeHandover(){
 }
 function cleanSiteName(n=''){return String(n||'').replace(/\s*Demo\s*$/i,'').trim()||'Trang Tin';}
 
+const sampleTable=document.getElementById('sampleTable');
 let allPosts=[];
 
 const imageFiles=document.getElementById('imageFiles'), imagePreview=document.getElementById('imagePreview'), uploadStatus=document.getElementById('uploadStatus');
@@ -280,7 +281,7 @@ function configureAdminForTemplate(){
  }
  updateContentTypeUI();
 }
-function showTab(n){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));document.getElementById('tab-'+n).classList.remove('hidden');document.querySelectorAll('.menu-btn').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));if(n==='posts')loadPosts();if(n==='stats')loadStats();if(n==='service')loadService();if(n==='serviceleads')loadServiceLeads()}
+function showTab(n){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));document.getElementById('tab-'+n).classList.remove('hidden');document.querySelectorAll('.menu-btn').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));if(n==='posts')loadPosts();if(n==='samples')loadSamplePosts();if(n==='stats')loadStats();if(n==='service')loadService();if(n==='serviceleads')loadServiceLeads()}
 document.querySelectorAll('.menu-btn').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 let websiteSettingsSnapshot=null,CLIENT_TEMPLATE_SETTINGS={};
 function templateSettingsSchema(){return Array.isArray(CLIENT_PROFILE?.settings_schema)?CLIENT_PROFILE.settings_schema:[]}
@@ -648,16 +649,28 @@ postMsg.classList.remove('hidden');postForm.reset();setRichContent('');renderPro
 }catch(err){
 formErrors.innerHTML='<b>Không thể lưu tin.</b><div>'+String(err.message||err)+'</div>';formErrors.classList.remove('hidden');formErrors.scrollIntoView({behavior:'smooth',block:'center'});
 }finally{submitPostBtn.disabled=false;updateSubmitLabel()}});
-async function loadPosts(){
- const d=await api('/posts');allPosts=d.posts||[];
+function isSamplePost(x){return Number(x?.is_sample||0)===1||String(x?.sample_key||'')!==''||/^(DEMO|SAMPLE)-/i.test(String(x?.listing_code||''))}
+function adminTemplateRows(rows){
  const productMode=isProductTemplate(),newsMode=isNewsTemplate(),serviceMode=isServiceTemplate(),gameMode=isGameTemplate();
- const rows=productMode?allPosts.filter(x=>x.type==='product'):newsMode?allPosts.filter(x=>x.type==='news'):serviceMode?allPosts.filter(x=>x.type==='service'):gameMode?allPosts.filter(x=>x.type==='game'):allPosts;
- const simpleMode=productMode||newsMode||serviceMode||gameMode;
- postTable.innerHTML=`<div style="overflow:auto"><table class="table"><thead><tr><th>Tiêu đề</th>${simpleMode?'<th>Chuyên mục</th>':'<th>Loại</th><th>Giá</th>'}<th>Trạng thái</th><th>Lượt xem</th><th></th></tr></thead><tbody>${rows.map(x=>`<tr><td><b>${x.title}</b><div>${simpleMode?(x.category||(gameMode?'Base':'Nội dung')):(x.listing_code||'')}</div></td>${simpleMode?`<td>${x.category||(gameMode?'Base':'Nội dung')}</td>`:`<td>${x.type==='property'?'BĐS':'Tin tức'}</td><td>${x.price||''}</td>`}<td><span class="status-pill ${x.status==='published'?'status-published':'status-draft'}">${x.status==='published'?'Đã đăng':'Bản nháp'}</span></td><td>${x.views||0}</td><td><button class="smallbtn soft" onclick="editPost(${x.id})">Sửa</button> <button class="smallbtn danger" onclick="delPost(${x.id})">Xóa</button></td></tr>`).join('')}</tbody></table></div>`;
+ return productMode?rows.filter(x=>x.type==='product'):newsMode?rows.filter(x=>x.type==='news'):serviceMode?rows.filter(x=>x.type==='service'):gameMode?rows.filter(x=>x.type==='game'):rows;
+}
+function renderAdminPostTable(rows,{sample=false}={}){
+ const productMode=isProductTemplate(),newsMode=isNewsTemplate(),serviceMode=isServiceTemplate(),gameMode=isGameTemplate(),simpleMode=productMode||newsMode||serviceMode||gameMode;
+ if(!rows.length)return `<div class="template-form-notice"><b>${sample?'Chưa có tin mẫu':'Chưa có nội dung tự đăng'}</b><span>${sample?'Hệ thống chưa tạo được bộ nội dung mẫu cho giao diện này. Hãy tải lại Trang quản trị sau khi deploy bản mới.':'Bài bạn đăng mới sẽ xuất hiện tại đây và được ưu tiên ngoài trang chủ.'}</span></div>`;
+ return `<div style="overflow:auto"><table class="table"><thead><tr><th>Tiêu đề</th>${simpleMode?'<th>Chuyên mục</th>':'<th>Loại</th><th>Giá</th>'}<th>Trạng thái</th><th>Lượt xem</th><th></th></tr></thead><tbody>${rows.map(x=>`<tr><td><b>${x.title}</b>${sample?'<div><span class="status-pill">TIN MẪU</span></div>':`<div>${simpleMode?(x.category||(gameMode?'Base':'Nội dung')):(x.listing_code||'')}</div>`}</td>${simpleMode?`<td>${x.category||(gameMode?'Base':'Nội dung')}</td>`:`<td>${x.type==='property'?'BĐS':'Tin tức'}</td><td>${x.price||''}</td>`}<td><span class="status-pill ${x.status==='published'?'status-published':'status-draft'}">${x.status==='published'?'Đã đăng':'Bản nháp'}</span></td><td>${x.views||0}</td><td><button class="smallbtn soft" onclick="editPost(${x.id})">Sửa</button> <button class="smallbtn danger" onclick="delPost(${x.id})">Xóa</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+async function fetchAdminPosts(){const d=await api('/posts');allPosts=d.posts||[];return allPosts}
+async function loadPosts(){
+ const rows=adminTemplateRows(await fetchAdminPosts()).filter(x=>!isSamplePost(x));
+ postTable.innerHTML=renderAdminPostTable(rows,{sample:false});
+}
+async function loadSamplePosts(){
+ const rows=adminTemplateRows(await fetchAdminPosts()).filter(isSamplePost);
+ if(sampleTable)sampleTable.innerHTML=renderAdminPostTable(rows,{sample:true});
 }
 
 function editPost(id){const x=allPosts.find(p=>p.id===id);uploadedImages=[x.image,...String(x.gallery||'').split(',').map(v=>v.trim()).filter(Boolean)].filter(Boolean);renderImages();editingId.value=x.id;postType.value=isProductTemplate()?'product':isGameTemplate()?'game':isServiceTemplate()?'service':isNewsTemplate()?'news':(x.type||'property');updateContentTypeUI();transaction.value=x.transaction||'sale';propertyType.value=x.property_type||'Nhà phố';postTitle.value=x.title||'';postPrice.value=x.price||'';postArea.value=x.area||'';unitPrice.value=x.unit_price||'';listingCode.value=x.listing_code||'';bedrooms.value=x.bedrooms||'';bathrooms.value=x.bathrooms||'';floors.value=x.floors||'';frontage.value=x.frontage||'';direction.value=x.direction||'';legal.value=x.legal||'';furniture.value=x.furniture||'';province.value=x.province||'';district.value=x.district||'';ward.value=x.ward||'';postAddress.value=x.address||'';postImage.value=x.image||'';gallery.value=x.gallery||'';contactName.value=x.contact_name||'';postPhone.value=x.phone||'';fillCategoryOptions(x.category||'');setRichContent(x.content||'');renderProfileFields(parseExtraJson(x.extra_json));featured.checked=!!x.featured;verified.checked=!!x.verified;postStatus.value=x.status||'published';editorTitle.textContent='Chỉnh sửa tin';showTab('newpost');updateSubmitLabel()}
-async function delPost(id){if(confirm('Xóa tin này?')){await api('/posts?id='+id,{method:'DELETE'});loadPosts()}}
+async function delPost(id){if(confirm('Xóa nội dung này?')){await api('/posts?id='+id,{method:'DELETE'});if(document.getElementById('tab-samples')&&!document.getElementById('tab-samples').classList.contains('hidden'))loadSamplePosts();else loadPosts()}}
 async function loadStats(){const d=await api('/stats');stat7.textContent=d.last7;stat30.textContent=d.last30;statAll.textContent=d.all;topPosts.innerHTML=`<table class="table">${d.top.map(x=>`<tr><td>${x.title}</td><td>${x.views||0}</td></tr>`).join('')}</table>`}
 editWebsiteSettings?.addEventListener('click',()=>{
  websiteSettingsSnapshot=captureWebsiteSettings();

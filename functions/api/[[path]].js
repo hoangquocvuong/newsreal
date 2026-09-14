@@ -1354,21 +1354,25 @@ async function ensureTemplateSampleState(env){
   )`).run();
 }
 async function installDefaultTemplateSamples(env,siteId,opts={}){
-  // V20.9.27.22 — SIMPLE HANDOVER CONTRACT.
-  // Every customer/trial receives the template's sample package once. Samples are
-  // normal editable/deletable posts afterwards; deleting them must never trigger
-  // an automatic reinstall.
+  // V20.9.27.23 — SAMPLE LIBRARY V2.
+  // Samples are installed before Admin renders, are editable/deletable, and live in
+  // a dedicated Admin section. Version 2 repairs trials created by the earlier
+  // sample-first rollout where the state marker could exist before rows were visible.
+  await ensureSampleColumns(env);
   await ensureTemplateSampleState(env);
   const site=await env.DB.prepare(`SELECT id,coalesce(template_key,'') template_key FROM sites WHERE id=? LIMIT 1`).bind(siteId).first();
   if(!site)return {installed:false,reason:'site-not-found'};
   const state=await env.DB.prepare(`SELECT sample_pack_installed_at,sample_pack_template_key,sample_pack_version FROM site_template_state WHERE site_id=? LIMIT 1`).bind(siteId).first();
-  if(state?.sample_pack_installed_at&&!opts.force)return {installed:false,already:true,template_key:state.sample_pack_template_key||site.template_key};
+  const currentVersion=2;
+  if(state?.sample_pack_installed_at&&Number(state.sample_pack_version||0)>=currentVersion&&!opts.force){
+    return {installed:false,already:true,template_key:state.sample_pack_template_key||site.template_key,version:currentVersion};
+  }
   const result=await seedDemoForSite(env,siteId,{source:opts.source||'default-handover'});
   await env.DB.prepare(`INSERT INTO site_template_state(site_id,sample_pack_installed_at,sample_pack_template_key,sample_pack_version,updated_at)
-    VALUES(?,CURRENT_TIMESTAMP,?,1,CURRENT_TIMESTAMP)
-    ON CONFLICT(site_id) DO UPDATE SET sample_pack_installed_at=COALESCE(site_template_state.sample_pack_installed_at,CURRENT_TIMESTAMP),sample_pack_template_key=excluded.sample_pack_template_key,sample_pack_version=1,updated_at=CURRENT_TIMESTAMP`)
+    VALUES(?,CURRENT_TIMESTAMP,?,2,CURRENT_TIMESTAMP)
+    ON CONFLICT(site_id) DO UPDATE SET sample_pack_installed_at=CURRENT_TIMESTAMP,sample_pack_template_key=excluded.sample_pack_template_key,sample_pack_version=2,updated_at=CURRENT_TIMESTAMP`)
     .bind(siteId,String(site.template_key||'')).run();
-  return {installed:true,...result};
+  return {installed:true,version:currentVersion,...result};
 }
 
 async function seedDemoForSite(env,siteId,opts={}){
@@ -3561,7 +3565,7 @@ if(route==='site'&&request.method==='GET'){
 }
 if(route==='article'&&request.method==='GET'){
  const id=+u.searchParams.get('id');
- const hideSamples=!!__siteTrial||request.headers.get('X-NR-Preview-Samples')==='0';
+ const hideSamples=request.headers.get('X-NR-Preview-Samples')==='0';
  const templateSimulation=false; // legacy skeleton/client simulation retired in V20.9.27.22
  if(templateSimulation&&hideSamples)return json({error:'Không tìm thấy bài viết'},404);
  const p=await env.DB.prepare(`SELECT * FROM posts WHERE id=? AND site_id=? AND status='published'`).bind(id,site.id).first();
@@ -3660,6 +3664,10 @@ if(route==='image'&&request.method==='GET'){
 }
 if(route==='me'){
  if(!user)return json({error:'Chưa đăng nhập'},401);
+ // V20.9.27.23 — Admin must see the sample library immediately. Do not wait for
+ // the customer to click "Xem website" before installing/backfilling samples.
+ let samplePack=null;
+ try{samplePack=await installDefaultTemplateSamples(env,site.id,{source:'admin-me-backfill'})}catch(e){console.log('admin sample backfill:',e?.message||e)}
  let tc=null;
  try{tc=await env.DB.prepare(`SELECT template_key,category,editor_profile,structure_profile FROM template_catalog WHERE template_key=? OR (template_key='' AND preset=?) ORDER BY CASE WHEN template_key=? THEN 0 ELSE 1 END LIMIT 1`).bind(site.template_key||'',site.preset||'',site.template_key||'').first()}catch(e){}
  if(!tc)try{tc=await env.DB.prepare(`SELECT template_key,category,editor_profile,structure_profile FROM template_catalog WHERE preset=? ORDER BY sort_order,template_key LIMIT 1`).bind(site.preset||'').first()}catch(e){}
@@ -3671,7 +3679,7 @@ if(route==='me'){
  content_profile=templateCategoryContract(categoryStructure,content_profile,profileType);
  content_profile.settings_schema=Array.isArray(categoryStructure?.settings_schema)?categoryStructure.settings_schema:[];
  try{site.template_settings=JSON.parse(String(site.template_settings_json||'{}'))}catch(e){site.template_settings={}}
- return json({user:{id:user.id,email:user.email,role:user.role},site,content_profile,stats:await stats(env,site.id)})
+ return json({user:{id:user.id,email:user.email,role:user.role},site,content_profile,stats:await stats(env,site.id),sample_pack:samplePack})
 }
 if(route==='service-info'&&request.method==='GET'){
  if(!user)return json({error:'Chưa đăng nhập'},401);

@@ -26,6 +26,7 @@
 <button class="menu-btn active" data-tab="overview"><span>▦</span>Tổng quan</button>
 <button id="menuNewPost" class="menu-btn" data-tab="newpost"><span>＋</span><span id="menuNewPostText">Đăng nội dung mới</span></button>
 <button id="menuPosts" class="menu-btn" data-tab="posts"><span>▤</span><span id="menuPostsText">Quản lý nội dung</span></button>
+<button id="menuSamples" class="menu-btn" data-tab="samples"><span>✦</span><span>Tin mẫu</span></button>
 <button class="menu-btn" data-tab="stats"><span>↗</span>Thống kê</button>
 <button id="menuServiceLeads" class="menu-btn hidden" data-tab="serviceleads"><span>☎</span>Khách cần tư vấn</button>
 <button class="menu-btn" data-tab="service"><span>◷</span>Dịch vụ & gia hạn</button>
@@ -90,7 +91,8 @@
 </div>
 <div class="three"><label><input id="featured" type="checkbox"> Tin nổi bật</label><label><input id="verified" type="checkbox"> Tin đã xác minh</label><label>Trạng thái<select id="status"><option value="published">Đăng ngay</option><option value="draft">Bản nháp</option></select></label></div>
 <button id="submitPostBtn" type="submit" class="btn">Đăng tin</button></form><div id="postMsg" class="success hidden"></div></div>
-<div id="tab-posts" class="tab hidden"><span class="eyebrow">TIN ĐĂNG</span><h1>Quản lý nội dung</h1><p class="admin-subtext">Sửa, xem hoặc xóa các nội dung đã đăng trên website.</p><div id="postTable"></div></div>
+<div id="tab-posts" class="tab hidden"><span class="eyebrow">TIN ĐĂNG</span><h1>Quản lý nội dung</h1><p class="admin-subtext">Chỉ hiển thị nội dung bạn tự đăng. Tin mẫu được tách riêng ở mục “Tin mẫu”.</p><div id="postTable"></div></div>
+<div id="tab-samples" class="tab hidden"><span class="eyebrow">NỘI DUNG MẪU</span><h1>Tin mẫu</h1><p class="admin-subtext">Đây là các bài có sẵn theo đúng giao diện demo. Bạn có thể sửa trực tiếp thành nội dung của mình hoặc xóa bài không cần dùng.</p><div id="sampleTable"></div></div>
 <div id="tab-stats" class="tab hidden"><span class="eyebrow">THỐNG KÊ</span><h1>Hiệu quả website</h1><p class="admin-subtext">Theo dõi lượt xem và những nội dung được quan tâm.</p><div class="kpis"><div class="kpi"><b id="stat7">0</b><span>7 ngày</span></div><div class="kpi"><b id="stat30">0</b><span>30 ngày</span></div><div class="kpi"><b id="statAll">0</b><span>Tổng lượt xem</span></div></div><div id="topPosts"></div></div>
 <div id="tab-serviceleads" class="tab hidden"><span class="eyebrow">KHÁCH HÀNG</span><h1>Khách hàng cần tư vấn</h1><p class="admin-subtext">Quản lý yêu cầu tư vấn gửi từ form, gói cước và nút liên hệ trên website.</p><div id="serviceLeadsPanel"><div class="muted">Đang tải...</div></div></div>
 <div id="tab-service" class="tab hidden"><span class="eyebrow">DỊCH VỤ</span><h1>Gói dịch vụ & gia hạn</h1><p class="admin-subtext">Theo dõi đầy đủ thời hạn website, tên miền, thanh toán và chương trình ưu đãi của bạn.</p><div id="servicePanel"><div class="muted">Đang tải thông tin dịch vụ...</div></div></div>
