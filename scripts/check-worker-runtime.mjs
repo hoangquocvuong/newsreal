@@ -13,7 +13,7 @@ for (const [path, renderer, marker] of routes) {
   const response = await mod.onRequest({request, env:{}, next:()=>new Response('NEXT')});
   const html = await response.text();
   if (response.status !== 200) throw new Error(`${path}: status ${response.status}`);
-  if (response.headers.get('X-HVT-Demo-Build') !== '20.9.27.10') throw new Error(`${path}: wrong build header`);
+  if (response.headers.get('X-HVT-Demo-Build') !== '20.9.27.11') throw new Error(`${path}: wrong build header`);
   if (response.headers.get('X-HVT-Demo-Renderer') !== renderer) throw new Error(`${path}: wrong renderer`);
   if (!html.includes(marker)) throw new Error(`${path}: missing marker ${marker}`);
   if (!html.includes('/favicons/favicon-16x16.png')) throw new Error(`${path}: missing shared default favicon`);
@@ -29,7 +29,7 @@ console.log('OK  runtime PC/Tablet/Mobile preview toolbar');
 for(const marker of ['/favicons/favicon-16x16.png','data-pro-admin-quick']) if(!previewHtml.includes(marker)) throw new Error('professional platform contract missing: '+marker);
 console.log('OK  runtime professional shared favicon + quick-publish contract');
 
-// V20.9.27.10: every professional demo must carry the shared mobile-safe contact contract.
+// V20.9.27.11: every professional demo must carry the shared mobile-safe contact contract.
 for (const [path] of routes) {
   const response = await mod.onRequest({request:new Request('https://hoangvuongtech.com' + path),env:{},next:()=>new Response('NEXT')});
   const html = await response.text();

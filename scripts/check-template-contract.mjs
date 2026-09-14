@@ -158,7 +158,7 @@ for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','d
 // V20.9.25.4 — hard pathname dispatch must run before all legacy tenant fallbacks.
 const hardProFn=fn.indexOf('function proDemoKeyFromPath(path)');
 const hardProCall=fn.indexOf('const hardProDemo=proDemoKeyFromPath(rawPath)');
-const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.27.10'");
+const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.27.11'");
 const legacyTenantPos=fn.indexOf("const demoReq=new Request('https://batdongsan2027.org.uk'");
 if(hardProFn<0||hardProCall<0||hardProReturn<0||legacyTenantPos<0||hardProCall>legacyTenantPos){
   console.log('FAIL  hard professional demo pathname dispatch before BDS fallback');failed++;
@@ -349,9 +349,19 @@ for (const [label,needle] of [
  ['lion unified publish label','＋ Đăng bài']
 ]) { if(!fn.includes(needle) && !site.includes(needle) && !admin.includes(needle)){console.log('FAIL ',label);failed++;} else console.log('OK ',label); }
 
-// V20.9.27.10 — Hero edit hint must never hijack template ::after overlays.
+// V20.9.27.11 — Hero edit hint must never hijack template ::after overlays.
 if (fn.includes('nr-configurable-hero::after')) { console.log('FAIL  hero hint must not use ::after pseudo-element'); failed++; } else console.log('OK  hero hint does not hijack ::after overlay');
 if (!fn.includes('nr-hero-edit-hint')) { console.log('FAIL  hero edit hint element missing'); failed++; } else console.log('OK  hero edit hint uses dedicated element');
 
 if(failed) process.exit(1);
 console.log('Template contract smoke: PASS');
+
+// V20.9.27.11 — simulation state toggles must reset the fragment so switching
+// Có bài mẫu / Không bài mẫu never jumps back to #contact or another anchor.
+for (const marker of [
+  "u.searchParams.set('nr_samples',btn.dataset.simSamples);u.hash='';location.href=u.toString();",
+  "u.searchParams.set('nr_samples',b.getAttribute('data-pro-samples'));u.hash='';location.href=u.toString()"
+]) {
+  if (!fn.includes(marker)) throw new Error('simulation toggle must clear URL hash before reload: '+marker);
+}
+console.log('OK simulation toggles reset URL fragment before reload');
