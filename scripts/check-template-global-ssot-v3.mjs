@@ -17,3 +17,10 @@ if(!html.includes('data-tab="guide"')||!html.includes('templateUsageGuide'))fail
 if(!admin.includes('renderTemplateUsageGuide'))fail('Admin guide renderer missing');
 if(!admin.includes('Sơ đồ trang chủ & vị trí đăng bài'))fail('Admin diagram missing');
 console.log(`Global Template SSOT V3: PASS (${GLOBAL_TEMPLATE_KEYS.length} templates)`);
+// V20.9.27.15 — beginner guide must explain special templates at field/card level.
+const lionGuide=templateUsageGuide('dich-vu-6',{sections:[{key:'packages',type:'category',title:'Gói múa lân',category:'Gói múa lân',slots:6,bind_required:1}]},{categories:['Gói múa lân'],custom_fields:[{key:'service_price',label:'Giá gói / Giá tham khảo',placeholder:'Từ 3.500.000đ'},{key:'lion_count',label:'Số đầu lân / Rồng',placeholder:'2 đầu lân'}]});
+if(lionGuide.beginner_mode!==1||!lionGuide.quick_start?.length)fail('beginner guide missing');
+if(!lionGuide.category_examples?.some(x=>x.category==='Gói múa lân'&&x.fields?.service_price))fail('lion category worked example missing');
+if(!lionGuide.visual_map?.some(x=>x.admin==='Tiêu đề'&&x.front.includes('card')))fail('lion card anatomy missing');
+if(!admin.includes('renderPostTemplateGuide')||!html.includes('postTemplateGuide'))fail('inline posting example missing');
+console.log('Beginner Template Guide V2: PASS');
