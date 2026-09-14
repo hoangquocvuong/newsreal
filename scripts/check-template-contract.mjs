@@ -152,7 +152,7 @@ for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','d
 // V20.9.25.4 — hard pathname dispatch must run before all legacy tenant fallbacks.
 const hardProFn=fn.indexOf('function proDemoKeyFromPath(path)');
 const hardProCall=fn.indexOf('const hardProDemo=proDemoKeyFromPath(rawPath)');
-const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.26.9'");
+const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.27.4'");
 const legacyTenantPos=fn.indexOf("const demoReq=new Request('https://batdongsan2027.org.uk'");
 if(hardProFn<0||hardProCall<0||hardProReturn<0||legacyTenantPos<0||hardProCall>legacyTenantPos){
   console.log('FAIL  hard professional demo pathname dispatch before BDS fallback');failed++;
@@ -175,11 +175,14 @@ for(const needle of [
   'const PRO_DEMO_KEYS=new Set',
   'const PRO_REAL_DEMO_DATA=',
   'function proDemoHtml(demo,rawPath)',
-  "if(c.kind==='blog-minimal')return blogMinimalHome",
-  "if(c.kind==='creator')return creatorHome",
-  "if(c.kind==='corporate')return corpHome",
-  "if(c.kind==='industrial')return industrialHome",
-  "if(c.kind==='ev')return evHome",
+  "if(!html&&c.kind==='blog-minimal')html=blogMinimalHome",
+  "if(!html&&c.kind==='creator')html=creatorHome",
+  "if(!html&&c.kind==='corporate')html=corpHome",
+  "if(!html&&c.kind==='industrial')html=industrialHome",
+  "if(!html&&c.kind==='ev')html=evHome",
+  'function proPlatformContract(html,demo)',
+  'data-pro-admin-quick',
+  '/favicons/favicon-16x16.png',
   'Tìm điểm sạc',
   'Bản tin doanh nghiệp',
   'Hình ảnh hoạt động doanh nghiệp',
@@ -249,6 +252,9 @@ for(const needle of [
   "sec('contact','section','Liên hệ doanh nghiệp'",
   "sec('contact','section','Đăng ký khảo sát'"
 ]){const ok=api.includes(needle);console.log(`${ok?'OK':'FAIL'}  professional admin/contact ${needle}`);if(!ok)failed++;}
+for(const needle of ['sxAdminNewPostUrl(key)','sx-head-admin','＋ Đăng bài']){
+  const ok=site.includes(needle); console.log(`${ok?'OK':'FAIL'}  professional customer quick-publish ${needle}`); if(!ok) failed++;
+}
 for(const needle of ['BUILTIN_PROFESSIONAL_PROFILES','professionalAdminKey()','isProfessionalContactTemplate()','sxpContactForm','sxp-category']){const ok=site.includes(needle)||fs.readFileSync('public/assets/admin.js','utf8').includes(needle);console.log(`${ok?'OK':'FAIL'}  professional client/admin ${needle}`);if(!ok)failed++;}
 
 // V20.9.26.9 — device preview + EV map/API-ready regression.
