@@ -303,7 +303,7 @@ function openPayment(data){
     if(paymentPoll)clearInterval(paymentPoll);paymentPoll=null;
     document.getElementById('paymentWaiting').hidden=true;
     const ok=document.getElementById('paymentSuccess');ok.hidden=false;
-    ok.innerHTML=`✓ Đã nhận thanh toán <b>${moneyVN(st.amount)}</b>.<br>Đơn hàng đã tự động chuyển tới Master Control. Link kích hoạt sẽ được gửi tới email đã đăng ký sau khi website được setup.`;
+    ok.innerHTML=`✓ Đã nhận thanh toán <b>${moneyVN(st.amount)}</b>.<br>Website của bạn đang được khởi tạo và cấu hình. Thời gian hoàn tất dự kiến khoảng <b>30–60 phút</b>.<br>Link kích hoạt sẽ được gửi tới email đã đăng ký sau khi hoàn tất.`;
     const btn=document.getElementById('sendInquiryBtn');btn.disabled=true;btn.textContent='Đã thanh toán ✓';
     statusBtn.className='hv-btn payment-confirm payment-status paid';statusBtn.textContent='Thanh toán thành công ✓';statusBtn.disabled=true;
     return true;

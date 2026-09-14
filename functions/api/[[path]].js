@@ -366,7 +366,7 @@ async function notifyInitialPayment(env,{lead,orderCode,amount}){
   const customer=String(lead.email||'').trim().toLowerCase();
   const master=String(env.MASTER_NOTIFY_EMAIL||'hoangquocvuong.hp89@gmail.com').trim();
   const money=Number(amount||0).toLocaleString('vi-VN')+'đ';
-  const customerHtml=`<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;line-height:1.6;color:#172033"><h2>HoangVuongTech đã nhận thanh toán</h2><p>Xin chào <b>${htmlEsc(lead.customer_name||'Quý khách')}</b>,</p><p>Chúng tôi đã ghi nhận thanh toán <b>${money}</b> cho yêu cầu <b>${htmlEsc(orderCode)}</b>.</p><p>Quý khách vui lòng chờ khoảng <b>30–60 phút</b> để hệ thống setup website. Link kích hoạt sẽ được gửi tự động tới chính địa chỉ email này sau khi domain, DNS và SSL hoàn tất.</p></div>`;
+  const customerHtml=`<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;line-height:1.6;color:#172033"><h2>HoangVuongTech đã nhận thanh toán</h2><p>Xin chào <b>${htmlEsc(lead.customer_name||'Quý khách')}</b>,</p><p>Chúng tôi đã ghi nhận thanh toán <b>${money}</b> cho yêu cầu <b>${htmlEsc(orderCode)}</b>.</p><p>Website của Quý khách đang được khởi tạo và cấu hình. Thời gian hoàn tất dự kiến khoảng <b>30–60 phút</b>. Link kích hoạt sẽ được gửi tới email đã đăng ký sau khi hoàn tất.</p></div>`;
   const masterHtml=`<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;line-height:1.6"><h2>Khách đã thanh toán website</h2><p><b>${htmlEsc(lead.customer_name||'Khách hàng')}</b> đã thanh toán <b>${money}</b>.</p><p>Mã thanh toán: <b>${htmlEsc(orderCode)}</b><br>Giao diện: <b>${htmlEsc(lead.template_name||'')}</b><br>Email: <b>${htmlEsc(lead.email||'')}</b><br>Tên website mong muốn: <b>${htmlEsc(lead.site_name||'')}</b></p><p>Vào Master Control → Hộp yêu cầu và bấm <b>Tạo website</b>.</p></div>`;
   const sentCustomer=customer?await sendMail(env,{to:customer,subject:`HoangVuongTech: Đã nhận thanh toán ${orderCode}`,html:customerHtml}):{ok:false};
   const sentMaster=master?await sendMail(env,{to:master,subject:`NEWSREAL: Đã thanh toán ${orderCode} · ${lead.customer_name||''}`,html:masterHtml}):{ok:false};
@@ -2049,7 +2049,7 @@ if(route==='trial/direct-checkout'&&request.method==='POST'){
   let provider='bank_qr',memo=orderCode,qrCode='',checkoutUrl='',paymentLinkId='',providerOrderCode=null;
   let bankName=cfg.bankName,accountName=cfg.accountName,accountNumber=cfg.accountNumber,qrUrl=purchasePaymentQr(env,finalPrice,memo);
   if(payosReady(env)){
-    const po=await payosCreatePayment(env,{amount:finalPrice,description:`HV${String(leadId).slice(-6)}`,returnUrl:`${origin}/?payment=success`,cancelUrl:`${origin}/?payment=cancel`,buyerName:name,buyerEmail:email,buyerPhone:phone});
+    const po=await payosCreatePayment(env,{amount:finalPrice,description:`HV${String(leadId).slice(-6)}`,returnUrl:`${origin}/thanh-toan-thanh-cong/?order_code=${encodeURIComponent(orderCode)}&token=${encodeURIComponent(token)}`,cancelUrl:`${origin}/?payment=cancel`,buyerName:name,buyerEmail:email,buyerPhone:phone});
     provider='payos';providerOrderCode=Number(po.orderCode);paymentLinkId=String(po.paymentLinkId||'');checkoutUrl=String(po.checkoutUrl||'');qrCode=String(po.qrCode||'');
     memo=String(po.description||orderCode);bankName='MB Bank / payOS';accountName=String(po.accountName||'');accountNumber=String(po.accountNumber||'');qrUrl='';
     await env.DB.prepare(`UPDATE purchase_payments SET provider='payos',provider_order_code=?,payment_link_id=?,checkout_url=?,qr_code=?,updated_at=CURRENT_TIMESTAMP WHERE order_code=?`).bind(providerOrderCode,paymentLinkId,checkoutUrl,qrCode,orderCode).run();
@@ -2107,7 +2107,7 @@ if(route==='template-inquiry'&&request.method==='POST'){
   let provider='bank_qr',memo=orderCode,qrCode='',checkoutUrl='',paymentLinkId='',providerOrderCode=null;
   let bankName=cfg.bankName,accountName=cfg.accountName,accountNumber=cfg.accountNumber,qrUrl=purchasePaymentQr(env,finalPrice,memo);
   if(payosReady(env)){
-    const po=await payosCreatePayment(env,{amount:finalPrice,description:`HV${String(leadId).slice(-6)}`,returnUrl:`${origin}/?payment=success`,cancelUrl:`${origin}/?payment=cancel`,buyerName:name,buyerEmail:email,buyerPhone:phone});
+    const po=await payosCreatePayment(env,{amount:finalPrice,description:`HV${String(leadId).slice(-6)}`,returnUrl:`${origin}/thanh-toan-thanh-cong/?order_code=${encodeURIComponent(orderCode)}&token=${encodeURIComponent(token)}`,cancelUrl:`${origin}/?payment=cancel`,buyerName:name,buyerEmail:email,buyerPhone:phone});
     provider='payos';providerOrderCode=Number(po.orderCode);paymentLinkId=String(po.paymentLinkId||'');checkoutUrl=String(po.checkoutUrl||'');qrCode=String(po.qrCode||'');
     memo=String(po.description||orderCode);bankName='MB Bank / payOS';accountName=String(po.accountName||'');accountNumber=String(po.accountNumber||'');qrUrl='';
     await env.DB.prepare(`UPDATE purchase_payments SET provider='payos',provider_order_code=?,payment_link_id=?,checkout_url=?,qr_code=?,updated_at=CURRENT_TIMESTAMP WHERE order_code=?`).bind(providerOrderCode,paymentLinkId,checkoutUrl,qrCode,orderCode).run();

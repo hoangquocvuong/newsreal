@@ -307,4 +307,23 @@ if(failed){
   console.log('OK  Master Control compact tab layout');
 }
 
+
+// V20.9.27.2 — initial-payment success confirmation must be explicit, verified and time-bounded.
+{
+  const apiPayment = fs.readFileSync('functions/api/[[path]].js','utf8');
+  const marketing = fs.readFileSync('public/marketing.html','utf8');
+  const trialCheckout = fs.readFileSync('public/trial-checkout/index.html','utf8');
+  const successPage = fs.readFileSync('public/thanh-toan-thanh-cong/index.html','utf8');
+  const returnMarker = '/thanh-toan-thanh-cong/?order_code=${encodeURIComponent(orderCode)}&token=${encodeURIComponent(token)}';
+  if ((apiPayment.match(new RegExp(returnMarker.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'))||[]).length < 2) throw new Error('Initial/trial payOS returnUrl is not routed to verified success page');
+  for (const marker of ['Thanh toán thành công','30–60 phút','Link kích hoạt sẽ được gửi tới email đã đăng ký sau khi hoàn tất.','/api/payment-status?order_code=']) {
+    if (!successPage.includes(marker)) throw new Error(`Payment success page missing: ${marker}`);
+  }
+  for (const [name,text] of [['marketing',marketing],['trial checkout',trialCheckout],['payment email',apiPayment]]) {
+    if (!text.includes('30–60 phút')) throw new Error(`${name} missing 30–60 minute expectation`);
+    if (!text.includes('Link kích hoạt sẽ được gửi tới email đã đăng ký sau khi hoàn tất.')) throw new Error(`${name} missing activation-link wording`);
+  }
+  console.log('OK  Verified payment success page + 30–60 minute expectation');
+}
+
 console.log('Template contract smoke: PASS');
