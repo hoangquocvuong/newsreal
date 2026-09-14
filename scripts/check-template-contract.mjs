@@ -158,7 +158,7 @@ for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','d
 // V20.9.25.4 — hard pathname dispatch must run before all legacy tenant fallbacks.
 const hardProFn=fn.indexOf('function proDemoKeyFromPath(path)');
 const hardProCall=fn.indexOf('const hardProDemo=proDemoKeyFromPath(rawPath)');
-const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.27.11'");
+const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.27.12'");
 const legacyTenantPos=fn.indexOf("const demoReq=new Request('https://batdongsan2027.org.uk'");
 if(hardProFn<0||hardProCall<0||hardProReturn<0||legacyTenantPos<0||hardProCall>legacyTenantPos){
   console.log('FAIL  hard professional demo pathname dispatch before BDS fallback');failed++;
@@ -232,7 +232,7 @@ for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo sử dụng ảnh chụp t
 for(const needle of ['Bản tin doanh nghiệp','Hình ảnh hoạt động doanh nghiệp','Năng lực cốt lõi','Thư viện kiến thức xe điện','Kinh doanh nội dung','Bài nổi bật & bài được đọc nhiều','Nguồn tham khảo chuyên môn','IEA · Electric vehicle charging 2026']){
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  pro real-world layout ${needle}`); if(!ok) failed++;
 }
-const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',8],['dich-vu-6',1]];
+const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',8],['dich-vu-6',2]];
 for(const [k,v] of richSections){
  const marker=`'${k}':{version:${v}`;
  const ok=api.includes(marker); console.log(`${ok?'OK':'FAIL'}  rich structure ${k}`); if(!ok) failed++;
@@ -349,14 +349,27 @@ for (const [label,needle] of [
  ['lion unified publish label','＋ Đăng bài']
 ]) { if(!fn.includes(needle) && !site.includes(needle) && !admin.includes(needle)){console.log('FAIL ',label);failed++;} else console.log('OK ',label); }
 
-// V20.9.27.11 — Hero edit hint must never hijack template ::after overlays.
+
+// V20.9.27.12 — Lion Hero Admin must mirror the live demo 1:1 and expose all 3 slider images.
+for (const [label,needle] of [
+ ['lion Hero badge setting','hero_badge'],
+ ['lion Hero slider image 2','hero_image_url_2'],
+ ['lion Hero slider image 3','hero_image_url_3'],
+ ['lion Hero slider contract','three-image-editable-slider-v2'],
+ ['lion Hero slider runtime','ld-hero-slides'],
+ ['lion Hero slider dots','data-ld-hero-slide'],
+ ['lion Hero default headline','Khai hội rộn ràng – Khởi đầu may mắn cùng Lân Sư Rồng chuyên nghiệp.'],
+ ['lion Hero default lead','Nhận biểu diễn khai trương, động thổ, Trung Thu, Tết, lễ hội và sự kiện doanh nghiệp.']
+]) { const ok=api.includes(needle)||site.includes(needle)||fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  ${label}`); if(!ok) failed++; }
+
+// V20.9.27.12 — Hero edit hint must never hijack template ::after overlays.
 if (fn.includes('nr-configurable-hero::after')) { console.log('FAIL  hero hint must not use ::after pseudo-element'); failed++; } else console.log('OK  hero hint does not hijack ::after overlay');
 if (!fn.includes('nr-hero-edit-hint')) { console.log('FAIL  hero edit hint element missing'); failed++; } else console.log('OK  hero edit hint uses dedicated element');
 
 if(failed) process.exit(1);
 console.log('Template contract smoke: PASS');
 
-// V20.9.27.11 — simulation state toggles must reset the fragment so switching
+// V20.9.27.12 — simulation state toggles must reset the fragment so switching
 // Có bài mẫu / Không bài mẫu never jumps back to #contact or another anchor.
 for (const marker of [
   "u.searchParams.set('nr_samples',btn.dataset.simSamples);u.hash='';location.href=u.toString();",
