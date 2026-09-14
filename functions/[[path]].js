@@ -810,6 +810,32 @@ function injectProClientSimulation(html,url){
  body.nr-pro-empty a[href*="/bai-viet/"] em{color:transparent!important;text-shadow:none!important;border-radius:5px;background:#e8edf2!important;box-decoration-break:clone;-webkit-box-decoration-break:clone}
  body.nr-pro-empty a[href*="/bai-viet/"]::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 20%,rgba(255,255,255,.28) 45%,transparent 70%);background-size:220% 100%;animation:nrSk 1.7s linear infinite}
  body.nr-pro-empty .ticker span{color:transparent!important;background:#e5e9ee!important;border-radius:5px;min-width:130px}
+ /* V20.9.27.7: lion package cards are article payload too. They are <article>
+    containers with only the detail link nested inside, so the generic anchor mask was
+    insufficient. Keep the exact card geometry while replacing every sample field with
+    skeleton blocks in Empty mode. */
+ body.nr-pro-empty .lion-pack{position:relative;overflow:hidden!important;pointer-events:none!important}
+ body.nr-pro-empty .lion-pack .lion-pack-media{background:linear-gradient(110deg,#e7ebf0 8%,#f5f7fa 18%,#e7ebf0 33%)!important;background-size:200% 100%!important;animation:nrSk 1.5s linear infinite!important}
+ body.nr-pro-empty .lion-pack .lion-pack-media img{visibility:hidden!important}
+ body.nr-pro-empty .lion-pack .lion-pack-media span,
+ body.nr-pro-empty .lion-pack .lion-pack-body>small,
+ body.nr-pro-empty .lion-pack h3,
+ body.nr-pro-empty .lion-pack p,
+ body.nr-pro-empty .lion-pack .lion-specs span,
+ body.nr-pro-empty .lion-pack .lion-specs b,
+ body.nr-pro-empty .lion-pack li,
+ body.nr-pro-empty .lion-pack .lion-pack-actions a,
+ body.nr-pro-empty .lion-pack .lion-pack-actions button,
+ body.nr-pro-empty .lion-pack .lion-price,
+ body.nr-pro-empty .lion-pack .lion-price small,
+ body.nr-pro-empty .lion-pack .detail{color:transparent!important;text-shadow:none!important;border-color:transparent!important;background:#e8edf2!important;box-shadow:none!important;border-radius:6px!important}
+ body.nr-pro-empty .lion-pack .lion-pack-media span{min-width:110px;min-height:28px}
+ body.nr-pro-empty .lion-pack h3{min-height:52px}
+ body.nr-pro-empty .lion-pack p{min-height:66px}
+ body.nr-pro-empty .lion-pack .lion-specs span{min-height:54px}
+ body.nr-pro-empty .lion-pack li{margin:7px 0;min-height:14px;list-style:none}
+ body.nr-pro-empty .lion-pack .lion-pack-actions a,body.nr-pro-empty .lion-pack .lion-pack-actions button{min-height:42px}
+ body.nr-pro-empty .lion-pack .detail{display:block!important;width:46%;min-height:18px}
  body.nr-pro-empty .newsroom .side>a,
  body.nr-pro-empty .knowledge-feature .side>a,
  body.nr-pro-empty .ev-links>a{min-height:70px}
@@ -838,7 +864,7 @@ export async function onRequest(context){
  const hardProDemo=proDemoKeyFromPath(rawPath);
  if(marketHost&&hardProDemo){
    const html=injectProClientSimulation(proDemoHtml(hardProDemo,rawPath),u);
-   if(html)return new Response(html,{status:200,headers:{'Content-Type':'text/html; charset=UTF-8','Cache-Control':'no-store, no-cache, must-revalidate, max-age=0','CDN-Cache-Control':'no-store','Cloudflare-CDN-Cache-Control':'no-store','X-HVT-Demo-Build':'20.9.27.6','X-HVT-Demo-Renderer':hardProDemo}});
+   if(html)return new Response(html,{status:200,headers:{'Content-Type':'text/html; charset=UTF-8','Cache-Control':'no-store, no-cache, must-revalidate, max-age=0','CDN-Cache-Control':'no-store','Cloudflare-CDN-Cache-Control':'no-store','X-HVT-Demo-Build':'20.9.27.7','X-HVT-Demo-Renderer':hardProDemo}});
  }
  const trialLaunch=TRIAL_LAUNCH_HOSTS.has(host)?rawPath.match(/^\/trial\/([a-zA-Z0-9]+)(?:\/(admin))?\/?$/):null;
  if(trialLaunch){
