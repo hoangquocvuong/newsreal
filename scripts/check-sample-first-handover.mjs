@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+const api=fs.readFileSync('functions/api/[[path]].js','utf8');
+const site=fs.readFileSync('public/assets/site.js','utf8');
+const worker=fs.readFileSync('functions/[[path]].js','utf8');
+const master=fs.readFileSync('public/assets/master.js','utf8');
+const must=(ok,msg)=>{if(!ok){console.error('FAIL',msg);process.exit(1)}console.log('OK',msg)};
+must(api.includes('installDefaultTemplateSamples(env,siteId,{source:\'trial-create\'})'),'trial installs template sample package');
+must(api.includes("source:promoteSiteId?'trial-promote':'site-create'"),'official customer handover installs/keeps sample package');
+must(api.includes("installDefaultTemplateSamples(env,site.id,{source:'trial-backfill'})"),'old trials backfill samples once');
+must(api.includes('const hideSamples=false;'),'trial/public site API no longer hides sample posts');
+must(api.includes('ORDER BY coalesce(is_sample,0) ASC,id DESC LIMIT 100'),'real customer posts are ordered before editable sample posts on homepage');
+must(!api.includes('TRIAL EMPTY DATA CONTRACT'),'old empty-trial contract removed');
+must(api.includes('site_template_state'),'sample install marker prevents re-seeding after customer deletion');
+must(worker.includes('window.NR_CLIENT_SIM=false'),'browser skeleton simulation disabled');
+must(worker.includes('function injectProClientSimulation(html,url){return html}'),'professional skeleton simulation disabled');
+must(!master.includes("+'nr_client=1&nr_samples=0'"),'Master no longer opens empty customer simulation');
+must(master.includes('👁 Xem demo'),'Master uses simple demo action');
+console.log('Sample-first handover V7: PASS');

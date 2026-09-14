@@ -1,3 +1,4 @@
+import {professionalDemoData} from '../_shared/pro-sample-data.js';
 
 function json(data,status=200,headers={}){return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8',...headers}})}
 function cookies(req){return Object.fromEntries((req.headers.get('Cookie')||'').split(';').map(x=>x.trim()).filter(Boolean).map(x=>{const i=x.indexOf('=');return [x.slice(0,i),decodeURIComponent(x.slice(i+1))]}))}
@@ -1342,6 +1343,34 @@ async function ensureSampleColumns(env){
   try{await env.DB.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_posts_site_sample_key ON posts(site_id,sample_key) WHERE sample_key<>''`).run()}catch(e){}
 }
 
+async function ensureTemplateSampleState(env){
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS site_template_state(
+    site_id INTEGER PRIMARY KEY,
+    sample_pack_installed_at TEXT,
+    sample_pack_template_key TEXT NOT NULL DEFAULT '',
+    sample_pack_version INTEGER NOT NULL DEFAULT 1,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(site_id) REFERENCES sites(id) ON DELETE CASCADE
+  )`).run();
+}
+async function installDefaultTemplateSamples(env,siteId,opts={}){
+  // V20.9.27.22 — SIMPLE HANDOVER CONTRACT.
+  // Every customer/trial receives the template's sample package once. Samples are
+  // normal editable/deletable posts afterwards; deleting them must never trigger
+  // an automatic reinstall.
+  await ensureTemplateSampleState(env);
+  const site=await env.DB.prepare(`SELECT id,coalesce(template_key,'') template_key FROM sites WHERE id=? LIMIT 1`).bind(siteId).first();
+  if(!site)return {installed:false,reason:'site-not-found'};
+  const state=await env.DB.prepare(`SELECT sample_pack_installed_at,sample_pack_template_key,sample_pack_version FROM site_template_state WHERE site_id=? LIMIT 1`).bind(siteId).first();
+  if(state?.sample_pack_installed_at&&!opts.force)return {installed:false,already:true,template_key:state.sample_pack_template_key||site.template_key};
+  const result=await seedDemoForSite(env,siteId,{source:opts.source||'default-handover'});
+  await env.DB.prepare(`INSERT INTO site_template_state(site_id,sample_pack_installed_at,sample_pack_template_key,sample_pack_version,updated_at)
+    VALUES(?,CURRENT_TIMESTAMP,?,1,CURRENT_TIMESTAMP)
+    ON CONFLICT(site_id) DO UPDATE SET sample_pack_installed_at=COALESCE(site_template_state.sample_pack_installed_at,CURRENT_TIMESTAMP),sample_pack_template_key=excluded.sample_pack_template_key,sample_pack_version=1,updated_at=CURRENT_TIMESTAMP`)
+    .bind(siteId,String(site.template_key||'')).run();
+  return {installed:true,...result};
+}
+
 async function seedDemoForSite(env,siteId,opts={}){
   // V20.9.24.2 — migrations own template/sample schema; seed only data here.
   const site=await env.DB.prepare(`SELECT id,name,coalesce(template_key,'') template_key,coalesce(preset,'') preset FROM sites WHERE id=?`).bind(siteId).first();
@@ -1354,8 +1383,9 @@ async function seedDemoForSite(env,siteId,opts={}){
   // the same rows/columns as the template frame instead of stopping at sample_count.
   const blueprint=await buildTemplatePreviewBlueprint(env,site.template_key,site);
   let rows=Array.isArray(blueprint?.posts)?blueprint.posts:[];
-  const requested=Math.max(0,Number(opts.limit||0));
-  if(requested>rows.length)rows=rows.slice(0,requested);
+  // The structural blueprint determines the sample quantity. Do not truncate by
+  // sample_count: every homepage slot visible in the showroom must have an editable
+  // sample record in the delivered customer site.
   let created=0,skipped=0;
 
   for(let i=0;i<rows.length;i++){
@@ -1365,18 +1395,18 @@ async function seedDemoForSite(env,siteId,opts={}){
     const exists=await env.DB.prepare(`SELECT id FROM posts WHERE site_id=? AND (sample_key=? OR (listing_code<>'' AND listing_code=?)) LIMIT 1`).bind(siteId,sampleKey,listingCode).first();
     if(exists){skipped++;continue}
     if(String(x.type||'')==='news'){
-      await env.DB.prepare(`INSERT INTO posts(site_id,type,title,category,image,content,status,author_id,featured,verified,listing_code,views,is_sample,sample_key,extra_json)
-        VALUES(?,'news',?,?,?,?, 'published',?,?,?,?,?,1,?,'{}')`)
-        .bind(siteId,x.title||'',x.category||'Tin mới',x.image||'',x.content||sampleRichContent(x.title||'',x.category||'Tin mới'),admin.id,x.featured?1:0,x.verified?1:0,listingCode,Number(x.views||120),sampleKey).run();
+      await env.DB.prepare(`INSERT INTO posts(site_id,type,title,category,image,content,status,author_id,featured,verified,listing_code,views,is_sample,sample_key,extra_json,gallery)
+        VALUES(?,'news',?,?,?,?, 'published',?,?,?,?,?,1,?,?,?)`)
+        .bind(siteId,x.title||'',x.category||'Tin mới',x.image||'',x.content||sampleRichContent(x.title||'',x.category||'Tin mới'),admin.id,x.featured?1:0,x.verified?1:0,listingCode,Number(x.views||120),sampleKey,String(x.extra_json||'{}'),String(x.gallery||'')).run();
     }else{
       await env.DB.prepare(`INSERT INTO posts(
         site_id,type,title,category,image,price,area,address,phone,content,status,author_id,
         "transaction",property_type,unit_price,bedrooms,bathrooms,floors,direction,legal,furniture,
         province,district,ward,gallery,contact_name,featured,verified,listing_code,frontage,views,is_sample,sample_key,extra_json
-      ) VALUES(?,?,?,?,?,?,?,?,?,?,'published',?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,'{}')`)
+      ) VALUES(?,?,?,?,?,?,?,?,?,?,'published',?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?)`)
       .bind(siteId,x.type||'property',x.title||'',x.category||'',x.image||'',x.price||'',x.area||'',x.address||'',x.phone||'',x.content||'<p>Bài mẫu dùng để xem trước bố cục website.</p>',admin.id,
         x.transaction||'',x.property_type||'',x.unit_price||'',x.bedrooms||null,x.bathrooms||null,x.floors||null,x.direction||'',x.legal||'',x.furniture||'',
-        x.province||'',x.district||'',x.ward||'','',x.contact_name||'',x.featured?1:0,x.verified?1:0,listingCode,x.frontage||'',Number(x.views||40),sampleKey).run();
+        x.province||'',x.district||'',x.ward||'',String(x.gallery||''),x.contact_name||'',x.featured?1:0,x.verified?1:0,listingCode,x.frontage||'',Number(x.views||40),sampleKey,String(x.extra_json||'{}')).run();
     }
     created++;
   }
@@ -1401,7 +1431,27 @@ async function buildTemplatePreviewBlueprint(env,templateKey,site={}){
   const contentType=String(ep?.content_type||(category==='tin-tuc'?'news':category==='bat-dong-san'?'property':category==='san-pham'?'product':'generic')).toLowerCase();
   const limit=Math.max(1,Math.min(30,Number(t?.sample_count||12)));
   let posts=[];
-  if(contentType==='news'){
+  // V20.9.27.22 — Professional templates install the very same article corpus used
+  // by the showroom. The customer receives those rows in D1 and may edit/delete
+  // them normally in Admin; there is no separate empty/skeleton content mode.
+  const professional=professionalDemoData(key);
+  if(professional?.articles?.length){
+    const toHtml=(a)=>{
+      const body=Array.isArray(a.body)?a.body.map(x=>`<h2>${String(x?.[0]||'')}</h2><p>${String(x?.[1]||'')}</p>`).join(''):String(a.excerpt||'');
+      const tips=Array.isArray(a.tips)&&a.tips.length?`<h2>Lưu ý</h2><ul>${a.tips.map(x=>`<li>${String(x||'')}</li>`).join('')}</ul>`:'';
+      return `<p>${String(a.excerpt||'')}</p>${body}${tips}`;
+    };
+    const lionExtra=(a)=>{
+      const specs=a.specs||{};
+      return {service_price:String(a.price||''),lion_count:String(specs['Lân']||specs['Rồng']||''),drum_count:String(specs['Trống']||''),performers_count:String(specs['Nhân sự']||''),performance_duration:String(specs['Thời lượng']||''),fireworks:String(specs['Pháo sáng']||''),confetti:String(specs['Kim tuyến']||''),couplets:String(specs['Câu đối']||''),service_cta:'Liên hệ báo giá'};
+    };
+    posts=professional.articles.map((a,i)=>({
+      id:930000+i,type:contentType==='generic'?'news':contentType,title:String(a.title||''),category:String(a.cat||'Nội dung'),image:String(a.img||''),
+      content:toHtml(a),status:'published',featured:i===0?1:0,verified:1,listing_code:`SAMPLE-${String(i+1).padStart(3,'0')}`,views:120+(i*17),
+      gallery:Array.isArray(a.gallery)?a.gallery.join(', '):'',extra_json:JSON.stringify(key==='dich-vu-6'?lionExtra(a):{}),
+      is_sample:1,sample_key:`${key}:showroom-${String(a.slug||i+1)}`,__nr_blueprint:1
+    }));
+  }else if(contentType==='news'){
     // V15.8 — Sales demos must be presentation-complete. The template structure,
     // not sample_count, decides the minimum virtual content needed to fill every
     // category/grid. These records are in-memory only and never touch customer DB.
@@ -1993,9 +2043,11 @@ if(route==='trial/create'&&request.method==='POST'){
   try{await env.DB.prepare(`UPDATE service_subscriptions SET finance_excluded=1 WHERE site_id=?`).bind(siteId).run()}catch(e){}
   const activationRaw=activationToken(),activationHash=await sha256(activationRaw);
   await env.DB.prepare(`INSERT INTO site_activation_tokens(site_id,token_hash,expires_at) VALUES(?,?,datetime('now','+2 days'))`).bind(siteId,activationHash).run();
-  // V19.0 — TRIAL EMPTY DATA CONTRACT: every new trial starts with zero posts/listings.
-  // Public showroom demo data is virtual and must never leak into a trial tenant.
-  try{await env.DB.prepare(`DELETE FROM posts WHERE site_id=?`).bind(siteId).run()}catch(e){}
+  // V20.9.27.22 — Trials now start exactly like the selected demo: the full
+  // sample package is installed as normal posts so the customer can edit/delete it.
+  // Customer-created posts are then added to the same categories and take priority
+  // on the homepage because public queries are newest-first.
+  await installDefaultTemplateSamples(env,siteId,{source:'trial-create'});
   const tr=await trialByToken(env,token);await trialEvent(env,tr,'trial_created',{template_key:templateKey,activation_required:true});
   const demoBase=String(tpl.demo_url||(tpl.category==='ban-hang'&&templateKey==='san-pham-1'?'/demo/san-pham/mau-1/':tpl.category==='game'&&templateKey==='game-1'?'/demo/game/clash-of-clans/':`/demo/${tpl.category==='tin-tuc'?'tin-tuc':tpl.category==='dich-vu'?'dich-vu':'bat-dong-san'}/${templateKey.replace('tin-tuc-','mau-').replace('dich-vu-','mau-')}/`));
   return json({ok:true,trial_id:trialId,lead_id:leadId,token,tenant,status:'pending_activation',
@@ -2261,9 +2313,11 @@ if(route==='template-inquiry'&&request.method==='POST'){
       await env.DB.prepare(`UPDATE sales_leads SET status='won',converted_site_id=?,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(siteId,leadId).run();
       try{await env.DB.prepare(`UPDATE website_trials SET status='converted',converted_site_id=?,updated_at=CURRENT_TIMESTAMP WHERE lead_id=?`).bind(siteId,leadId).run()}catch(e){}
     }
-    // V14.6: Website mới luôn được bàn giao ở trạng thái sạch, KHÔNG tự tạo bài mẫu.
-    // Bộ bài mẫu vẫn thuộc Template Manager và chỉ Master cài theo từng khách sau khi Admin Client đã kích hoạt.
-    return json({ok:true,site_id:siteId,order_code:orderCode,activation_ready:false,already_activated:!!promoteSiteId,trial_promoted:!!promoteSiteId,lead_id:leadId||null,sample_result:null});
+    // V20.9.27.22 — Official handover is sample-first. New websites and promoted
+    // trials both keep/install the selected template sample package. Every sample is
+    // a normal Admin post: the customer may edit or delete it at any time.
+    const sampleResult=await installDefaultTemplateSamples(env,siteId,{source:promoteSiteId?'trial-promote':'site-create'});
+    return json({ok:true,site_id:siteId,order_code:orderCode,activation_ready:false,already_activated:!!promoteSiteId,trial_promoted:!!promoteSiteId,lead_id:leadId||null,sample_result:sampleResult});
   }
   if(route==='master/regenerate-activation'&&request.method==='POST'){
     const b=await body(request),siteId=Number(b.site_id);
@@ -3416,8 +3470,11 @@ if(__siteTrial){
   if(!expired&&request.method!=='GET'&&route!=='logout')await trialEvent(env,__siteTrial,'api_write',{route});
 }
 if(route==='site'&&request.method==='GET'){
- const hideSamples=!!__siteTrial||request.headers.get('X-NR-Preview-Samples')==='0';
- const templateSimulation=request.headers.get('X-NR-Template-Simulation')==='1';
+ // Backfill trials created under the old empty-site rule exactly once. The state
+ // marker survives later customer deletions, so deleted samples stay deleted.
+ if(__siteTrial){try{await installDefaultTemplateSamples(env,site.id,{source:'trial-backfill'})}catch(e){console.log('trial sample backfill:',e?.message||e)}}
+ const hideSamples=false;
+ const templateSimulation=false; // legacy skeleton/client simulation retired in V20.9.27.22
  const templateDemo=request.headers.get('X-NR-Template-Demo')==='1';
  const requestedPreviewTemplate=String(request.headers.get('X-NR-Template-Key')||'').trim();
  // V15.7 mode contract:
@@ -3477,7 +3534,7 @@ if(route==='site'&&request.method==='GET'){
  }
  const sql=hideSamples
   ?`SELECT * FROM posts WHERE site_id=? AND status='published' AND coalesce(is_sample,0)=0 AND coalesce(sample_key,'')='' AND coalesce(listing_code,'') NOT LIKE 'DEMO-%' AND coalesce(listing_code,'') NOT LIKE 'SAMPLE-%' ORDER BY id DESC LIMIT 100`
-  :`SELECT *,count(*) OVER() __nr_total_posts,coalesce(sum(views) OVER(),0) __nr_total_views FROM posts WHERE site_id=? AND status='published' ORDER BY id DESC LIMIT 100`;
+  :`SELECT *,count(*) OVER() __nr_total_posts,coalesce(sum(views) OVER(),0) __nr_total_views FROM posts WHERE site_id=? AND status='published' ORDER BY coalesce(is_sample,0) ASC,id DESC LIMIT 100`;
  const {results}=await env.DB.prepare(sql).bind(site.id).all();
  // V20.8.1 — production Game posts expose the same stable /base/<slug>.html route as showroom.
  for(const p of (results||[])){
@@ -3505,7 +3562,7 @@ if(route==='site'&&request.method==='GET'){
 if(route==='article'&&request.method==='GET'){
  const id=+u.searchParams.get('id');
  const hideSamples=!!__siteTrial||request.headers.get('X-NR-Preview-Samples')==='0';
- const templateSimulation=request.headers.get('X-NR-Template-Simulation')==='1';
+ const templateSimulation=false; // legacy skeleton/client simulation retired in V20.9.27.22
  if(templateSimulation&&hideSamples)return json({error:'Không tìm thấy bài viết'},404);
  const p=await env.DB.prepare(`SELECT * FROM posts WHERE id=? AND site_id=? AND status='published'`).bind(id,site.id).first();
  const legacySample=p&&(Number(p.is_sample||0)===1||String(p.sample_key||'')!==''||/^DEMO-|^SAMPLE-/i.test(String(p.listing_code||'')));

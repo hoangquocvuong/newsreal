@@ -907,7 +907,7 @@ function tmClientSimulationUrl(t){
    u.searchParams.set('nr_samples','0');
    return u.pathname+u.search;
  }catch(e){
-   return base+(base.includes('?')?'&':'?')+'nr_client=1&nr_samples=0';
+   return base; // V20.9.27.22: no separate empty/skeleton customer simulation
  }
 }
 const TM_CATEGORY_LABELS={'bat-dong-san':'Bất động sản','tin-tuc':'Tin tức','blog-ca-nhan':'Blog cá nhân','doanh-nghiep':'Doanh nghiệp','ban-hang':'Bán hàng','landing-page':'Landing Page','dich-vu':'Dịch vụ','game':'Game'};
@@ -964,7 +964,7 @@ function tmRender(){
     <div class="tm-sample-state ${Number(t.sample_enabled)?'on':'off'}"><b>Bộ bài mẫu:</b> ${Number(t.sample_enabled)?`${Number(t.sample_count||12)} bài · Master cài theo yêu cầu khách`:'Chưa bật cho template'}</div>
     <div class="tm-card-actions">
       ${t.demo_url?`<a class="btn soft" href="${tmEsc(t.demo_url)}" target="_blank" rel="noopener">Xem demo ↗</a>`:''}
-      <a class="btn primary tm-client-view" href="${tmEsc(tmClientSimulationUrl(t))}" target="_blank" rel="noopener">👤 Xem như khách hàng</a>
+      <a class="btn primary tm-client-view" href="${tmEsc(tmClientSimulationUrl(t))}" target="_blank" rel="noopener">👁 Xem demo</a>
       <button class="btn soft tm-edit" type="button">Sửa</button>
       <button class="btn ${Number(t.is_active)?'warning':'primary'} tm-toggle" type="button">${Number(t.is_active)?'Ẩn khỏi kho':'Mở bán'}</button>
     </div>

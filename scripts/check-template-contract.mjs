@@ -3,7 +3,7 @@ const site=fs.readFileSync('public/assets/site.js','utf8');
 const api=fs.readFileSync('functions/api/[[path]].js','utf8');
 const css=fs.readFileSync('public/assets/style.css','utf8');
 const index=fs.readFileSync('public/index.html','utf8');
-const fn=fs.readFileSync('functions/[[path]].js','utf8');
+const fn=fs.readFileSync('functions/[[path]].js','utf8')+'\n'+fs.readFileSync('functions/_shared/pro-sample-data.js','utf8');
 const required=[
   ['site exact target','nrEnforceSlotHost'],
   ['site contract audit','NR_TEMPLATE_CONTRACT_REPORT'],
@@ -263,10 +263,7 @@ for(const needle of ['hvtPreviewDevice','Máy tính bảng','Điện thoại','i
 for(const needle of ["const evSettings=","ev_station_api_url","station_data_contract:'authorized-api-or-demo-v1'","map_contract:'leaflet-osm-v1'"]){const ok=api.includes(needle);console.log(`${ok?'OK':'FAIL'}  EV admin/API ${needle}`);if(!ok)failed++;}
 
 
-// V20.9.26.9 — new professional templates must share the legacy customer-preview contract.
-for (const marker of ['function injectProClientSimulation(html,url)','GIẢ LẬP KHÁCH HÀNG','data-pro-samples=\"1\"','data-pro-samples=\"0\"','nr-pro-empty','injectProClientSimulation(proDemoHtml(hardProDemo,rawPath),u)']) {
-  const ok=fn.includes(marker); console.log(`${ok?'OK':'FAIL'}  professional customer simulation ${marker}`); if(!ok)failed++;
-}
+// V20.9.27.22 — legacy customer skeleton preview retired.
 for(const needle of ['service_lion_dance_6','function lionDemoHome','function lionDemoArticle','Gói 2 đầu lân','Gói 7 đầu lân','Liên hệ báo giá','Giá tiền']){const ok=fn.includes(needle)||site.includes(needle)||api.includes(needle);console.log(`${ok?'OK':'FAIL'}  lion premium contract ${needle}`);if(!ok)failed++;}
 if(failed){
   console.error(`Template contract failed: ${failed}`);
@@ -281,7 +278,7 @@ if(failed){
   for (const marker of ['TM_CATEGORY_LABELS','tmSyncCategoryOptions','blog-ca-nhan','doanh-nghiep']) {
     if (!masterJs.includes(marker)) throw new Error(`Master template category sync missing: ${marker}`);
   }
-  for (const marker of ['value=\"blog-ca-nhan\"','value=\"doanh-nghiep\"','master.js?v=20.9.27.1']) {
+  for (const marker of ['value=\"blog-ca-nhan\"','value=\"doanh-nghiep\"','master.js?v=20.9.27.22']) {
     if (!masterHtml.includes(marker)) throw new Error(`Master template category HTML missing: ${marker}`);
   }
   console.log('OK  Master Control dynamic professional categories');
