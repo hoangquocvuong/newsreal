@@ -793,7 +793,7 @@ export async function onRequest(context){
  // ?nr_client=1&nr_samples=0 must never alter the selected renderer.
  const hardProDemo=proDemoKeyFromPath(rawPath);
  if(marketHost&&hardProDemo){
-   const html=injectHvtSalesChat(injectProClientSimulation(proDemoHtml(hardProDemo,rawPath),u));
+   const html=injectProClientSimulation(proDemoHtml(hardProDemo,rawPath),u);
    if(html)return new Response(html,{status:200,headers:{'Content-Type':'text/html; charset=UTF-8','Cache-Control':'no-store, no-cache, must-revalidate, max-age=0','CDN-Cache-Control':'no-store','Cloudflare-CDN-Cache-Control':'no-store','X-HVT-Demo-Build':'20.9.26.9','X-HVT-Demo-Renderer':hardProDemo}});
  }
  const trialLaunch=TRIAL_LAUNCH_HOSTS.has(host)?rawPath.match(/^\/trial\/([a-zA-Z0-9]+)(?:\/(admin))?\/?$/):null;
@@ -931,7 +931,7 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
  // V20.9.26.9 — secondary professional renderer guard.
  // These five templates must never reuse the NEWSREAL/BDS shell.
  if(marketHost&&PRO_DEMO_KEYS.has(demo)){
-   const html=injectHvtSalesChat(injectProClientSimulation(proDemoHtml(demo,rawPath),u));
+   const html=injectProClientSimulation(proDemoHtml(demo,rawPath),u);
    if(html)return new Response(html,{status:200,headers:{'Content-Type':'text/html; charset=UTF-8','Cache-Control':'no-cache, no-store, must-revalidate'}});
  }
 
