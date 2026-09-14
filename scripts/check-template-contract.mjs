@@ -4,6 +4,7 @@ const api=fs.readFileSync('functions/api/[[path]].js','utf8');
 const css=fs.readFileSync('public/assets/style.css','utf8');
 const index=fs.readFileSync('public/index.html','utf8');
 const fn=fs.readFileSync('functions/[[path]].js','utf8');
+const admin=fs.readFileSync('public/assets/admin.js','utf8');
 const required=[
   ['site exact target','nrEnforceSlotHost'],
   ['site contract audit','NR_TEMPLATE_CONTRACT_REPORT'],
@@ -152,7 +153,7 @@ for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','d
 // V20.9.25.4 — hard pathname dispatch must run before all legacy tenant fallbacks.
 const hardProFn=fn.indexOf('function proDemoKeyFromPath(path)');
 const hardProCall=fn.indexOf('const hardProDemo=proDemoKeyFromPath(rawPath)');
-const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.27.7'");
+const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.27.8'");
 const legacyTenantPos=fn.indexOf("const demoReq=new Request('https://batdongsan2027.org.uk'");
 if(hardProFn<0||hardProCall<0||hardProReturn<0||legacyTenantPos<0||hardProCall>legacyTenantPos){
   console.log('FAIL  hard professional demo pathname dispatch before BDS fallback');failed++;
@@ -334,4 +335,12 @@ if(failed){
   console.log('OK  Verified payment success page + 30–60 minute expectation');
 }
 
+
+for (const [label,needle] of [
+ ['empty-mode generic article-card skeleton marker','nr-sample-card'],
+ ['lion external video URL field','video_embeds'],
+ ['lion YouTube privacy embed','youtube-nocookie.com/embed/'],
+ ['lion Vimeo embed','player.vimeo.com/video/'],
+ ['lion unified publish label','＋ Đăng bài']
+]) { if(!fn.includes(needle) && !site.includes(needle) && !admin.includes(needle)){console.log('FAIL ',label);failed++;} else console.log('OK ',label); }
 console.log('Template contract smoke: PASS');
