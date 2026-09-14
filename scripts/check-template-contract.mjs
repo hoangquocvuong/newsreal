@@ -124,7 +124,7 @@ for(const [name,needle] of required){
   console.log(`${ok?'OK':'FAIL'}  ${name}`);
   if(!ok)failed++;
 }
-for(const key of ['dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4','dich-vu-5','blog-ca-nhan-1','blog-ca-nhan-2','doanh-nghiep-1','doanh-nghiep-2','game-1','san-pham-1']){
+for(const key of ['dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4','dich-vu-5','dich-vu-6','blog-ca-nhan-1','blog-ca-nhan-2','doanh-nghiep-1','doanh-nghiep-2','game-1','san-pham-1']){
   const ok=api.includes(`'${key}'`);
   console.log(`${ok?'OK':'FAIL'}  profile ${key}`);
   if(!ok)failed++;
@@ -137,12 +137,12 @@ if(demoFlagDecl<0||demoLabelUse<0||demoFlagDecl>demoLabelUse){
   console.log('FAIL  marketplace demo runtime flag declaration order');
   failed++;
 }else console.log('OK  marketplace demo runtime flag declaration order');
-for(const route of ['/demo/blog-ca-nhan/mau-1','/demo/blog-ca-nhan/mau-2','/demo/doanh-nghiep/mau-1','/demo/doanh-nghiep/mau-2','/demo/dich-vu/tram-sac-vinfast']){
+for(const route of ['/demo/blog-ca-nhan/mau-1','/demo/blog-ca-nhan/mau-2','/demo/doanh-nghiep/mau-1','/demo/doanh-nghiep/mau-2','/demo/dich-vu/tram-sac-vinfast','/demo/dich-vu/mua-lan-su-rong']){
   const ok=fn.includes(route);
   console.log(`${ok?'OK':'FAIL'}  demo route ${route}`);
   if(!ok)failed++;
 }
-for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','doanh-nghiep-1-preview.png','doanh-nghiep-2-preview.png','dich-vu-5-preview.png']){
+for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','doanh-nghiep-1-preview.png','doanh-nghiep-2-preview.png','dich-vu-5-preview.png','dich-vu-6-preview.png']){
   const ok=fs.existsSync('public/assets/demo/'+asset);
   console.log(`${ok?'OK':'FAIL'}  preview asset ${asset}`);
   if(!ok)failed++;
@@ -152,7 +152,7 @@ for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','d
 // V20.9.25.4 — hard pathname dispatch must run before all legacy tenant fallbacks.
 const hardProFn=fn.indexOf('function proDemoKeyFromPath(path)');
 const hardProCall=fn.indexOf('const hardProDemo=proDemoKeyFromPath(rawPath)');
-const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.27.4'");
+const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.27.5'");
 const legacyTenantPos=fn.indexOf("const demoReq=new Request('https://batdongsan2027.org.uk'");
 if(hardProFn<0||hardProCall<0||hardProReturn<0||legacyTenantPos<0||hardProCall>legacyTenantPos){
   console.log('FAIL  hard professional demo pathname dispatch before BDS fallback');failed++;
@@ -162,7 +162,8 @@ for(const pair of [
   ['/demo/blog-ca-nhan/mau-2','blog-ca-nhan-2'],
   ['/demo/doanh-nghiep/mau-1','doanh-nghiep-1'],
   ['/demo/doanh-nghiep/mau-2','doanh-nghiep-2'],
-  ['/demo/dich-vu/tram-sac-vinfast','dich-vu-5']
+  ['/demo/dich-vu/tram-sac-vinfast','dich-vu-5'],
+  ['/demo/dich-vu/mua-lan-su-rong','dich-vu-6']
 ]){
   const marker=`return '${pair[1]}'`;
   const ok=fn.includes(marker);
@@ -225,7 +226,7 @@ for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo sử dụng ảnh chụp t
 for(const needle of ['Bản tin doanh nghiệp','Hình ảnh hoạt động doanh nghiệp','Năng lực cốt lõi','Thư viện kiến thức xe điện','Kinh doanh nội dung','Bài nổi bật & bài được đọc nhiều','Nguồn tham khảo chuyên môn','IEA · Electric vehicle charging 2026']){
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  pro real-world layout ${needle}`); if(!ok) failed++;
 }
-const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',8]];
+const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',8],['dich-vu-6',1]];
 for(const [k,v] of richSections){
  const marker=`'${k}':{version:${v}`;
  const ok=api.includes(marker); console.log(`${ok?'OK':'FAIL'}  rich structure ${k}`); if(!ok) failed++;
@@ -266,6 +267,7 @@ for(const needle of ["const evSettings=","ev_station_api_url","station_data_cont
 for (const marker of ['function injectProClientSimulation(html,url)','GIẢ LẬP KHÁCH HÀNG','data-pro-samples=\"1\"','data-pro-samples=\"0\"','nr-pro-empty','injectProClientSimulation(proDemoHtml(hardProDemo,rawPath),u)']) {
   const ok=fn.includes(marker); console.log(`${ok?'OK':'FAIL'}  professional customer simulation ${marker}`); if(!ok)failed++;
 }
+for(const needle of ['service_lion_dance_6','function lionDemoHome','function lionDemoArticle','Gói 2 đầu lân','Gói 7 đầu lân','Liên hệ báo giá','Giá tiền']){const ok=fn.includes(needle)||site.includes(needle)||api.includes(needle);console.log(`${ok?'OK':'FAIL'}  lion premium contract ${needle}`);if(!ok)failed++;}
 if(failed){
   console.error(`Template contract failed: ${failed}`);
   process.exit(1);

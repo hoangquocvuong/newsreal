@@ -6,13 +6,14 @@ const routes = [
   ['/demo/doanh-nghiep/mau-1/','doanh-nghiep-1','Bản tin doanh nghiệp'],
   ['/demo/doanh-nghiep/mau-2/','doanh-nghiep-2','Hình ảnh hoạt động doanh nghiệp'],
   ['/demo/dich-vu/tram-sac-vinfast/','dich-vu-5','Thư viện kiến thức xe điện'],
+  ['/demo/dich-vu/mua-lan-su-rong/','dich-vu-6','Gói 2 đầu lân'],
 ];
 for (const [path, renderer, marker] of routes) {
   const request = new Request('https://hoangvuongtech.com'+path);
   const response = await mod.onRequest({request, env:{}, next:()=>new Response('NEXT')});
   const html = await response.text();
   if (response.status !== 200) throw new Error(`${path}: status ${response.status}`);
-  if (response.headers.get('X-HVT-Demo-Build') !== '20.9.27.4') throw new Error(`${path}: wrong build header`);
+  if (response.headers.get('X-HVT-Demo-Build') !== '20.9.27.5') throw new Error(`${path}: wrong build header`);
   if (response.headers.get('X-HVT-Demo-Renderer') !== renderer) throw new Error(`${path}: wrong renderer`);
   if (!html.includes(marker)) throw new Error(`${path}: missing marker ${marker}`);
   if (!html.includes('/favicons/favicon-16x16.png')) throw new Error(`${path}: missing shared default favicon`);
@@ -48,3 +49,17 @@ const simFullHtml = await simFull.text();
 for(const marker of ['GIẢ LẬP KHÁCH HÀNG','Có bài mẫu','nr-pro-client-sim']) if(!simFullHtml.includes(marker)) throw new Error('professional populated simulation missing: '+marker);
 if(simFullHtml.includes('<body class="nr-pro-client-sim nr-pro-empty">')) throw new Error('professional populated simulation incorrectly empty');
 console.log('OK  runtime professional client simulation WITH SAMPLES');
+
+const lionResponse=await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/dich-vu/mua-lan-su-rong/'),env:{},next:()=>new Response('NEXT')});
+const lionHtml=await lionResponse.text();
+for(const marker of ['Gói 2 đầu lân','Gói 7 đầu lân','Múa rồng','Trống hội','Liên hệ báo giá','Giá tiền','▰ PC','Máy tính bảng','Điện thoại','/favicons/favicon-16x16.png','data-pro-admin-quick']) if(!lionHtml.includes(marker)) throw new Error('lion template contract missing: '+marker);
+if(lionHtml.includes('sales-chat.js')||lionHtml.includes('Tư vấn online')) throw new Error('lion template leaked HVT sales chat');
+const lionEmpty=await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/dich-vu/mua-lan-su-rong/?nr_client=1&nr_samples=0'),env:{},next:()=>new Response('NEXT')});
+const lionEmptyHtml=await lionEmpty.text();
+for(const marker of ['GIẢ LẬP KHÁCH HÀNG','Không bài mẫu','nr-pro-empty']) if(!lionEmptyHtml.includes(marker)) throw new Error('lion empty simulation missing: '+marker);
+const lm=/href=\"([^\"]*\/bai-viet\/[^\"]+)\"/.exec(lionHtml);
+if(!lm) throw new Error('lion article link missing');
+const lionArticle=await mod.onRequest({request:new Request(new URL(lm[1],'https://hoangvuongtech.com')),env:{},next:()=>new Response('NEXT')});
+const lionArticleHtml=await lionArticle.text();
+for(const marker of ['lion-gallery','lion-thumbs','lionGalleryMain']) if(!lionArticleHtml.includes(marker)) throw new Error('lion article gallery missing: '+marker);
+console.log('OK  runtime lion dance premium template + gallery + simulation contract');
