@@ -273,10 +273,38 @@ if(failed){
   for (const marker of ['TM_CATEGORY_LABELS','tmSyncCategoryOptions','blog-ca-nhan','doanh-nghiep']) {
     if (!masterJs.includes(marker)) throw new Error(`Master template category sync missing: ${marker}`);
   }
-  for (const marker of ['value=\"blog-ca-nhan\"','value=\"doanh-nghiep\"','master.js?v=20.9.26.9']) {
+  for (const marker of ['value=\"blog-ca-nhan\"','value=\"doanh-nghiep\"','master.js?v=20.9.27.1']) {
     if (!masterHtml.includes(marker)) throw new Error(`Master template category HTML missing: ${marker}`);
   }
   console.log('OK  Master Control dynamic professional categories');
+}
+
+
+// V20.9.27.1 — login-safe tab regression: never observe the whole document for chat badges.
+{
+  const masterJs = fs.readFileSync('public/assets/master.js','utf8');
+  if (masterJs.includes('observe(document.documentElement')) fail('Master Control must not attach a whole-document MutationObserver');
+  for (const marker of ["document.addEventListener('newsreal:master-ready',initMasterTabs)",'if(__masterTabsInitialized||!masterDashboardIsReady())return','__masterSalesBadgeObserver.observe(src']) {
+    if (!masterJs.includes(marker)) fail(`Master Control safe-tab guard missing: ${marker}`);
+  }
+  console.log('OK  Master Control login-safe tab initialization');
+}
+
+// V20.9.27.1 — Master Control compact tab layout contract.
+{
+  const masterJs = fs.readFileSync('public/assets/master.js','utf8');
+  const masterHtml = fs.readFileSync('public/control-center/index.html','utf8');
+  const masterCss = fs.readFileSync('public/assets/master.css','utf8');
+  for (const marker of ['data-master-tab="overview"','data-master-tab="orders"','data-master-tab="templates"','data-master-tab="tools"']) {
+    if (!masterHtml.includes(marker)) throw new Error(`Master tabs HTML missing: ${marker}`);
+  }
+  for (const marker of ['MASTER_TAB_MAP','setMasterTab','tabForMasterTarget','syncMasterSalesTabBadge']) {
+    if (!masterJs.includes(marker)) throw new Error(`Master tabs JS missing: ${marker}`);
+  }
+  for (const marker of ['.master-tabbar','.master-tab-panel-hidden','body.master-tabs-ready']) {
+    if (!masterCss.includes(marker)) throw new Error(`Master tabs CSS missing: ${marker}`);
+  }
+  console.log('OK  Master Control compact tab layout');
 }
 
 console.log('Template contract smoke: PASS');

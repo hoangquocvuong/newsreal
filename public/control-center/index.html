@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <html lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>NewsReal — Quản trị tổng</title><meta name="robots" content="noindex,nofollow"><link href="/assets/style.css?v=20.1.0" rel="stylesheet"/><link href="/assets/master.css?v=20.1.0" rel="stylesheet"/> <link href="/favicons/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<title>NewsReal — Quản trị tổng</title><meta name="robots" content="noindex,nofollow"><link href="/assets/style.css?v=20.1.0" rel="stylesheet"/><link href="/assets/master.css?v=20.9.27.1" rel="stylesheet"/> <link href="/favicons/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
 <meta content="#ffffff" name="msapplication-TileColor"/>
 <meta content="#ffffff" name="theme-color"/>
 </head><body class="master-page">
@@ -10,6 +10,18 @@
 <div class="hidden" id="masterDashboard"><header class="header"><div class="wrap"><a class="logo" href="/control-center/"><span>NEWSREAL</span> <b>CONTROL</b></a><div class="actions"><a class="btn soft" href="/">Xem website</a><button class="btn" onclick="masterLogout()">Đăng xuất</button></div></div></header>
 <main class="section master-main"><div class="wrap">
 <div class="master-head"><div><small class="section-kicker">MASTER OPERATIONS</small><h1>Trung tâm vận hành khách hàng</h1><p>Mở trang này và xử lý lần lượt từ đơn hàng → thanh toán → tạo website → domain/SSL → kích hoạt → gia hạn.</p></div><div class="master-head-actions"><button class="btn soft" id="masterRefreshAll" type="button">↻ Làm mới toàn bộ</button></div></div>
+<nav class="master-tabbar" id="masterTabbar" aria-label="Điều hướng Master Control">
+<button class="master-tab is-active" type="button" data-master-tab="overview"><span>01</span>Tổng quan</button>
+<button class="master-tab" type="button" data-master-tab="orders"><span>02</span>Đơn hàng</button>
+<button class="master-tab" type="button" data-master-tab="sites"><span>03</span>Website</button>
+<button class="master-tab" type="button" data-master-tab="renewals"><span>04</span>Gia hạn</button>
+<button class="master-tab" type="button" data-master-tab="finance"><span>05</span>Tài chính</button>
+<button class="master-tab" type="button" data-master-tab="sales"><span>06</span>Tư vấn <b id="masterTabSalesBadge" class="master-tab-badge hidden">0</b></button>
+<button class="master-tab" type="button" data-master-tab="trials"><span>07</span>Dùng thử</button>
+<button class="master-tab" type="button" data-master-tab="templates"><span>08</span>Kho giao diện</button>
+<button class="master-tab" type="button" data-master-tab="tools"><span>09</span>Công cụ</button>
+</nav>
+<div class="master-tab-note" id="masterTabNote">Tổng quan vận hành · chọn một tab để mở đúng khu vực cần xử lý.</div>
 <div class="registrar-status" id="registrarStatus">Domain vận hành bán tự động: Master chỉ mua/gia hạn domain khi hệ thống đã xác nhận đúng đơn thanh toán.</div>
 <div class="master-info-strip"><div><b>Nguyên tắc xử lý</b><span>Chỉ thao tác nút của bước hiện tại. Bước đã tự động hóa sẽ không còn nút thủ công gây nhầm.</span></div><div><b>Nguồn sự thật</b><span>VietQR xác nhận thanh toán; Cloudflare/registry xác nhận domain; hệ thống chỉ cộng thời hạn sau khi domain thực sự được gia hạn.</span></div></div>
 <div class="master-kpis"><div><span>Website</span><b id="mSites">0</b></div><div><span>Đang hoạt động</span><b id="mActive">0</b></div><div><span>Tổng bài đăng</span><b id="mPosts">0</b></div><div><span>Tổng lượt xem</span><b id="mViews">0</b></div><div><span>Lượt xem hôm nay</span><b id="mToday">0</b></div></div><section class="master-workflow" id="masterWorkflow">
@@ -299,7 +311,7 @@ Sức khỏe" rows="6"></textarea>
 </div>
 </div>
 </div>
-<script src="/assets/master.js?v=20.9.26.9"></script>
+<script src="/assets/master.js?v=20.9.27.1"></script>
 <div class="master-modal hidden" id="handoverModal">
 <div class="master-modal-card handover-card">
 <button class="master-modal-close" id="closeHandoverModal" type="button">×</button>

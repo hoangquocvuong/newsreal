@@ -50,6 +50,68 @@ const dmRegistrar=document.getElementById('dmRegistrar');
 const dmRegisteredAt=document.getElementById('dmRegisteredAt');
 const dmExpiresAt=document.getElementById('dmExpiresAt');
 
+
+
+// V20.9.27.1 — safe compact tab navigation for Master Control.
+// Tabs are initialized only after the authenticated dashboard is visible.
+const MASTER_TAB_MAP={
+ overview:['registrarStatus','.master-info-strip','.master-kpis','masterWorkflow','renewalMasterAlert','provisionNotice'],
+ orders:['leadCRM'],
+ sites:['siteOps'],
+ renewals:['renewalOps'],
+ finance:['financeDashboard'],
+ sales:['salesChatTools'],
+ trials:['trialTools'],
+ templates:['templateTools'],
+ tools:['masterUtilities']
+};
+const MASTER_TAB_LABELS={overview:'Tổng quan vận hành',orders:'Đơn hàng & thanh toán',sites:'Website & bàn giao',renewals:'Gia hạn cần xử lý',finance:'Tài chính & sổ giao dịch',sales:'Tư vấn trực tuyến',trials:'Khách dùng thử',templates:'Kho giao diện / Template Manager',tools:'Công cụ & thao tác ngoại lệ'};
+let __activeMasterTab='overview';
+let __masterTabsInitialized=false;
+let __masterSalesBadgeObserver=null;
+function masterTabNodes(ref){
+ if(ref.startsWith('.'))return Array.from(document.querySelectorAll(ref));
+ const el=document.getElementById(ref);return el?[el]:[];
+}
+function masterDashboardIsReady(){return !!masterDashboard&&!masterDashboard.classList.contains('hidden')}
+function setMasterTab(key,{scroll=true,persist=true}={}){
+ if(!masterDashboardIsReady())return;
+ if(!MASTER_TAB_MAP[key])key='overview';__activeMasterTab=key;
+ Object.entries(MASTER_TAB_MAP).forEach(([tab,refs])=>refs.forEach(ref=>masterTabNodes(ref).forEach(el=>{
+  const active=tab===key;el.classList.toggle('master-tab-panel-hidden',!active);el.classList.toggle('master-tab-panel-active',active);
+  if(active&&el.tagName==='DETAILS')el.open=true;
+ })));
+ document.querySelectorAll('[data-master-tab]').forEach(btn=>{const active=btn.dataset.masterTab===key;btn.classList.toggle('is-active',active);btn.setAttribute('aria-selected',active?'true':'false')});
+ const note=document.getElementById('masterTabNote');if(note)note.textContent=(MASTER_TAB_LABELS[key]||'')+' · nội dung giữ nguyên thứ tự vận hành hiện tại.';
+ if(persist){try{localStorage.setItem('nr_master_active_tab',key)}catch{}}
+ if(scroll){document.getElementById('masterTabbar')?.scrollIntoView({behavior:'smooth',block:'start'})}
+}
+function tabForMasterTarget(id){for(const [tab,refs] of Object.entries(MASTER_TAB_MAP)){if(refs.includes(id))return tab}return 'overview'}
+function syncMasterSalesTabBadge(){
+ const src=document.getElementById('salesChatUnread'),dst=document.getElementById('masterTabSalesBadge');if(!src||!dst)return;
+ const n=Math.max(0,parseInt(src.textContent||'0',10)||0),next=String(n);
+ if(dst.textContent!==next)dst.textContent=next;
+ const shouldHide=n<1;if(dst.classList.contains('hidden')!==shouldHide)dst.classList.toggle('hidden',shouldHide);
+}
+function bindMasterSalesTabBadge(){
+ if(__masterSalesBadgeObserver)return;
+ const src=document.getElementById('salesChatUnread');if(!src)return;
+ syncMasterSalesTabBadge();
+ __masterSalesBadgeObserver=new MutationObserver(syncMasterSalesTabBadge);
+ __masterSalesBadgeObserver.observe(src,{subtree:true,childList:true,characterData:true});
+}
+function initMasterTabs(){
+ if(__masterTabsInitialized||!masterDashboardIsReady())return;
+ __masterTabsInitialized=true;
+ document.querySelectorAll('[data-master-tab]').forEach(btn=>btn.addEventListener('click',()=>setMasterTab(btn.dataset.masterTab)));
+ let saved='overview';try{saved=localStorage.getItem('nr_master_active_tab')||'overview'}catch{}
+ setMasterTab(MASTER_TAB_MAP[saved]?saved:'overview',{scroll:false,persist:false});
+ document.body.classList.add('master-tabs-ready');
+ bindMasterSalesTabBadge();
+}
+document.addEventListener('newsreal:master-ready',initMasterTabs);
+document.addEventListener('DOMContentLoaded',()=>{if(masterDashboardIsReady())initMasterTabs()});
+
 const dmOpenCloudflare=document.getElementById('dmOpenCloudflare');
 const dmMarkPurchased=document.getElementById('dmMarkPurchased');
 const dmCompleteDomain=document.getElementById('dmCompleteDomain');
@@ -1131,6 +1193,7 @@ function renderRenewalOps(){
 }
 function jumpWorkflow(btn){
  const target=document.getElementById(btn.dataset.jump||'');if(!target)return;
+ setMasterTab(tabForMasterTarget(target.id),{scroll:false});
  if(btn.dataset.filter!==undefined){const f=document.getElementById('leadStatusFilter');if(f){f.value=btn.dataset.filter;__leadPage=1;renderLeadCRM()}}
  if(btn.dataset.siteFilter!==undefined){const f=document.getElementById('siteStatusFilter');if(f){f.value=btn.dataset.siteFilter;__sitePage=1;renderSiteRows()}}
  target.scrollIntoView({behavior:'smooth',block:'start'});
