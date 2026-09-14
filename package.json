@@ -2,7 +2,7 @@
   "name": "newsreal-v5-full-realestate",
   "private": true,
   "scripts": {
-    "check": "node --check \"functions/[[path]].js\" && node --check \"functions/api/[[path]].js\" && node scripts/check-worker-runtime.mjs && node scripts/check-template-contract.mjs && node scripts/check-sample-first-handover.mjs && node scripts/check-sample-admin-library-v8.mjs && node scripts/check-new-template-sample-trial-v9.mjs && node scripts/check-sample-type-auth-v10.mjs",
+    "check": "node --check \"functions/[[path]].js\" && node --check \"functions/api/[[path]].js\" && node scripts/check-worker-runtime.mjs && node scripts/check-template-contract.mjs && node scripts/check-sample-first-handover.mjs && node scripts/check-sample-admin-library-v8.mjs && node scripts/check-new-template-sample-trial-v9.mjs && node scripts/check-sample-type-auth-v10.mjs && node scripts/check-content-view-contract-v11.mjs",
     "check:templates": "node scripts/check-template-contract.mjs"
   },
   "type": "module"

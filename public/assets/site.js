@@ -164,6 +164,78 @@ function cleanSiteName(n=''){return String(n||'').replace(/\s*Demo\s*$/i,'').tri
 
 let SITE_DATA=null, heroIndex=0, heroTimer=null, selectedTransaction='sale';
 
+// V20.9.27.26 — Universal Content View Contract V11.
+// Every renderer receives the same canonical post shape regardless of whether the
+// source row comes from showroom samples, seeded D1 sample content, or customer posts.
+// New templates should consume the canonical fields below instead of inventing
+// another demo/live adapter.
+function nrParseExtra(x){
+  try{return x&&typeof x==='object'?{...x}:JSON.parse(String(x||'{}'))}catch(e){return {}}
+}
+function nrContextQuery(){
+  const src=new URLSearchParams(location.search),q=new URLSearchParams();
+  for(const k of ['tenant','nr_trial'])if(src.get(k))q.set(k,src.get(k));
+  return q;
+}
+function nrCanonicalDetailUrl(post={}){
+  const existing=String(post.detail_url||post.detailUrl||'').trim();
+  if(existing)return existing;
+  const explicit=String(post.url||post.demo_url||'').trim();
+  if(explicit&&/^\//.test(explicit))return explicit;
+  const id=post.id!=null?String(post.id):'';
+  const slug=seoSlug(post.slug||post.title||('bai-'+id));
+  const q=nrContextQuery();
+  if(id)q.set('id',id);
+  return '/bai-viet/'+slug+'/'+(q.toString()?'?'+q.toString():'');
+}
+function nrNormalizeContentRecord(input={},ctx={}){
+  const p={...(input||{})};
+  const extra=nrParseExtra(p.extra_json||p.extra||{});
+  const templateKey=String(ctx.templateKey||p.template_key||'').trim();
+  p.title=String(p.title||p.name||'').trim();
+  p.category=String(p.category||p.cat||p.section||'').trim();
+  p.type=String(p.type||ctx.contentType||'').trim().toLowerCase();
+  p.content=p.content!=null?String(p.content):String(p.body_html||p.description||p.excerpt||'');
+  p.image=String(p.image||p.image_url||p.thumbnail||p.img||'').trim();
+  if(!p.gallery&&Array.isArray(p.images))p.gallery=p.images.join(', ');
+  if(!extra.service_price&&p.service_price)extra.service_price=String(p.service_price);
+  if(!extra.service_price&&p.price&&p.type==='service')extra.service_price=String(p.price);
+  if(!extra.service_cta&&p.service_cta)extra.service_cta=String(p.service_cta);
+  if(!extra.service_cta&&p.cta_label)extra.service_cta=String(p.cta_label);
+  p.extra_json=extra;
+  const isService=p.type==='service'||/^dich-vu-/.test(templateKey);
+  const servicePrice=String(extra.service_price||p.price||'').trim();
+  const ctaLabel=String(extra.service_cta||p.cta_label||(isService?'Liên hệ báo giá':'Đọc chi tiết')).trim();
+  const detailLabel=String(p.detail_label||extra.detail_label||(isService?'Xem chi tiết gói →':'Đọc chi tiết →')).trim();
+  const secondaryLabel=String(p.secondary_label||extra.card_secondary_label||(isService?'Giá tiền':'')).trim();
+  const detailUrl=nrCanonicalDetailUrl(p);
+  p.detail_url=detailUrl;
+  p.cta_label=ctaLabel;
+  if(isService&&!p.price&&servicePrice)p.price=servicePrice;
+  p._nr={
+    template_key:templateKey,
+    is_sample:Number(p.is_sample||0)===1,
+    title:p.title,
+    category:p.category,
+    image:p.image,
+    content:p.content,
+    price:servicePrice,
+    cta_label:ctaLabel,
+    detail_label:detailLabel,
+    secondary_label:secondaryLabel,
+    detail_url:detailUrl,
+    extra
+  };
+  return p;
+}
+function nrNormalizeContentList(rows=[],ctx={}){
+  return (Array.isArray(rows)?rows:[]).map(x=>nrNormalizeContentRecord(x,ctx));
+}
+function nrPostView(post={},ctx={}){
+  const p=post?nrNormalizeContentRecord(post,ctx):nrNormalizeContentRecord({},ctx);
+  return p._nr||{};
+}
+
 function fillPublicFooter(site={}){
  const name=cleanSiteName(site.name||'NEWSREAL'), phone=String(site.phone||'').trim(), zalo=String(site.zalo||phone||'').trim(), email=String(site.email||site.contact_email||'').trim();
  document.querySelectorAll('[data-footer-brand]').forEach(el=>el.textContent=name);
@@ -1714,6 +1786,8 @@ async function nrBootMain(){
      d={site:{id:0,name:'Product Store',template_key:'san-pham-1',preset:'product_affiliate_1',template_settings:{product_cta_label:'Mua Ngay',product_affiliate_note:'Website có thể nhận hoa hồng khi người xem mua hàng qua liên kết giới thiệu.'},structure_profile:{version:1,content_type:'product',layout_contract:'universal-layout-v1',route_contract:'product-catalog-v1',card_contract:'product-title-price-v1',article_contract:'product-detail-v1',sections:[{key:'hero',type:'section',bind_required:0},{key:'categories',type:'section',bind_required:0},{key:'featured',type:'category',slots:10,desktop_columns:5,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1},{key:'electronics',type:'category',category:'Điện tử & Công nghệ',slots:5,desktop_columns:5,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1},{key:'home',type:'category',category:'Nhà cửa & Đời sống',slots:5,desktop_columns:5,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1},{key:'beauty',type:'category',category:'Thời trang & Làm đẹp',slots:5,desktop_columns:5,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1},{key:'baby',type:'category',category:'Mẹ & Bé',slots:5,desktop_columns:5,tablet_columns:3,mobile_columns:2,fill_policy:'complete_rows',bind_required:1}]}},posts:sample,stats:{posts:sample.length},preview:{demo:true,template_demo:true,samples:1,source:'local-product-showroom',content_type:'product'}};
    }else d=await sitePromise;
    SITE_DATA=d;
+   const bootTemplateKey=demoTemplateKey||String(d?.site?.template_key||'');
+   if(Array.isArray(SITE_DATA?.posts))SITE_DATA.posts=nrNormalizeContentList(SITE_DATA.posts,{templateKey:bootTemplateKey});
    // V20.9.27.23 — customer/trial content always outranks editable sample rows.
    // This guarantees a newly published post appears in its homepage section before
    // the sample pack fills the remaining slots.
@@ -2300,7 +2374,7 @@ function sxProfile(site={},key=''){let st=site.structure_profile;if(typeof st===
  'dich-vu-6':['Gói múa lân','Múa rồng','Trống hội','Sự kiện đã thực hiện','Tin hoạt động','Kiến thức & phong tục']
 };const cats=Array.isArray(st?.sections)?st.sections.filter(x=>x?.type==='category'&&x.category).map(x=>String(x.category)):[];return cats.length?cats:(fallback[key]||[])}
 function sxText(html=''){const d=document.createElement('div');d.innerHTML=String(html||'');return (d.textContent||'').replace(/\s+/g,' ').trim()}
-function sxPostUrl(p){return '/bai-viet/'+sxSlug(p.title||('bai-'+p.id))+'/?id='+encodeURIComponent(p.id||'')}
+function sxPostUrl(p){return nrPostView(p,{templateKey:String(SITE_DATA?.site?.template_key||window.NR_DEMO_THEME||'')}).detail_url||nrCanonicalDetailUrl(p)}
 function sxCard(p){const img=getImages(p)[0]||p.image||'/assets/marketing-demo.webp',txt=sxText(p.content||'').slice(0,135);return `<article class="sxp-card"><a class="sxp-card-img" href="${sxPostUrl(p)}"><img src="${esc(img)}" alt="${esc(p.title||'Bài viết')}"></a><div><small>${esc(p.category||'Bài viết')}</small><h3><a href="${sxPostUrl(p)}">${esc(p.title||'Bài viết')}</a></h3>${txt?`<p>${esc(txt)}${txt.length>=135?'…':''}</p>`:''}<a class="sxp-more" href="${sxPostUrl(p)}">Đọc chi tiết →</a></div></article>`}
 function sxAdminNewPostUrl(key=''){
  const q=new URLSearchParams();
@@ -2313,7 +2387,11 @@ function sxAdminNewPostUrl(key=''){
 function sxBindContact(site,key){const form=document.getElementById('sxpContactForm'),msg=document.getElementById('sxpContactMsg');if(!form)return;form.addEventListener('submit',async e=>{e.preventDefault();const payload=Object.fromEntries(new FormData(form).entries());payload.package_category=key;payload.package_title='Liên hệ từ website';payload.source_url=location.href;const q=new URLSearchParams(),cur=new URLSearchParams(location.search);for(const k of ['tenant','nr_trial'])if(cur.get(k))q.set(k,cur.get(k));try{msg.textContent='Đang gửi...';const r=await fetch('/api/service-leads'+(q.toString()?'?'+q:''),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}),d=await r.json();if(!r.ok)throw new Error(d.error||'Không gửi được yêu cầu');msg.textContent='✓ Đã gửi thông tin. Chúng tôi sẽ liên hệ lại sớm.';msg.className='sxp-contact-msg ok';form.reset()}catch(err){msg.textContent=err.message||'Không gửi được yêu cầu';msg.className='sxp-contact-msg error'}})}
 function lionExtra(p){try{return p.extra_json&&typeof p.extra_json==='object'?p.extra_json:JSON.parse(p.extra_json||'{}')}catch(e){return {}}}
 function lionMoney(v=''){return String(v||'Liên hệ báo giá')}
-function lionServiceCard(p){const e=lionExtra(p),img=getImages(p)[0]||p.image||'/assets/marketing-demo.webp',price=e.service_price||'Liên hệ báo giá';return `<article class="ld-pack"><a class="ld-pack-img" href="${sxPostUrl(p)}"><img src="${esc(img)}" alt="${esc(p.title||'Dịch vụ')}"><span>${esc(price)}</span></a><div class="ld-pack-body"><small>${esc(p.category||'Dịch vụ')}</small><h3><a href="${sxPostUrl(p)}">${esc(p.title||'Dịch vụ')}</a></h3><div class="ld-spec-row"><span><b>${esc(e.lion_count||'—')}</b>Đội hình</span><span><b>${esc(e.drum_count||'—')}</b>Trống</span><span><b>${esc(e.performers_count||'—')}</b>Nhân sự</span></div><ul><li>Pháo sáng: ${esc(e.fireworks||'Theo yêu cầu')}</li><li>Kim tuyến: ${esc(e.confetti||'Theo yêu cầu')}</li><li>Câu đối: ${esc(e.couplets||'Theo kịch bản')}</li></ul><div class="ld-pack-actions"><a href="#contact">Liên hệ báo giá</a><button type="button" data-ld-price>${esc(price)}</button></div></div></article>`}
+function lionServiceCard(p){
+ const p2=nrNormalizeContentRecord(p,{templateKey:'dich-vu-6',contentType:'service'}),v=nrPostView(p2,{templateKey:'dich-vu-6'}),e=v.extra||lionExtra(p2),img=getImages(p2)[0]||v.image||'/assets/marketing-demo.webp',price=v.price||'Liên hệ báo giá',detail=v.detail_url||sxPostUrl(p2);
+ return `<article class="ld-pack"><a class="ld-pack-img" href="${detail}"><img src="${esc(img)}" alt="${esc(v.title||'Dịch vụ')}"><span>${esc(price)}</span></a><div class="ld-pack-body"><small>${esc(v.category||'Dịch vụ')}</small><h3><a href="${detail}">${esc(v.title||'Dịch vụ')}</a></h3><div class="ld-spec-row"><span><b>${esc(e.lion_count||'—')}</b>Đội hình</span><span><b>${esc(e.drum_count||'—')}</b>Trống</span><span><b>${esc(e.performers_count||'—')}</b>Nhân sự</span></div><ul><li>Pháo sáng: ${esc(e.fireworks||'Theo yêu cầu')}</li><li>Kim tuyến: ${esc(e.confetti||'Theo yêu cầu')}</li><li>Câu đối: ${esc(e.couplets||'Theo kịch bản')}</li></ul><div class="ld-pack-actions"><a href="#contact">${esc(v.cta_label||'Liên hệ báo giá')}</a><a class="ld-price-link" href="${detail}">${esc(v.secondary_label||'Giá tiền')}</a></div><a class="ld-pack-detail" href="${detail}">${esc(v.detail_label||'Xem chi tiết gói →')}</a></div></article>`
+}
+
 function lionGallery(images=[],title=''){if(!images.length)return '';return `<div class="ld-gallery"><div class="ld-gallery-main"><img id="ldGalleryMain" src="${esc(images[0])}" alt="${esc(title)}"></div><div class="ld-gallery-thumbs">${images.map((x,i)=>`<button type="button" class="${i===0?'active':''}" data-ld-src="${esc(x)}"><img src="${esc(x)}" alt="${esc(title)} ${i+1}"></button>`).join('')}</div></div>`}
 function bindLionGallery(){const main=document.getElementById('ldGalleryMain');if(!main)return;document.querySelectorAll('[data-ld-src]').forEach(b=>b.onclick=function(){main.src=this.dataset.ldSrc;document.querySelectorAll('[data-ld-src]').forEach(x=>x.classList.remove('active'));this.classList.add('active')})}
 function renderLionDanceTemplate(site={}){const root=document.querySelector('main');if(!root)return;document.querySelectorAll('footer.footer,footer.public-footer').forEach(x=>x.remove());const key='dich-vu-6',settings=sxSettings(site),cats=sxProfile(site,key),posts=(SITE_DATA?.posts||[]).filter(p=>p.status!=='draft'&&p.type==='service').sort((a,b)=>(Number(a?.is_sample||0)-Number(b?.is_sample||0))||(Number(b?.id||0)-Number(a?.id||0))),id=new URLSearchParams(location.search).get('id'),detail=id?posts.find(p=>String(p.id)===String(id)):null,brand=esc(site.name||'Đoàn Lân Sư Rồng'),phone=String(site.phone||''),email=String(site.email||site.contact_email||''),zalo=String(site.zalo||''),facebook=String(site.facebook||''),address=String(settings.contact_address||''),intro=String(settings.troupe_intro||'Đoàn Lân Sư Rồng chuyên biểu diễn khai trương, lễ hội, Trung Thu, Tết và sự kiện doanh nghiệp.'),experience=String(settings.experience_years||'15+ năm'),eventCount=String(settings.event_count||'800+ sự kiện'),memberCount=String(settings.member_count||'35+ thành viên'),awards=[settings.award_1,settings.award_2,settings.award_3].filter(Boolean),footerIntro=String(settings.footer_intro||intro),footerPhone=String(settings.footer_phone||phone||''),footerEmail=String(settings.footer_email||email||''),privacyUrl=String(settings.privacy_url||'#'),termsUrl=String(settings.terms_url||'#'),copyright=String(settings.footer_copyright||('© 2026 '+(site.name||'Đoàn Lân Sư Rồng')));const direct=[phone?`<a href="tel:${esc(phone.replace(/\s/g,''))}">☎ ${esc(phone)}</a>`:'',email?`<a href="mailto:${esc(email)}">✉ ${esc(email)}</a>`:'',zalo?`<a href="https://zalo.me/${esc(zalo.replace(/\D/g,''))}" target="_blank" rel="noopener">Zalo</a>`:'',facebook?`<a href="${esc(facebook)}" target="_blank" rel="noopener">Facebook</a>`:''].filter(Boolean).join('');if(detail){const imgs=getImages(detail);const e=lionExtra(detail);root.innerHTML=`<div class="ld-site"><header class="ld-header"><div class="ld-wrap"><a class="ld-brand" href="/">${brand}<small>LÂN · SƯ · RỒNG</small></a><nav><a href="/">Trang chủ</a><a href="/#packages">Gói dịch vụ</a><a href="/#experience">Năng lực</a><a href="/#contact">Liên hệ</a></nav><a class="ld-admin" href="${sxAdminNewPostUrl(key)}" target="_blank" rel="noopener">＋ Đăng dịch vụ</a></div></header><article class="ld-detail"><div class="ld-wrap"><a class="ld-back" href="/">← Trang chủ</a><small>${esc(detail.category||'Dịch vụ')}</small><h1>${esc(detail.title||'Dịch vụ')}</h1><p>${esc(sxText(detail.content||'').slice(0,220))}</p>${lionGallery(imgs,detail.title||'')}<div class="ld-detail-grid"><div class="ld-copy">${detail.content||'<p>Nội dung đang được cập nhật.</p>'}</div><aside><h3>Thông tin gói</h3>${Object.entries({"Giá":e.service_price,"Đội hình":e.lion_count,"Trống & bộ gõ":e.drum_count,"Nhân sự":e.performers_count,"Thời lượng":e.performance_duration,"Pháo sáng":e.fireworks,"Kim tuyến":e.confetti,"Câu đối":e.couplets}).filter(x=>x[1]).map(([k,v])=>`<div><small>${esc(k)}</small><b>${esc(v)}</b></div>`).join('')}<a href="/#contact">Liên hệ báo giá</a></aside></div></div></article><footer class="ld-footer"><div class="ld-wrap"><b>${brand}</b><span>${esc(copyright)}</span></div></footer></div>`;bindLionGallery();return}const packages=posts.filter(x=>x.category==='Gói múa lân').slice(0,6),dragon=posts.filter(x=>x.category==='Múa rồng').slice(0,3),drums=posts.filter(x=>x.category==='Trống hội').slice(0,3),events=posts.filter(x=>x.category==='Sự kiện đã thực hiện').slice(0,6),blog=posts.filter(x=>['Tin hoạt động','Kiến thức & phong tục'].includes(x.category)).slice(0,6),featured=posts[0],hero=(featured&&getImages(featured)[0])||'/assets/marketing-demo.webp';root.innerHTML=`<div class="ld-site"><header class="ld-header"><div class="ld-wrap"><a class="ld-brand" href="/">${brand}<small>LÂN · SƯ · RỒNG</small></a><nav><a href="#packages">Gói dịch vụ</a><a href="#experience">Năng lực</a><a href="#events">Sự kiện</a><a href="#blog">Bài viết</a><a href="#contact">Liên hệ</a></nav><a class="ld-admin" href="${sxAdminNewPostUrl(key)}" target="_blank" rel="noopener">＋ Đăng dịch vụ</a></div></header><section class="ld-hero" style="--ld-hero:url('${esc(hero)}')"><div class="ld-wrap"><small>LÂN SƯ RỒNG · BIỂU DIỄN SỰ KIỆN</small><h1>${brand}</h1><p>${esc(settings.hero_note||'Khai hội rộn ràng – đội hình linh hoạt từ 2 đến 7 đầu lân, múa rồng, trống hội và hiệu ứng theo kịch bản.')}</p><div class="ld-actions"><a href="#packages">Xem gói biểu diễn</a><a class="alt" href="#contact">Liên hệ báo giá</a></div><div class="ld-stats"><div><b>${esc(experience)}</b><span>Kinh nghiệm</span></div><div><b>${esc(eventCount)}</b><span>Sự kiện</span></div><div><b>${esc(memberCount)}</b><span>Thành viên</span></div><div><b>24/7</b><span>Nhận lịch</span></div></div></div></section><section class="ld-section" id="packages"><div class="ld-wrap"><div class="ld-title"><div><small>GÓI DỊCH VỤ</small><h2>Từ 2 đến 7 đầu lân</h2></div><p>Mỗi gói hiển thị rõ đội hình, trống, số người, hiệu ứng và giá để khách dễ lựa chọn.</p></div><div class="ld-pack-grid">${packages.length?packages.map(lionServiceCard).join(''):'<div class="sxp-empty">Chưa có gói dịch vụ. Vào Trang quản trị để đăng các gói 2–7 đầu lân.</div>'}</div></div></section><section class="ld-section ld-soft"><div class="ld-wrap"><div class="ld-title"><div><small>TIẾT MỤC MỞ RỘNG</small><h2>Múa rồng & Trống hội</h2></div></div><div class="ld-feature-grid">${[...dragon,...drums].map(p=>`<a href="${sxPostUrl(p)}">${p.image?`<img src="${esc(getImages(p)[0]||p.image)}" alt="${esc(p.title)}">`:''}<div><small>${esc(p.category)}</small><h3>${esc(p.title)}</h3><p>${esc(sxText(p.content).slice(0,120))}</p></div></a>`).join('')||'<div class="sxp-empty">Đăng bài Múa rồng và Trống hội để hiển thị ở đây.</div>'}</div></div></section><section class="ld-section ld-trust" id="experience"><div class="ld-wrap ld-trust-grid"><div><small>GIỚI THIỆU ĐOÀN</small><h2>Kinh nghiệm, kỷ luật và hình ảnh chuyên nghiệp.</h2><p>${esc(intro)}</p><div class="ld-actions"><a href="#contact">Nhận tư vấn</a><a class="alt" href="#events">Xem sự kiện</a></div></div><div class="ld-awards">${awards.length?awards.map((a,i)=>`<div><b>0${i+1} · THÀNH TÍCH</b><span>${esc(a)}</span></div>`).join(''):'<div><b>DANH HIỆU & THÀNH TÍCH</b><span>Cập nhật các giải thưởng, bằng khen và cột mốc nổi bật trong Trang quản trị.</span></div>'}</div></div></section><section class="ld-section" id="events"><div class="ld-wrap"><div class="ld-title"><div><small>SỰ KIỆN GẦN ĐÂY</small><h2>Những chương trình đã thực hiện</h2></div><p>Mỗi bài có thể tải nhiều ảnh. Trang chi tiết sẽ tự tạo gallery/slideshow.</p></div><div class="ld-event-grid">${events.map(sxCard).join('')||'<div class="sxp-empty">Chưa có sự kiện. Hãy đăng bài và chọn chuyên mục “Sự kiện đã thực hiện”.</div>'}</div></div></section><section class="ld-section ld-soft" id="blog"><div class="ld-wrap"><div class="ld-title"><div><small>BLOG & KINH NGHIỆM</small><h2>Nội dung giúp khách tin tưởng hơn</h2></div></div><div class="ld-blog-grid">${blog.map(sxCard).join('')||'<div class="sxp-empty">Chưa có bài blog.</div>'}</div></div></section><section class="ld-section ld-contact" id="contact"><div class="ld-wrap ld-contact-grid"><div><small>LIÊN HỆ BÁO GIÁ</small><h2>${esc(settings.contact_title||'Đặt lịch Lân Sư Rồng cho sự kiện của bạn')}</h2><p>${esc(settings.contact_intro||'Gửi thời gian, địa điểm và quy mô mong muốn. Đoàn sẽ liên hệ để tư vấn đội hình phù hợp.')}</p><div class="ld-direct">${direct||'<span>Hãy cập nhật Hotline, Email, Zalo và Facebook trong Trang quản trị.</span>'}</div>${address?`<p><b>Địa chỉ:</b> ${esc(address)}</p>`:''}</div><form id="sxpContactForm" class="ld-contact-form"><input name="customer_name" required placeholder="Họ và tên *"><input name="phone" required inputmode="tel" placeholder="Số điện thoại *"><input name="province" placeholder="Tỉnh / Thành phố"><input name="district" placeholder="Quận / Huyện"><textarea name="need" rows="5" placeholder="Ngày tổ chức, địa điểm, số đầu lân hoặc nhu cầu chương trình"></textarea><button type="submit">${esc(settings.contact_cta||'Gửi yêu cầu báo giá')} →</button><div id="sxpContactMsg" class="sxp-contact-msg"></div></form></div></section><footer class="ld-footer"><div class="ld-wrap ld-footer-grid"><div><b>${brand}</b><p>${esc(footerIntro)}</p></div><div><b>Dịch vụ</b><a href="#packages">2–7 đầu lân</a><a href="#packages">Múa rồng</a><a href="#packages">Trống hội</a></div><div><b>Liên hệ</b>${footerPhone?`<a href="tel:${esc(footerPhone.replace(/\s/g,''))}">☎ ${esc(footerPhone)}</a>`:''}${footerEmail?`<a href="mailto:${esc(footerEmail)}">✉ ${esc(footerEmail)}</a>`:''}${address?`<span>${esc(address)}</span>`:''}</div><div><b>Thông tin</b><a href="#experience">Giới thiệu đoàn</a><a href="${esc(privacyUrl)}">Chính sách bảo mật</a><a href="${esc(termsUrl)}">Điều khoản sử dụng</a></div></div><div class="ld-wrap ld-footer-bottom">${esc(copyright)}</div></footer><a class="ld-float" href="#contact">☎ Liên hệ báo giá</a></div>`;sxBindContact(site,key);try{nrApplyStructureGeometry(site,key);nrAuditStructureContract(site,key)}catch(e){}}
