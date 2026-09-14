@@ -3982,10 +3982,10 @@ input,select,textarea,button{max-width:100%;box-sizing:border-box}
  .ld-site .ld-float{right:12px;bottom:12px;max-width:calc(100vw - 24px)}
 }
 
-/* V20.9.27.9 media slider: externally hosted video only */
+/* V20.9.27.10 media slider: externally hosted video only */
 .ld-gallery-main iframe{width:100%;height:100%;border:0;display:block;background:#000}.ld-video-thumb{display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-height:68px;background:#171717;color:#fff;font-weight:900}.ld-gallery-thumbs button{overflow:hidden}
 
-/* V20.9.27.9 — Empty handover keeps Hero geometry 1:1 and masks demo payload. */
+/* V20.9.27.10 — Empty handover keeps Hero geometry 1:1 and masks demo payload. */
 body.nr-client-empty .nr-configurable-hero{position:relative!important;background-image:none!important}
 body.nr-client-empty .nr-configurable-hero img{visibility:hidden!important}
 body.nr-client-empty .nr-configurable-hero [style*="background-image"]{background-image:none!important}
@@ -3993,10 +3993,10 @@ body.nr-client-empty .nr-configurable-hero h1,body.nr-client-empty .nr-configura
 body.nr-client-empty .nr-configurable-hero h1{min-height:1.9em;max-width:min(760px,82%)}
 body.nr-client-empty .nr-configurable-hero p{min-height:3.4em;max-width:min(680px,78%)}
 body.nr-client-empty .nr-configurable-hero a,body.nr-client-empty .nr-configurable-hero button{min-width:118px;min-height:42px;pointer-events:none!important}
-body.nr-client-empty .nr-configurable-hero::after{content:"HERO · Có thể thay ảnh, tiêu đề và nút trong Trang quản trị";position:absolute;z-index:60;right:18px;top:18px;max-width:min(360px,calc(100% - 36px));padding:9px 12px;border:1px dashed #94a3b8;border-radius:9px;background:#ffffffed!important;color:#475569!important;font:800 11px/1.35 Inter,Arial,sans-serif;pointer-events:none}
-@media(max-width:620px){body.nr-client-empty .nr-configurable-hero::after{right:10px;top:10px;font-size:10px;max-width:calc(100% - 20px)}}
+body.nr-client-empty .nr-configurable-hero .nr-hero-edit-hint{position:absolute!important;z-index:60!important;right:18px!important;top:18px!important;left:auto!important;bottom:auto!important;width:auto!important;height:auto!important;max-width:min(360px,calc(100% - 36px))!important;min-width:0!important;min-height:0!important;margin:0!important;padding:9px 12px!important;border:1px dashed #94a3b8!important;border-radius:9px!important;background:#ffffffed!important;color:#475569!important;font:800 11px/1.35 Inter,Arial,sans-serif!important;letter-spacing:.01em!important;pointer-events:none!important;box-shadow:none!important;text-shadow:none!important}
+@media(max-width:620px){body.nr-client-empty .nr-configurable-hero .nr-hero-edit-hint{right:10px!important;top:10px!important;font-size:10px!important;max-width:calc(100% - 20px)!important}}
 
-/* V20.9.27.9 — Real customer blank-site hero placeholders. */
+/* V20.9.27.10 — Real customer blank-site hero placeholders. */
 .ld-hero.ld-hero-empty:before{background-image:linear-gradient(110deg,#3a1a18 8%,#53302d 18%,#3a1a18 33%)!important;background-size:200% 100%!important;animation:nrSkHero 1.7s linear infinite}
 .sxp-hero-photo-empty{background:linear-gradient(110deg,#e2e8f0 8%,#f8fafc 18%,#e2e8f0 33%);background-size:200% 100%;animation:nrSkHero 1.7s linear infinite}
 @keyframes nrSkHero{to{background-position-x:-200%}}
