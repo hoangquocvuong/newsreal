@@ -755,7 +755,7 @@ export async function onRequest(context){
  // legacy demo tenant / D1 / BDS fallback can run. Query strings such as
  // ?nr_client=1&nr_samples=0 must never alter the selected renderer.
  const hardProDemo=proDemoKeyFromPath(rawPath);
- if(marketHost&&hardProDemo){
+ if(marketHost&&hardProDemo&&!u.searchParams.get('nr_trial')){
    const html=injectProClientSimulation(proDemoHtml(hardProDemo,rawPath),u);
    if(html)return new Response(html,{status:200,headers:{'Content-Type':'text/html; charset=UTF-8','Cache-Control':'no-store, no-cache, must-revalidate, max-age=0','CDN-Cache-Control':'no-store','Cloudflare-CDN-Cache-Control':'no-store','X-HVT-Demo-Build':'20.9.27.6','X-HVT-Demo-Renderer':hardProDemo}});
  }
@@ -893,7 +893,7 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
 
  // V20.9.26.9 — secondary professional renderer guard.
  // These five templates must never reuse the NEWSREAL/BDS shell.
- if(marketHost&&PRO_DEMO_KEYS.has(demo)){
+ if(marketHost&&PRO_DEMO_KEYS.has(demo)&&!u.searchParams.get('nr_trial')){
    const html=injectProClientSimulation(proDemoHtml(demo,rawPath),u);
    if(html)return new Response(html,{status:200,headers:{'Content-Type':'text/html; charset=UTF-8','Cache-Control':'no-cache, no-store, must-revalidate'}});
  }

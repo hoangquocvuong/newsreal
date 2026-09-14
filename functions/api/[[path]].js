@@ -1360,18 +1360,34 @@ async function installDefaultTemplateSamples(env,siteId,opts={}){
   // sample-first rollout where the state marker could exist before rows were visible.
   await ensureSampleColumns(env);
   await ensureTemplateSampleState(env);
-  const site=await env.DB.prepare(`SELECT id,coalesce(template_key,'') template_key FROM sites WHERE id=? LIMIT 1`).bind(siteId).first();
+  const site=await env.DB.prepare(`SELECT id,coalesce(template_key,'') template_key,coalesce(preset,'') preset FROM sites WHERE id=? LIMIT 1`).bind(siteId).first();
   if(!site)return {installed:false,reason:'site-not-found'};
-  const state=await env.DB.prepare(`SELECT sample_pack_installed_at,sample_pack_template_key,sample_pack_version FROM site_template_state WHERE site_id=? LIMIT 1`).bind(siteId).first();
-  const currentVersion=2;
-  if(state?.sample_pack_installed_at&&Number(state.sample_pack_version||0)>=currentVersion&&!opts.force){
-    return {installed:false,already:true,template_key:state.sample_pack_template_key||site.template_key,version:currentVersion};
+  // V20.9.27.24 — New professional trials can be opened through a demo route while
+  // the canonical template identity lives on website_trials/template_catalog.
+  // Resolve one effective key before building the sample pack so professional
+  // templates never fall through to an empty generic blueprint.
+  let effectiveTemplateKey=String(site.template_key||'').trim();
+  try{
+    const tr=await env.DB.prepare(`SELECT coalesce(template_key,'') template_key FROM website_trials WHERE site_id=? ORDER BY id DESC LIMIT 1`).bind(siteId).first();
+    if(String(tr?.template_key||'').trim())effectiveTemplateKey=String(tr.template_key).trim();
+  }catch(e){}
+  if(!effectiveTemplateKey&&site.preset){
+    try{const tc=await env.DB.prepare(`SELECT template_key FROM template_catalog WHERE preset=? ORDER BY is_active DESC,sort_order,template_key LIMIT 1`).bind(site.preset).first();if(tc?.template_key)effectiveTemplateKey=String(tc.template_key).trim()}catch(e){}
   }
-  const result=await seedDemoForSite(env,siteId,{source:opts.source||'default-handover'});
+  if(effectiveTemplateKey&&effectiveTemplateKey!==String(site.template_key||'')){
+    try{await env.DB.prepare(`UPDATE sites SET template_key=? WHERE id=?`).bind(effectiveTemplateKey,siteId).run();site.template_key=effectiveTemplateKey}catch(e){}
+  }
+  const state=await env.DB.prepare(`SELECT sample_pack_installed_at,sample_pack_template_key,sample_pack_version FROM site_template_state WHERE site_id=? LIMIT 1`).bind(siteId).first();
+  const currentVersion=3;
+  if(state?.sample_pack_installed_at&&Number(state.sample_pack_version||0)>=currentVersion&&!opts.force){
+    return {installed:false,already:true,template_key:state.sample_pack_template_key||effectiveTemplateKey||site.template_key,version:currentVersion};
+  }
+  const result=await seedDemoForSite(env,siteId,{source:opts.source||'default-handover',template_key:effectiveTemplateKey});
+  if(!Number(result?.total||0))return {installed:false,reason:'empty-blueprint',template_key:effectiveTemplateKey||site.template_key||'',version:currentVersion};
   await env.DB.prepare(`INSERT INTO site_template_state(site_id,sample_pack_installed_at,sample_pack_template_key,sample_pack_version,updated_at)
-    VALUES(?,CURRENT_TIMESTAMP,?,2,CURRENT_TIMESTAMP)
-    ON CONFLICT(site_id) DO UPDATE SET sample_pack_installed_at=CURRENT_TIMESTAMP,sample_pack_template_key=excluded.sample_pack_template_key,sample_pack_version=2,updated_at=CURRENT_TIMESTAMP`)
-    .bind(siteId,String(site.template_key||'')).run();
+    VALUES(?,CURRENT_TIMESTAMP,?,3,CURRENT_TIMESTAMP)
+    ON CONFLICT(site_id) DO UPDATE SET sample_pack_installed_at=CURRENT_TIMESTAMP,sample_pack_template_key=excluded.sample_pack_template_key,sample_pack_version=3,updated_at=CURRENT_TIMESTAMP`)
+    .bind(siteId,String(effectiveTemplateKey||site.template_key||'')).run();
   return {installed:true,version:currentVersion,...result};
 }
 
@@ -1379,6 +1395,7 @@ async function seedDemoForSite(env,siteId,opts={}){
   // V20.9.24.2 — migrations own template/sample schema; seed only data here.
   const site=await env.DB.prepare(`SELECT id,name,coalesce(template_key,'') template_key,coalesce(preset,'') preset FROM sites WHERE id=?`).bind(siteId).first();
   if(!site)throw new Error('Website không tồn tại');
+  if(String(opts.template_key||'').trim())site.template_key=String(opts.template_key).trim();
   const admin=await env.DB.prepare(`SELECT id FROM users WHERE site_id=? AND role='admin' ORDER BY id LIMIT 1`).bind(siteId).first();
   if(!admin)throw new Error('Website chưa có tài khoản Admin khách');
 
@@ -1428,9 +1445,10 @@ async function buildTemplatePreviewBlueprint(env,templateKey,site={}){
   let t=null;
   if(key)try{t=await env.DB.prepare(`SELECT template_key,category,preset,coalesce(sample_count,12) sample_count,editor_profile,structure_profile FROM template_catalog WHERE template_key=? LIMIT 1`).bind(key).first()}catch(e){}
   if(!t&&site?.preset)try{t=await env.DB.prepare(`SELECT template_key,category,preset,coalesce(sample_count,12) sample_count,editor_profile,structure_profile FROM template_catalog WHERE preset=? ORDER BY sort_order,template_key LIMIT 1`).bind(site.preset).first()}catch(e){}
+  const resolvedKey=String(t?.template_key||key||'').trim();
   let ep={};try{ep=t?.editor_profile?JSON.parse(t.editor_profile):{}}catch(e){ep={}}
-  let sp={};try{sp=t?.structure_profile?JSON.parse(t.structure_profile):defaultTemplateStructure(key||t?.template_key||'')}catch(e){sp=defaultTemplateStructure(key||t?.template_key||'')}
-  if(!sp||!Array.isArray(sp.sections))sp=defaultTemplateStructure(key||t?.template_key||'')||{sections:[]};
+  let sp={};try{sp=t?.structure_profile?JSON.parse(t.structure_profile):defaultTemplateStructure(resolvedKey)}catch(e){sp=defaultTemplateStructure(resolvedKey)}
+  if(!sp||!Array.isArray(sp.sections))sp=defaultTemplateStructure(resolvedKey)||{sections:[]};
   const category=String(t?.category||'').toLowerCase();
   const contentType=String(ep?.content_type||(category==='tin-tuc'?'news':category==='bat-dong-san'?'property':category==='san-pham'?'product':'generic')).toLowerCase();
   const limit=Math.max(1,Math.min(30,Number(t?.sample_count||12)));
@@ -1438,7 +1456,7 @@ async function buildTemplatePreviewBlueprint(env,templateKey,site={}){
   // V20.9.27.22 — Professional templates install the very same article corpus used
   // by the showroom. The customer receives those rows in D1 and may edit/delete
   // them normally in Admin; there is no separate empty/skeleton content mode.
-  const professional=professionalDemoData(key);
+  const professional=professionalDemoData(resolvedKey);
   if(professional?.articles?.length){
     const toHtml=(a)=>{
       const body=Array.isArray(a.body)?a.body.map(x=>`<h2>${String(x?.[0]||'')}</h2><p>${String(x?.[1]||'')}</p>`).join(''):String(a.excerpt||'');
@@ -1452,8 +1470,8 @@ async function buildTemplatePreviewBlueprint(env,templateKey,site={}){
     posts=professional.articles.map((a,i)=>({
       id:930000+i,type:contentType==='generic'?'news':contentType,title:String(a.title||''),category:String(a.cat||'Nội dung'),image:String(a.img||''),
       content:toHtml(a),status:'published',featured:i===0?1:0,verified:1,listing_code:`SAMPLE-${String(i+1).padStart(3,'0')}`,views:120+(i*17),
-      gallery:Array.isArray(a.gallery)?a.gallery.join(', '):'',extra_json:JSON.stringify(key==='dich-vu-6'?lionExtra(a):{}),
-      is_sample:1,sample_key:`${key}:showroom-${String(a.slug||i+1)}`,__nr_blueprint:1
+      gallery:Array.isArray(a.gallery)?a.gallery.join(', '):'',extra_json:JSON.stringify(resolvedKey==='dich-vu-6'?lionExtra(a):{}),
+      is_sample:1,sample_key:`${resolvedKey}:showroom-${String(a.slug||i+1)}`,__nr_blueprint:1
     }));
   }else if(contentType==='news'){
     // V15.8 — Sales demos must be presentation-complete. The template structure,

@@ -1717,7 +1717,7 @@ async function nrBootMain(){
    // V20.9.27.23 — customer/trial content always outranks editable sample rows.
    // This guarantees a newly published post appears in its homepage section before
    // the sample pack fills the remaining slots.
-   if(!demoTemplateKey&&Array.isArray(SITE_DATA?.posts))SITE_DATA.posts=[...SITE_DATA.posts].sort((a,b)=>(Number(a?.is_sample||0)-Number(b?.is_sample||0))||(Number(b?.id||0)-Number(a?.id||0)));
+   if((!demoTemplateKey||window.NR_TRIAL_TOKEN)&&Array.isArray(SITE_DATA?.posts))SITE_DATA.posts=[...SITE_DATA.posts].sort((a,b)=>(Number(a?.is_sample||0)-Number(b?.is_sample||0))||(Number(b?.id||0)-Number(a?.id||0)));
    const s=d.site||{};
    if(s?.favicon_url){let f=document.querySelector('link[rel=\"icon\"]');if(!f){f=document.createElement('link');f.rel='icon';document.head.appendChild(f)}f.href=s.favicon_url}
    const activeTemplateKey=demoTemplateKey||s.template_key||'';
