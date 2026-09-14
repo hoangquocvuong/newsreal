@@ -1,0 +1,3 @@
+-- V13.2 uses template_catalog.editor_profile added in V13.
+-- No new schema column is required.
+-- Existing BĐS profiles are repaired at runtime if category maps are absent.

@@ -1,0 +1,1 @@
+export default {async scheduled(event,env,ctx){ctx.waitUntil(fetch(env.NEWSREAL_REMINDER_URL||'https://newsreal.pages.dev/api/system/renewal-reminders',{method:'POST',headers:{Authorization:`Bearer ${env.CRON_SECRET}`}}).then(async r=>{if(!r.ok)throw new Error(`NEWSREAL reminder job ${r.status}: ${await r.text()}`)}))}};

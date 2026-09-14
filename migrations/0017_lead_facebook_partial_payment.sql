@@ -1,0 +1,2 @@
+ALTER TABLE sales_leads ADD COLUMN facebook TEXT NOT NULL DEFAULT '';
+ALTER TABLE service_subscriptions ADD COLUMN paid_amount INTEGER NOT NULL DEFAULT 0;
