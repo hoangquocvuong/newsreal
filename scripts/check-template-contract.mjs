@@ -152,7 +152,7 @@ for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','d
 // V20.9.25.4 — hard pathname dispatch must run before all legacy tenant fallbacks.
 const hardProFn=fn.indexOf('function proDemoKeyFromPath(path)');
 const hardProCall=fn.indexOf('const hardProDemo=proDemoKeyFromPath(rawPath)');
-const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.26.0'");
+const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.26.1'");
 const legacyTenantPos=fn.indexOf("const demoReq=new Request('https://batdongsan2027.org.uk'");
 if(hardProFn<0||hardProCall<0||hardProReturn<0||legacyTenantPos<0||hardProCall>legacyTenantPos){
   console.log('FAIL  hard professional demo pathname dispatch before BDS fallback');failed++;
@@ -182,7 +182,7 @@ for(const needle of [
   "if(c.kind==='ev')return evHome",
   'Tìm điểm sạc',
   'Bản tin doanh nghiệp',
-  'Bên trong nhà máy',
+  'Hình ảnh hoạt động doanh nghiệp',
   'Thư viện kiến thức xe điện',
   '/bai-viet/'
 ]){
@@ -215,16 +215,16 @@ if(/designedRows\*cols/.test(site)){
 }else console.log('OK  no computed slot target');
 
 // V20.9.25.7 — professional real-content demo regression checks
-for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo sử dụng ảnh chụp thực tế từ Unsplash','Thương hiệu cá nhân','Kinh doanh nội dung','Dữ liệu & BI','Cơ khí & CNC','Kiến thức sạc']){
+for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo sử dụng ảnh chụp thực tế từ Unsplash','Thương hiệu cá nhân','Kinh doanh nội dung','Giới thiệu & năng lực','Dự án tiêu biểu','Kiến thức sạc']){
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  rich demo content ${needle}`); if(!ok) failed++;
 }
 
-for(const needle of ['Bản tin doanh nghiệp','Bên trong nhà máy','Năng lực cốt lõi','Thư viện kiến thức xe điện','Kinh doanh nội dung','Bài nổi bật & bài được đọc nhiều','Nguồn tham khảo chuyên môn','IEA · Electric vehicle charging 2026']){
+for(const needle of ['Bản tin doanh nghiệp','Hình ảnh hoạt động doanh nghiệp','Năng lực cốt lõi','Thư viện kiến thức xe điện','Kinh doanh nội dung','Bài nổi bật & bài được đọc nhiều','Nguồn tham khảo chuyên môn','IEA · Electric vehicle charging 2026']){
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  pro real-world layout ${needle}`); if(!ok) failed++;
 }
-const richSections=['blog-ca-nhan-1','blog-ca-nhan-2','doanh-nghiep-1','doanh-nghiep-2','dich-vu-5'];
-for(const k of richSections){
- const marker=`'${k}':{version:7`;
+const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',7]];
+for(const [k,v] of richSections){
+ const marker=`'${k}':{version:${v}`;
  const ok=api.includes(marker); console.log(`${ok?'OK':'FAIL'}  rich structure ${k}`); if(!ok) failed++;
 }
 
@@ -238,7 +238,7 @@ for(const [label,needle] of [
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  ${label}`); if(!ok) failed++;
 }
 
-// V20.9.26.0 — professional Admin/category/contact contract.
+// V20.9.26.1 — professional Admin/category/contact contract.
 for(const needle of [
   'const professionalEditors=',
   "'blog-ca-nhan-1':{id:'news'",
