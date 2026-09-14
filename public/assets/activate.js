@@ -47,7 +47,13 @@ activateNow.onclick=async()=>{
  showOnly('activationWorking');
  try{
   const d=await activationApi('POST',{token,email:em,password:p1,site_name:siteName});
-  if(d.token)localStorage.setItem('nr_client_token',d.token);
+  if(d.token){
+    try{
+      const adminUrl=new URL(d.admin_url,location.origin),qp=adminUrl.searchParams;
+      const scope=qp.get('tenant')||qp.get('nr_trial')||adminUrl.hostname;
+      localStorage.setItem('nr_client_token:'+scope,d.token);
+    }catch(e){localStorage.setItem('nr_client_token',d.token)}
+  }
   location.replace(d.admin_url);
  }catch(err){
   activateNow.disabled=false;

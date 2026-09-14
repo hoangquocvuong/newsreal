@@ -1378,15 +1378,15 @@ async function installDefaultTemplateSamples(env,siteId,opts={}){
     try{await env.DB.prepare(`UPDATE sites SET template_key=? WHERE id=?`).bind(effectiveTemplateKey,siteId).run();site.template_key=effectiveTemplateKey}catch(e){}
   }
   const state=await env.DB.prepare(`SELECT sample_pack_installed_at,sample_pack_template_key,sample_pack_version FROM site_template_state WHERE site_id=? LIMIT 1`).bind(siteId).first();
-  const currentVersion=3;
+  const currentVersion=4;
   if(state?.sample_pack_installed_at&&Number(state.sample_pack_version||0)>=currentVersion&&!opts.force){
     return {installed:false,already:true,template_key:state.sample_pack_template_key||effectiveTemplateKey||site.template_key,version:currentVersion};
   }
   const result=await seedDemoForSite(env,siteId,{source:opts.source||'default-handover',template_key:effectiveTemplateKey});
   if(!Number(result?.total||0))return {installed:false,reason:'empty-blueprint',template_key:effectiveTemplateKey||site.template_key||'',version:currentVersion};
   await env.DB.prepare(`INSERT INTO site_template_state(site_id,sample_pack_installed_at,sample_pack_template_key,sample_pack_version,updated_at)
-    VALUES(?,CURRENT_TIMESTAMP,?,3,CURRENT_TIMESTAMP)
-    ON CONFLICT(site_id) DO UPDATE SET sample_pack_installed_at=CURRENT_TIMESTAMP,sample_pack_template_key=excluded.sample_pack_template_key,sample_pack_version=3,updated_at=CURRENT_TIMESTAMP`)
+    VALUES(?,CURRENT_TIMESTAMP,?,4,CURRENT_TIMESTAMP)
+    ON CONFLICT(site_id) DO UPDATE SET sample_pack_installed_at=CURRENT_TIMESTAMP,sample_pack_template_key=excluded.sample_pack_template_key,sample_pack_version=4,updated_at=CURRENT_TIMESTAMP`)
     .bind(siteId,String(effectiveTemplateKey||site.template_key||'')).run();
   return {installed:true,version:currentVersion,...result};
 }
@@ -1413,8 +1413,16 @@ async function seedDemoForSite(env,siteId,opts={}){
     const x=rows[i]||{};
     const sampleKey=String(x.sample_key||`${site.template_key||x.type||'sample'}:${i+1}`);
     const listingCode=String(x.listing_code||`SAMPLE-${String(i+1).padStart(3,'0')}`);
-    const exists=await env.DB.prepare(`SELECT id FROM posts WHERE site_id=? AND (sample_key=? OR (listing_code<>'' AND listing_code=?)) LIMIT 1`).bind(siteId,sampleKey,listingCode).first();
-    if(exists){skipped++;continue}
+    const exists=await env.DB.prepare(`SELECT id,type,is_sample,sample_key,listing_code FROM posts WHERE site_id=? AND (sample_key=? OR (listing_code<>'' AND listing_code=?)) LIMIT 1`).bind(siteId,sampleKey,listingCode).first();
+    if(exists){
+      // V20.9.27.25 — repair technical sample identity without overwriting customer edits.
+      // Earlier professional packs could be inserted as `news` when editor_profile had
+      // not yet been synchronized, which made both Admin > Tin mẫu and the live renderer
+      // hide them. Keep edited title/content/category, but restore canonical type/flags.
+      await env.DB.prepare(`UPDATE posts SET type=?,is_sample=1,sample_key=CASE WHEN coalesce(sample_key,'')='' THEN ? ELSE sample_key END WHERE id=? AND site_id=?`)
+        .bind(x.type||'property',sampleKey,exists.id,siteId).run();
+      skipped++;continue
+    }
     if(String(x.type||'')==='news'){
       await env.DB.prepare(`INSERT INTO posts(site_id,type,title,category,image,content,status,author_id,featured,verified,listing_code,views,is_sample,sample_key,extra_json,gallery)
         VALUES(?,'news',?,?,?,?, 'published',?,?,?,?,?,1,?,?,?)`)
@@ -1458,6 +1466,11 @@ async function buildTemplatePreviewBlueprint(env,templateKey,site={}){
   // them normally in Admin; there is no separate empty/skeleton content mode.
   const professional=professionalDemoData(resolvedKey);
   if(professional?.articles?.length){
+    // Professional templates have a canonical persisted post type independent of
+    // whether template_catalog.editor_profile has already been synchronized in D1.
+    // This prevents service templates from being seeded as `news` and disappearing
+    // from both Admin filters and the customer homepage.
+    const professionalType=['dich-vu-5','dich-vu-6'].includes(resolvedKey)?'service':'news';
     const toHtml=(a)=>{
       const body=Array.isArray(a.body)?a.body.map(x=>`<h2>${String(x?.[0]||'')}</h2><p>${String(x?.[1]||'')}</p>`).join(''):String(a.excerpt||'');
       const tips=Array.isArray(a.tips)&&a.tips.length?`<h2>Lưu ý</h2><ul>${a.tips.map(x=>`<li>${String(x||'')}</li>`).join('')}</ul>`:'';
@@ -1468,7 +1481,7 @@ async function buildTemplatePreviewBlueprint(env,templateKey,site={}){
       return {service_price:String(a.price||''),lion_count:String(specs['Lân']||specs['Rồng']||''),drum_count:String(specs['Trống']||''),performers_count:String(specs['Nhân sự']||''),performance_duration:String(specs['Thời lượng']||''),fireworks:String(specs['Pháo sáng']||''),confetti:String(specs['Kim tuyến']||''),couplets:String(specs['Câu đối']||''),service_cta:'Liên hệ báo giá'};
     };
     posts=professional.articles.map((a,i)=>({
-      id:930000+i,type:contentType==='generic'?'news':contentType,title:String(a.title||''),category:String(a.cat||'Nội dung'),image:String(a.img||''),
+      id:930000+i,type:professionalType,title:String(a.title||''),category:String(a.cat||'Nội dung'),image:String(a.img||''),
       content:toHtml(a),status:'published',featured:i===0?1:0,verified:1,listing_code:`SAMPLE-${String(i+1).padStart(3,'0')}`,views:120+(i*17),
       gallery:Array.isArray(a.gallery)?a.gallery.join(', '):'',extra_json:JSON.stringify(resolvedKey==='dich-vu-6'?lionExtra(a):{}),
       is_sample:1,sample_key:`${resolvedKey}:showroom-${String(a.slug||i+1)}`,__nr_blueprint:1

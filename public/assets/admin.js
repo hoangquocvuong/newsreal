@@ -1,13 +1,26 @@
 
-const handoverParam=new URLSearchParams(location.search).get('handover')||'';
-const trialParam=new URLSearchParams(location.search).get('nr_trial')||'';
+const __nrAdminParams=new URLSearchParams(location.search);
+const handoverParam=__nrAdminParams.get('handover')||'';
+const trialParam=__nrAdminParams.get('nr_trial')||'';
+const tenantParam=__nrAdminParams.get('tenant')||'';
+const nrAdminSessionScope=tenantParam||trialParam||location.hostname;
+const nrAdminTokenKey='nr_client_token:'+nrAdminSessionScope;
+function nrGetAdminToken(){
+  const scoped=localStorage.getItem(nrAdminTokenKey)||'';
+  if(scoped)return scoped;
+  const legacy=localStorage.getItem('nr_client_token')||'';
+  if(legacy){localStorage.setItem(nrAdminTokenKey,legacy);return legacy}
+  return '';
+}
+function nrSetAdminToken(token){if(token)localStorage.setItem(nrAdminTokenKey,token)}
+function nrClearAdminToken(){localStorage.removeItem(nrAdminTokenKey)}
 async function consumeHandover(){
  if(!handoverParam)return false;
  try{
   const r=await fetch('/api/handover-login',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:handoverParam})});
   const t=await r.text();let d={};try{d=JSON.parse(t)}catch{}
   if(!r.ok)throw new Error(d.error||t);
-  if(d.token)localStorage.setItem('nr_client_token',d.token);
+  if(d.token)nrSetAdminToken(d.token);
   const cleanUrl=new URL(location.href);cleanUrl.searchParams.delete('handover');history.replaceState({},'',cleanUrl.pathname+(cleanUrl.searchParams.toString()?'?'+cleanUrl.searchParams.toString():'')+cleanUrl.hash);
   return true;
  }catch(e){console.error(e);alert('Không thể hoàn tất bàn giao: '+e.message);return false}
@@ -33,7 +46,7 @@ imageFiles.addEventListener('change',async()=>{
     if(file.size>8*1024*1024){uploadStatus.textContent=`${file.name} vượt quá 8 MB`;continue}
     const fd=new FormData(); fd.append('file',file);
     try{
-      const tk=localStorage.getItem('nr_client_token')||'';const r=await fetch(tenantUrl('/upload'),{method:'POST',body:fd,credentials:'include',headers:tk?{'Authorization':'Bearer '+tk}:{}});
+      const tk=nrGetAdminToken();const r=await fetch(tenantUrl('/upload'),{method:'POST',body:fd,credentials:'include',headers:tk?{'Authorization':'Bearer '+tk}:{}});
       const d=await r.json(); if(!r.ok)throw new Error(d.error||'Tải ảnh thất bại');
       uploadedImages.push(d.url); renderImages();
     }catch(e){uploadStatus.textContent=e.message;return}
@@ -42,9 +55,8 @@ imageFiles.addEventListener('change',async()=>{
   imageFiles.value='';
 });
 
-const tenantParam=new URLSearchParams(location.search).get('tenant')||'';
 if(trialParam){document.body.classList.add('admin-trial-mode');if(window.viewSiteLink){viewSiteLink.href='#';viewSiteLink.style.display='none'}}else if(window.viewSiteLink&&tenantParam)viewSiteLink.href='/?tenant='+encodeURIComponent(tenantParam);function tenantUrl(path){if(!tenantParam)return '/api'+path;return '/api'+path+(path.includes('?')?'&':'?')+'tenant='+encodeURIComponent(tenantParam)}
-async function api(path,opts={}){const token=localStorage.getItem('nr_client_token')||'';const headers={'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{}),...(opts.headers||{})};const r=await fetch(tenantUrl(path),{credentials:'include',...opts,headers});const t=await r.text();let d={};try{d=JSON.parse(t)}catch{}if(!r.ok)throw new Error(d.error||t);return d}
+async function api(path,opts={}){const token=nrGetAdminToken();const headers={'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{}),...(opts.headers||{})};const r=await fetch(tenantUrl(path),{credentials:'include',...opts,headers});const t=await r.text();let d={};try{d=JSON.parse(t)}catch{}if(!r.ok){const e=new Error(d.error||t);e.status=r.status;e.data=d;throw e}return d}
 
 let CLIENT_TEMPLATE_KEY='',CLIENT_PRESET='',CLIENT_CATEGORY='',CLIENT_PROFILE=null;
 
@@ -311,8 +323,8 @@ async function boot(){try{
  websiteSettingsSnapshot=captureWebsiteSettings();setWebsiteSettingsEditing(false);
  configureAdminForTemplate();
  const wanted=new URLSearchParams(location.search).get('tab');if(wanted==='newpost')showTab('newpost')
-}catch(err){console.error('BOOT ERROR',err);document.documentElement.classList.remove('nr-admin-auth-boot','nr-handover-boot');loginPanel.classList.remove('hidden');dashboard.classList.add('hidden');}}
-loginForm.addEventListener('submit',async e=>{e.preventDefault();try{const d=await api('/login',{method:'POST',body:JSON.stringify({email:email.value,password:password.value})});if(d.token)localStorage.setItem('nr_client_token',d.token);loginMsg.classList.add('hidden');document.documentElement.classList.add('nr-admin-auth-boot');await boot()}catch(err){document.documentElement.classList.remove('nr-admin-auth-boot');loginMsg.textContent=err.message;loginMsg.classList.remove('hidden')}});
+}catch(err){console.error('BOOT ERROR',err);document.documentElement.classList.remove('nr-admin-auth-boot','nr-handover-boot');if(Number(err?.status||0)===401){nrClearAdminToken();loginPanel.classList.remove('hidden');dashboard.classList.add('hidden');}else{loginPanel.classList.add('hidden');dashboard.classList.remove('hidden');let box=document.getElementById('nrAdminBootError');if(!box){box=document.createElement('div');box.id='nrAdminBootError';box.className='template-form-notice';box.style.margin='16px';dashboard.prepend(box)}box.innerHTML='<b>Không thể tải đầy đủ Trang quản trị.</b><span>'+String(err?.message||'Lỗi tạm thời')+'. Hãy tải lại trang; bạn không cần đăng nhập lại.</span>';}}}
+loginForm.addEventListener('submit',async e=>{e.preventDefault();try{const d=await api('/login',{method:'POST',body:JSON.stringify({email:email.value,password:password.value})});if(d.token)nrSetAdminToken(d.token);loginMsg.classList.add('hidden');document.documentElement.classList.add('nr-admin-auth-boot');await boot()}catch(err){document.documentElement.classList.remove('nr-admin-auth-boot');loginMsg.textContent=err.message;loginMsg.classList.remove('hidden')}});
 
 const showForgotPassword=document.getElementById('showForgotPassword');
 const forgotPasswordBox=document.getElementById('forgotPasswordBox');
@@ -347,7 +359,7 @@ forgotPasswordForm?.addEventListener('submit',async e=>{
     submit.disabled=false; submit.textContent='Gửi link đặt lại mật khẩu';
   }
 });
-async function logout(){await api('/logout',{method:'POST',body:'{}'}).catch(()=>{});localStorage.removeItem('nr_client_token');location.href='/admin'}
+async function logout(){await api('/logout',{method:'POST',body:'{}'}).catch(()=>{});nrClearAdminToken();location.href='/admin'}
 
 
 const richEditor=document.getElementById('richEditor'),richToolbar=document.getElementById('richToolbar'),richFormat=document.getElementById('richFormat'),richImageFile=document.getElementById('richImageFile'),richStatus=document.getElementById('richStatus');
@@ -461,7 +473,7 @@ async function uploadEditorBlob(file){
  if(!file)throw new Error('Không có ảnh để tải lên');
  if(file.size>8*1024*1024)throw new Error('Ảnh vượt quá 8 MB');
  const fd=new FormData();fd.append('file',file);
- const tk=localStorage.getItem('nr_client_token')||'';
+ const tk=nrGetAdminToken();
  const r=await fetch(tenantUrl('/upload'),{method:'POST',body:fd,credentials:'include',headers:tk?{'Authorization':'Bearer '+tk}:{}});
  const d=await r.json();if(!r.ok)throw new Error(d.error||'Tải ảnh thất bại');
  return d.url;
@@ -665,7 +677,7 @@ async function loadPosts(){
  postTable.innerHTML=renderAdminPostTable(rows,{sample:false});
 }
 async function loadSamplePosts(){
- const rows=adminTemplateRows(await fetchAdminPosts()).filter(isSamplePost);
+ const rows=(await fetchAdminPosts()).filter(isSamplePost);
  if(sampleTable)sampleTable.innerHTML=renderAdminPostTable(rows,{sample:true});
 }
 

@@ -5,7 +5,7 @@ const html=fs.readFileSync('public/admin.html','utf8');
 const site=fs.readFileSync('public/assets/site.js','utf8');
 const checks=[
  ['Admin installs/backfills sample pack before dashboard stats',api.includes("installDefaultTemplateSamples(env,site.id,{source:'admin-me-backfill'})")],
- ['Sample pack repair version 3',api.includes('const currentVersion=3')&&api.includes('sample_pack_version=3')],
+ ['Sample pack repair version 4',api.includes('const currentVersion=4')&&api.includes('sample_pack_version=4')],
  ['Admin has dedicated Tin mẫu menu',html.includes('data-tab="samples"')&&html.includes('>Tin mẫu<')],
  ['Admin has dedicated sample table',html.includes('id="sampleTable"')],
  ['Normal content list excludes sample rows',admin.includes("filter(x=>!isSamplePost(x))")],
