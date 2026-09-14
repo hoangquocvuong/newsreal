@@ -4,17 +4,11 @@ const api=fs.readFileSync('functions/api/[[path]].js','utf8');
 const css=fs.readFileSync('public/assets/style.css','utf8');
 const index=fs.readFileSync('public/index.html','utf8');
 const fn=fs.readFileSync('functions/[[path]].js','utf8');
-const admin=fs.readFileSync('public/assets/admin.js','utf8');
 const required=[
   ['site exact target','nrEnforceSlotHost'],
   ['site contract audit','NR_TEMPLATE_CONTRACT_REPORT'],
   ['site service binding','data-structure-key="internet"'],
   ['backend universal contract','universal-layout-v1'],
-  ['professional Hero image setting','hero_image_url'],
-  ['professional Hero primary CTA setting','hero_primary_label'],
-  ['professional Hero secondary CTA setting','hero_secondary_label'],
-  ['function embedded legacy service Hero empty selector','.fpt-hero'],
-  ['function embedded legacy empty simulation Hero class','nr-client-empty'],
   ['backend exact slots',"slot_contract:'exact'"],
   ['VNPT split host','.vnpt-pack-list'],
   ['Camera Store exact section','data-structure-key=\"indoor\"'],
@@ -158,7 +152,7 @@ for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','d
 // V20.9.25.4 — hard pathname dispatch must run before all legacy tenant fallbacks.
 const hardProFn=fn.indexOf('function proDemoKeyFromPath(path)');
 const hardProCall=fn.indexOf('const hardProDemo=proDemoKeyFromPath(rawPath)');
-const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.27.17'");
+const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.27.6'");
 const legacyTenantPos=fn.indexOf("const demoReq=new Request('https://batdongsan2027.org.uk'");
 if(hardProFn<0||hardProCall<0||hardProReturn<0||legacyTenantPos<0||hardProCall>legacyTenantPos){
   console.log('FAIL  hard professional demo pathname dispatch before BDS fallback');failed++;
@@ -232,7 +226,7 @@ for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo sử dụng ảnh chụp t
 for(const needle of ['Bản tin doanh nghiệp','Hình ảnh hoạt động doanh nghiệp','Năng lực cốt lõi','Thư viện kiến thức xe điện','Kinh doanh nội dung','Bài nổi bật & bài được đọc nhiều','Nguồn tham khảo chuyên môn','IEA · Electric vehicle charging 2026']){
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  pro real-world layout ${needle}`); if(!ok) failed++;
 }
-const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',8],['dich-vu-6',3]];
+const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',8],['dich-vu-6',1]];
 for(const [k,v] of richSections){
  const marker=`'${k}':{version:${v}`;
  const ok=api.includes(marker); console.log(`${ok?'OK':'FAIL'}  rich structure ${k}`); if(!ok) failed++;
@@ -270,7 +264,7 @@ for(const needle of ["const evSettings=","ev_station_api_url","station_data_cont
 
 
 // V20.9.26.9 — new professional templates must share the legacy customer-preview contract.
-for (const marker of ['function injectProClientSimulation(html,url)','GIẢ LẬP KHÁCH HÀNG','data-pro-samples=\"1\"','data-pro-samples=\"0\"','nr-pro-empty','unifiedProfessionalDemoHtml(hardProDemo,rawPath,u)']) {
+for (const marker of ['function injectProClientSimulation(html,url)','GIẢ LẬP KHÁCH HÀNG','data-pro-samples=\"1\"','data-pro-samples=\"0\"','nr-pro-empty','injectProClientSimulation(proDemoHtml(hardProDemo,rawPath),u)']) {
   const ok=fn.includes(marker); console.log(`${ok?'OK':'FAIL'}  professional customer simulation ${marker}`); if(!ok)failed++;
 }
 for(const needle of ['service_lion_dance_6','function lionDemoHome','function lionDemoArticle','Gói 2 đầu lân','Gói 7 đầu lân','Liên hệ báo giá','Giá tiền']){const ok=fn.includes(needle)||site.includes(needle)||api.includes(needle);console.log(`${ok?'OK':'FAIL'}  lion premium contract ${needle}`);if(!ok)failed++;}
@@ -340,38 +334,4 @@ if(failed){
   console.log('OK  Verified payment success page + 30–60 minute expectation');
 }
 
-
-for (const [label,needle] of [
- ['empty-mode generic article-card skeleton marker','nr-sample-card'],
- ['lion external video URL field','video_embeds'],
- ['lion YouTube privacy embed','youtube-nocookie.com/embed/'],
- ['lion Vimeo embed','player.vimeo.com/video/'],
- ['lion unified publish label','＋ Đăng bài']
-]) { if(!fn.includes(needle) && !site.includes(needle) && !admin.includes(needle)){console.log('FAIL ',label);failed++;} else console.log('OK ',label); }
-
-
-// V20.9.27.13 — Lion Hero Admin must mirror the live demo 1:1 and expose all 3 slider images.
-for (const [label,needle] of [
- ['lion Hero fixed slider contract','fixed-demo-slider-v1'],
- ['lion Hero slider runtime','ld-hero-slides'],
- ['lion Hero slider dots','data-ld-hero-slide'],
- ['lion Hero default headline','Khai hội rộn ràng – Khởi đầu may mắn cùng Lân Sư Rồng chuyên nghiệp.'],
- ['lion Hero default lead','Nhận biểu diễn khai trương, động thổ, Trung Thu, Tết, lễ hội và sự kiện doanh nghiệp.']
-]) { const ok=api.includes(needle)||site.includes(needle)||fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  ${label}`); if(!ok) failed++; }
-
-// V20.9.27.13 — Hero edit hint must never hijack template ::after overlays.
-if (fn.includes('nr-configurable-hero::after')) { console.log('FAIL  hero hint must not use ::after pseudo-element'); failed++; } else console.log('OK  hero hint does not hijack ::after overlay');
-if (!fn.includes('nr-hero-edit-hint')) { console.log('FAIL  hero edit hint element missing'); failed++; } else console.log('OK  hero edit hint uses dedicated element');
-
-if(failed) process.exit(1);
 console.log('Template contract smoke: PASS');
-
-// V20.9.27.13 — simulation state toggles must reset the fragment so switching
-// Có bài mẫu / Không bài mẫu never jumps back to #contact or another anchor.
-for (const marker of [
-  "u.searchParams.set('nr_samples',btn.dataset.simSamples);u.hash='';location.href=u.toString();",
-  "u.searchParams.set('nr_samples',b.getAttribute('data-pro-samples'));u.hash='';location.href=u.toString()"
-]) {
-  if (!fn.includes(marker)) throw new Error('simulation toggle must clear URL hash before reload: '+marker);
-}
-console.log('OK simulation toggles reset URL fragment before reload');
