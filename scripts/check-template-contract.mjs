@@ -158,7 +158,7 @@ for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','d
 // V20.9.25.4 — hard pathname dispatch must run before all legacy tenant fallbacks.
 const hardProFn=fn.indexOf('function proDemoKeyFromPath(path)');
 const hardProCall=fn.indexOf('const hardProDemo=proDemoKeyFromPath(rawPath)');
-const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.27.13'");
+const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.27.17'");
 const legacyTenantPos=fn.indexOf("const demoReq=new Request('https://batdongsan2027.org.uk'");
 if(hardProFn<0||hardProCall<0||hardProReturn<0||legacyTenantPos<0||hardProCall>legacyTenantPos){
   console.log('FAIL  hard professional demo pathname dispatch before BDS fallback');failed++;
