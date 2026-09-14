@@ -152,7 +152,7 @@ for(const asset of ['blog-ca-nhan-1-preview.png','blog-ca-nhan-2-preview.png','d
 // V20.9.25.4 — hard pathname dispatch must run before all legacy tenant fallbacks.
 const hardProFn=fn.indexOf('function proDemoKeyFromPath(path)');
 const hardProCall=fn.indexOf('const hardProDemo=proDemoKeyFromPath(rawPath)');
-const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.26.4'");
+const hardProReturn=fn.indexOf("'X-HVT-Demo-Build':'20.9.26.5'");
 const legacyTenantPos=fn.indexOf("const demoReq=new Request('https://batdongsan2027.org.uk'");
 if(hardProFn<0||hardProCall<0||hardProReturn<0||legacyTenantPos<0||hardProCall>legacyTenantPos){
   console.log('FAIL  hard professional demo pathname dispatch before BDS fallback');failed++;
@@ -251,7 +251,7 @@ for(const needle of [
 ]){const ok=api.includes(needle);console.log(`${ok?'OK':'FAIL'}  professional admin/contact ${needle}`);if(!ok)failed++;}
 for(const needle of ['BUILTIN_PROFESSIONAL_PROFILES','professionalAdminKey()','isProfessionalContactTemplate()','sxpContactForm','sxp-category']){const ok=site.includes(needle)||fs.readFileSync('public/assets/admin.js','utf8').includes(needle);console.log(`${ok?'OK':'FAIL'}  professional client/admin ${needle}`);if(!ok)failed++;}
 
-// V20.9.26.4 — device preview + EV map/API-ready regression.
+// V20.9.26.5 — device preview + EV map/API-ready regression.
 for(const needle of ['hvtPreviewDevice','Máy tính bảng','Điện thoại','id="evMap"','tile.openstreetmap.org','HVT_EV_API_ENDPOINT','hvt-ev-api-endpoint']){const ok=fn.includes(needle);console.log(`${ok?'OK':'FAIL'}  preview/EV ${needle}`);if(!ok)failed++;}
 for(const needle of ["const evSettings=","ev_station_api_url","station_data_contract:'authorized-api-or-demo-v1'","map_contract:'leaflet-osm-v1'"]){const ok=api.includes(needle);console.log(`${ok?'OK':'FAIL'}  EV admin/API ${needle}`);if(!ok)failed++;}
 

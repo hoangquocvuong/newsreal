@@ -12,7 +12,7 @@ for (const [path, renderer, marker] of routes) {
   const response = await mod.onRequest({request, env:{}, next:()=>new Response('NEXT')});
   const html = await response.text();
   if (response.status !== 200) throw new Error(`${path}: status ${response.status}`);
-  if (response.headers.get('X-HVT-Demo-Build') !== '20.9.26.4') throw new Error(`${path}: wrong build header`);
+  if (response.headers.get('X-HVT-Demo-Build') !== '20.9.26.5') throw new Error(`${path}: wrong build header`);
   if (response.headers.get('X-HVT-Demo-Renderer') !== renderer) throw new Error(`${path}: wrong renderer`);
   if (!html.includes(marker)) throw new Error(`${path}: missing marker ${marker}`);
   if (html.includes('NEWS REAL') || html.includes('Bất động sản</a>')) throw new Error(`${path}: leaked legacy NEWSREAL/BDS shell`);
