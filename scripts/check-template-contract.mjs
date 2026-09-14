@@ -232,7 +232,7 @@ for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo sử dụng ảnh chụp t
 for(const needle of ['Bản tin doanh nghiệp','Hình ảnh hoạt động doanh nghiệp','Năng lực cốt lõi','Thư viện kiến thức xe điện','Kinh doanh nội dung','Bài nổi bật & bài được đọc nhiều','Nguồn tham khảo chuyên môn','IEA · Electric vehicle charging 2026']){
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  pro real-world layout ${needle}`); if(!ok) failed++;
 }
-const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',8],['dich-vu-6',2]];
+const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',8],['dich-vu-6',3]];
 for(const [k,v] of richSections){
  const marker=`'${k}':{version:${v}`;
  const ok=api.includes(marker); console.log(`${ok?'OK':'FAIL'}  rich structure ${k}`); if(!ok) failed++;
@@ -352,10 +352,7 @@ for (const [label,needle] of [
 
 // V20.9.27.13 — Lion Hero Admin must mirror the live demo 1:1 and expose all 3 slider images.
 for (const [label,needle] of [
- ['lion Hero badge setting','hero_badge'],
- ['lion Hero slider image 2','hero_image_url_2'],
- ['lion Hero slider image 3','hero_image_url_3'],
- ['lion Hero slider contract','three-image-editable-slider-v2'],
+ ['lion Hero fixed slider contract','fixed-demo-slider-v1'],
  ['lion Hero slider runtime','ld-hero-slides'],
  ['lion Hero slider dots','data-ld-hero-slide'],
  ['lion Hero default headline','Khai hội rộn ràng – Khởi đầu may mắn cùng Lân Sư Rồng chuyên nghiệp.'],

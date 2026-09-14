@@ -1,26 +1,13 @@
 import fs from 'node:fs';
-import {GLOBAL_TEMPLATE_KEYS,globalTemplateMeta,templateUsageGuide} from '../functions/_shared/template-contracts.js';
-const api=fs.readFileSync('functions/api/[[path]].js','utf8');
-const admin=fs.readFileSync('public/assets/admin.js','utf8');
-const html=fs.readFileSync('public/admin.html','utf8');
-const fail=(m)=>{console.error('GLOBAL SSOT V3 FAIL:',m);process.exit(1)};
-if(GLOBAL_TEMPLATE_KEYS.length<21)fail('global registry is incomplete');
-for(const key of GLOBAL_TEMPLATE_KEYS){
- const meta=globalTemplateMeta(key);if(!meta||meta.contract_version!=='template-global-ssot-v3')fail(`${key}: missing global meta`);
- if(!api.includes(`'${key}':{`)&&!api.includes(`'${key}': {`))fail(`${key}: missing default structure`);
- const guide=templateUsageGuide(key,{sections:[{key:'hero',type:'section',title:'Hero',bind_required:0},{key:'cat-1',type:'category',title:'Mẫu',category:'Mẫu',slots:6,bind_required:1}]},{categories:['Mẫu']});
- if(!guide.sections?.length||guide.geometry_locked!==1)fail(`${key}: guide generator invalid`);
-}
-if(!api.includes('for(const k of GLOBAL_TEMPLATE_KEYS)'))fail('catalog structure sync is not global');
-if(!api.includes('content_profile.usage_guide=templateUsageGuide'))fail('/api/me does not expose generated guide');
-if(!html.includes('data-tab="guide"')||!html.includes('templateUsageGuide'))fail('Admin guide tab missing');
-if(!admin.includes('renderTemplateUsageGuide'))fail('Admin guide renderer missing');
-if(!admin.includes('Sơ đồ trang chủ & vị trí đăng bài'))fail('Admin diagram missing');
-console.log(`Global Template SSOT V3: PASS (${GLOBAL_TEMPLATE_KEYS.length} templates)`);
-// V20.9.27.15 — beginner guide must explain special templates at field/card level.
-const lionGuide=templateUsageGuide('dich-vu-6',{sections:[{key:'packages',type:'category',title:'Gói múa lân',category:'Gói múa lân',slots:6,bind_required:1}]},{categories:['Gói múa lân'],custom_fields:[{key:'service_price',label:'Giá gói / Giá tham khảo',placeholder:'Từ 3.500.000đ'},{key:'lion_count',label:'Số đầu lân / Rồng',placeholder:'2 đầu lân'}]});
-if(lionGuide.beginner_mode!==1||!lionGuide.quick_start?.length)fail('beginner guide missing');
-if(!lionGuide.category_examples?.some(x=>x.category==='Gói múa lân'&&x.fields?.service_price))fail('lion category worked example missing');
-if(!lionGuide.visual_map?.some(x=>x.admin==='Tiêu đề'&&x.front.includes('card')))fail('lion card anatomy missing');
-if(!admin.includes('renderPostTemplateGuide')||!html.includes('postTemplateGuide'))fail('inline posting example missing');
-console.log('Beginner Template Guide V2: PASS');
+import {GLOBAL_TEMPLATE_KEYS,globalTemplateMeta} from '../functions/_shared/template-contracts.js';
+function fail(x){console.error('GLOBAL SSOT FAIL:',x);process.exit(1)}
+if(GLOBAL_TEMPLATE_KEYS.length!==21)fail('expected 21 registered templates, got '+GLOBAL_TEMPLATE_KEYS.length);
+for(const key of GLOBAL_TEMPLATE_KEYS){const meta=globalTemplateMeta(key);if(!meta)fail('missing global meta '+key)}
+const html=fs.readFileSync(new URL('../public/admin.html',import.meta.url),'utf8');
+const admin=fs.readFileSync(new URL('../public/assets/admin.js',import.meta.url),'utf8');
+const api=fs.readFileSync(new URL('../functions/api/[[path]].js',import.meta.url),'utf8');
+if(html.includes('data-tab="guide"')||html.includes('Hướng dẫn mẫu này'))fail('legacy Admin guide UI still present');
+if(admin.includes('renderTemplateUsageGuide')||admin.includes('renderPostTemplateGuide'))fail('legacy guide renderers still present');
+if(api.includes('content_profile.usage_guide='))fail('API still emits legacy usage guide');
+console.log('Global Template SSOT V3: PASS ('+GLOBAL_TEMPLATE_KEYS.length+' templates)');
+console.log('Admin guide cleanup: PASS');

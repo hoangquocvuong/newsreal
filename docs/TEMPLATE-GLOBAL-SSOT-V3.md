@@ -9,7 +9,7 @@ Mỗi mẫu dùng cùng một cấu trúc để phục vụ 4 mục tiêu:
 1. renderer/layout website;
 2. giả lập Có bài mẫu / Không bài mẫu (không bài giữ geometry 1:1 bằng skeleton);
 3. form/quy tắc đăng nội dung trong Client Admin;
-4. tài liệu "Hướng dẫn mẫu này" trong Admin.
+4. Admin tối giản: không sinh tài liệu hướng dẫn tự động; template tự mô tả qua nhãn field/chuyên mục.
 
 Không thêm template mới nếu chưa có Global Contract. `npm run check` sẽ fail nếu template không được đăng ký hoặc Admin guide không tồn tại.
 
