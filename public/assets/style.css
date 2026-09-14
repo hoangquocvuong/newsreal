@@ -3937,3 +3937,25 @@ html.coc-saved-open,html.coc-saved-open body{overflow:hidden}
 @keyframes hvtSalesChatAttention{from{box-shadow:0 0 0 0 rgba(239,68,68,.05)}to{box-shadow:0 0 0 4px rgba(239,68,68,.20),0 8px 26px rgba(239,68,68,.13)}}
 .sales-chat-reply textarea{min-height:52px;line-height:1.45;font:inherit;outline:none}.sales-chat-reply textarea:focus{border-color:#1463ff;box-shadow:0 0 0 3px rgba(20,99,255,.10)}
 @media(max-width:820px){#salesChatTools{margin:12px 0 16px}#salesChatTools .sales-chat-crm{padding:14px 10px}}
+
+
+/* V20.9.26.7 — rebalance Contact/Footer for new professional templates.
+   Contact becomes compact/light; footer becomes the tall dark closing block. */
+.sx-site .sxp-contact{padding:30px 0 34px;background:#f3f6fa;color:#0f172a;border-top:1px solid #e2e8f0}
+.sx-site .sxp-contact-grid{background:#fff;border:1px solid #dce5ef;border-radius:18px;padding:26px 28px;grid-template-columns:.9fr 1.1fr;gap:34px;align-items:center;box-shadow:0 10px 30px rgba(15,23,42,.045)}
+.sx-site .sxp-contact small{color:var(--sx)}
+.sx-site .sxp-contact h2{font-size:32px;color:#0f172a;margin:8px 0 10px}
+.sx-site .sxp-contact p{color:#64748b;line-height:1.65;margin:8px 0}
+.sx-site .sxp-contact-direct{margin:15px 0 8px;gap:8px}
+.sx-site .sxp-contact-direct a,.sx-site .sxp-map{color:#24364b!important;background:#f8fafc;border:1px solid #d6e0eb;padding:9px 11px}
+.sx-site .sxp-contact-form{padding:18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;gap:10px}
+.sx-site .sxp-contact-form input,.sx-site .sxp-contact-form textarea{padding:11px 12px;border-radius:9px;background:#fff}
+.sx-site .sxp-contact-form textarea{min-height:86px}
+.sx-site .sxp-contact-form button{padding:12px}
+.sx-site .sx-footer.sx-footer-pro{background:#0f172a;color:#cbd5e1;padding:70px 0 26px;border-top:7px solid var(--sx)}
+.sx-site .sx-footer.sx-footer-pro .sx-footer-grid{gap:46px}
+.sx-site .sx-footer.sx-footer-pro .sx-footer-grid p{color:#aebed0;line-height:1.8}
+.sx-site .sx-footer.sx-footer-pro .sx-footer-grid a,.sx-site .sx-footer.sx-footer-pro .sx-footer-grid span{color:#dbe7f4}
+.sx-site .sx-footer.sx-footer-pro .sx-footer-bottom{margin-top:48px!important;border-top-color:#2a394d;color:#8293a9}
+@media(max-width:820px){.sx-site .sxp-contact-grid{grid-template-columns:1fr;padding:22px;gap:22px}.sx-site .sx-footer.sx-footer-pro{padding-top:52px}.sx-site .sx-footer.sx-footer-pro .sx-footer-grid{gap:28px}}
+@media(max-width:560px){.sx-site .sxp-contact{padding:22px 0 26px}.sx-site .sxp-contact-grid{padding:18px}.sx-site .sxp-contact h2{font-size:28px}.sx-site .sx-footer.sx-footer-pro{padding-top:44px}}

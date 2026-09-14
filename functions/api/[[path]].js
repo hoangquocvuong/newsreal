@@ -1794,7 +1794,7 @@ if(route==='publisher/base'&&request.method==='POST'){
   return json({ok:true,created:false,updated:true,duplicate:imp.payload_hash===payloadHash,post_id:Number(imp.post_id),slug:imp.slug,url:`https://${target.domain}/base/${imp.slug}.html`});
 }
 
-// V20.9.26.6 — HoangVuongTech-owned sales chat. This is intentionally global to
+// V20.9.26.7 — HoangVuongTech-owned sales chat. This is intentionally global to
 // hoangvuongtech.com and is NOT tied to client/tenant websites.
 if(route==='sales-chat'){
   await ensureSalesChatTables(env);
