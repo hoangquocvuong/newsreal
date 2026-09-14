@@ -1,4 +1,4 @@
-# HoangVuongTech V20.9.27.5 — Lân Sư Rồng Service Template
+# HoangVuongTech V20.9.27.6 — Lân Sư Rồng Service Template
 
 - Thêm template `dich-vu-6` / preset `service_lion_dance_6`.
 - Demo: `/demo/dich-vu/mua-lan-su-rong/`.

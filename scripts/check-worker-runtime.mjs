@@ -13,7 +13,7 @@ for (const [path, renderer, marker] of routes) {
   const response = await mod.onRequest({request, env:{}, next:()=>new Response('NEXT')});
   const html = await response.text();
   if (response.status !== 200) throw new Error(`${path}: status ${response.status}`);
-  if (response.headers.get('X-HVT-Demo-Build') !== '20.9.27.5') throw new Error(`${path}: wrong build header`);
+  if (response.headers.get('X-HVT-Demo-Build') !== '20.9.27.6') throw new Error(`${path}: wrong build header`);
   if (response.headers.get('X-HVT-Demo-Renderer') !== renderer) throw new Error(`${path}: wrong renderer`);
   if (!html.includes(marker)) throw new Error(`${path}: missing marker ${marker}`);
   if (!html.includes('/favicons/favicon-16x16.png')) throw new Error(`${path}: missing shared default favicon`);
@@ -28,6 +28,16 @@ for(const marker of ['▰ PC','Máy tính bảng','Điện thoại','hvtPreviewD
 console.log('OK  runtime PC/Tablet/Mobile preview toolbar');
 for(const marker of ['/favicons/favicon-16x16.png','data-pro-admin-quick']) if(!previewHtml.includes(marker)) throw new Error('professional platform contract missing: '+marker);
 console.log('OK  runtime professional shared favicon + quick-publish contract');
+
+// V20.9.27.6: every professional demo must carry the shared mobile-safe contact contract.
+for (const [path] of routes) {
+  const response = await mod.onRequest({request:new Request('https://hoangvuongtech.com' + path),env:{},next:()=>new Response('NEXT')});
+  const html = await response.text();
+  if (!html.includes('id=\"proContactResponsive\"') || !html.includes('grid-template-columns:minmax(0,1fr)!important')) {
+    throw new Error(`${path}: missing mobile-safe contact contract`);
+  }
+}
+console.log('OK  runtime all professional demos mobile-safe contact contract');
 const evResponse=await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/dich-vu/tram-sac-vinfast/'),env:{},next:()=>new Response('NEXT')});
 const evHtml=await evResponse.text();
 for(const marker of ['id="evMap"','tile.openstreetmap.org','HVT_EV_API_ENDPOINT','Dữ liệu mẫu']) if(!evHtml.includes(marker)) throw new Error('EV map/API contract missing: '+marker);
