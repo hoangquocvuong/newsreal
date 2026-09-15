@@ -114,7 +114,7 @@ function demoInject(html,demo,trialCtx=null){
  const boot=`<meta name="robots" content="noindex,follow"><meta name="newsreal-demo-build" content="20.9.27.6"><script>window.NR_DEMO_THEME=${JSON.stringify(demo)};window.NR_DEMO_PREFIX=${JSON.stringify(prefix)};window.NR_TRIAL_TOKEN=${JSON.stringify(trialCtx?.trial_token||'')};window.NR_TRIAL_TENANT=${JSON.stringify(trialCtx?.domain||'')};window.NR_DEMO_TENANT=window.NR_TRIAL_TENANT||'batdongsan2027.org.uk';
 window.nrTrialUrl=function(raw){
  if(!window.NR_TRIAL_TOKEN||!raw||typeof raw!=='string'||raw==='#'||/^mailto:|^tel:|^javascript:/i.test(raw))return raw;
- try{const x=new URL(raw,location.origin);if(x.origin!==location.origin)return raw;if(x.pathname.startsWith('/api/')||x.pathname.startsWith('/assets/')||x.pathname.startsWith('/admin')||x.pathname.startsWith('/control-center'))return raw;x.searchParams.set('nr_trial',window.NR_TRIAL_TOKEN);return x.pathname+x.search+x.hash}catch(e){return raw}
+ try{const x=new URL(raw,location.origin);if(x.origin!==location.origin)return raw;if(x.pathname.startsWith('/api/')||x.pathname.startsWith('/assets/')||x.pathname.startsWith('/admin')||x.pathname.startsWith('/control-center'))return raw;const prefix=String(window.NR_DEMO_PREFIX||'');if(prefix&&!x.pathname.startsWith(prefix)){if(x.pathname==='/')x.pathname=prefix+'/';else if(!x.pathname.startsWith('/demo/'))x.pathname=prefix+x.pathname}x.searchParams.set('nr_trial',window.NR_TRIAL_TOKEN);return x.pathname+x.search+x.hash}catch(e){return raw}
 };
 window.nrDemoAdminUrl=function(templateKey,tab){
  const key=String(templateKey||window.NR_DEMO_THEME||'').trim();
@@ -987,7 +987,7 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
    const key=String(site.template_key||''),preset=String(site.preset||'');
    if(key==='game-1'||preset==='game_clash_1'){const q=keep.toString();return Response.redirect(origin+'/base/'+slugify(p.title)+'.html'+(q?'?'+q:''),302)}
    if(key==='san-pham-1'||preset==='product_affiliate_1'){const q=keep.toString();return Response.redirect(origin+'/san-pham/'+slugify(p.title)+'.html'+(q?'?'+q:''),302)}
-   if(/^dich-vu-[1-6]$/.test(key)||/^blog-ca-nhan-[1-2]$/.test(key)||/^doanh-nghiep-[1-2]$/.test(key)){const q=new URLSearchParams(keep);q.set('id',String(p.id));return Response.redirect(origin+'/?'+q.toString(),302)}
+   if(/^dich-vu-[1-6]$/.test(key)||/^blog-ca-nhan-[1-2]$/.test(key)||/^doanh-nghiep-[1-2]$/.test(key)){const q=new URLSearchParams(keep);q.set('id',String(p.id));const prefix=demoPrefixForPath('/',key);return Response.redirect(origin+(prefix||'/')+(prefix?'/':'')+'?'+q.toString(),302)}
    const target=postUrl(origin,p).slice(origin.length),qs=keep.toString();return Response.redirect(origin+target+(qs?'?'+qs:''),302);
  }
  if(path==='/property'&&u.searchParams.get('id')){
