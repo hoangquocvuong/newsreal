@@ -270,7 +270,7 @@ function configureAdminForTemplate(){
  }else if(service){
    document.getElementById('menuServiceLeads')?.classList.remove('hidden');
    postType.value='service';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
-   if(menuNew)menuNew.textContent=professionalAdminKey()==='dich-vu-5'?'Đăng nội dung mới':'Thêm gói dịch vụ';if(menuPosts)menuPosts.textContent=professionalAdminKey()==='dich-vu-5'?'Quản lý nội dung':'Quản lý dịch vụ';if(overviewBtn)overviewBtn.textContent=professionalAdminKey()==='dich-vu-5'?'＋ Đăng nội dung mới':'＋ Thêm gói dịch vụ';
+   if(menuNew)menuNew.textContent='Đăng bài mới';if(menuPosts)menuPosts.textContent=professionalAdminKey()==='dich-vu-5'?'Quản lý nội dung':'Quản lý dịch vụ';if(overviewBtn)overviewBtn.textContent='＋ Đăng bài mới';
    if(postTitle)postTitle.placeholder=professionalAdminKey()==='dich-vu-5'?'Ví dụ: Khảo sát lắp sạc tại nhà cần kiểm tra những gì?':'Ví dụ: Gói Internet Home 500';
  }else if(news){
    if(isProfessionalContactTemplate())document.getElementById('menuServiceLeads')?.classList.remove('hidden');
@@ -650,7 +650,7 @@ function updateContentTypeUI(){
   if(isProductTemplate())postType.value='product';if(isNewsTemplate())postType.value='news';if(isServiceTemplate())postType.value='service';if(isGameTemplate())postType.value='game';
   const isProduct=postType.value==='product',isNews=postType.value==='news',isService=postType.value==='service',isGame=postType.value==='game',isSimple=isProduct||isNews||isService||isGame;
   propertyOnlyEls.forEach(el=>el.classList.toggle('hidden',isSimple));
-  editorTitle.textContent=editingId.value?(isProduct?'Chỉnh sửa sản phẩm':isGame?'Chỉnh sửa base Clash of Clans':isService?'Chỉnh sửa gói dịch vụ':isNews?'Chỉnh sửa tin tức':'Chỉnh sửa tin bất động sản'):(isProduct?'Thêm sản phẩm':isGame?'Đăng base Clash of Clans':isService?'Thêm gói dịch vụ':isNews?'Đăng bài tin tức':'Đăng tin bất động sản');
+  editorTitle.textContent=editingId.value?(isProduct?'Chỉnh sửa sản phẩm':isGame?'Chỉnh sửa base Clash of Clans':isService?'Chỉnh sửa bài':isNews?'Chỉnh sửa tin tức':'Chỉnh sửa tin bất động sản'):(isProduct?'Thêm sản phẩm':isGame?'Đăng base Clash of Clans':isService?'Đăng bài mới':isNews?'Đăng bài tin tức':'Đăng tin bất động sản');
   contentTypeHint.textContent=isProduct?'Sản phẩm: quản lý giá, thương hiệu, voucher, rating và link mua/affiliate.':isGame?'Gaming: đăng base theo Hall, Level, Purpose, Style, Defense và Copy Base Link.':isService?'Dịch vụ: quản lý gói cước, thông số, giá, ưu đãi và nội dung tư vấn.':isNews?'Tin tức: chỉ cần tiêu đề, chuyên mục, hình ảnh và nội dung bài viết.':'Bất động sản: hiển thị giá, diện tích, vị trí và thông số chi tiết.';
   editorHelp.textContent=isProduct?'Điền thông tin sản phẩm; giá, link mua và thông số sẽ đồng bộ trực tiếp với giao diện catalog.':isGame?'Điền thông tin base; các trường Hall, Level, Purpose, Defense và Copy Link sẽ đồng bộ với giao diện Gaming.':isService?'Điền thông tin gói dịch vụ; các trường riêng của template sẽ hiển thị tự động.':isNews?'Giao diện đã ẩn các trường bất động sản để bạn viết bài đơn giản và dễ nhìn hơn.':'Điền thông tin chi tiết để tin đăng hiển thị đầy đủ trên website.';
   imageSectionTitle.textContent=isProduct?'Hình ảnh sản phẩm':isGame?'Hình ảnh base':isService?'Hình ảnh dịch vụ':isNews?'Hình ảnh bài viết':'Hình ảnh bất động sản';

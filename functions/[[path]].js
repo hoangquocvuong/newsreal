@@ -725,7 +725,7 @@ function realArticle(c,a,p,d){return `<!doctype html><html lang="vi"><head><meta
    html=html.replace('</head>','<link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png"><meta name="theme-color" content="#ffffff"></head>');
  }
  const adminHref='/admin?tab=newpost&template='+encodeURIComponent(String(demo||''));
- const adminLabel=demo==='dich-vu-5'?'+ Đăng nội dung':demo==='dich-vu-6'?'+ Đăng dịch vụ':'+ Đăng bài';
+ const adminLabel='+ Đăng bài';
  // Add exactly one quick publish action to the first site header. This mirrors
  // the legacy templates' visible “Đăng tin” affordance without forcing a BĐS label
  // onto blog/corporate/service templates.
