@@ -895,7 +895,7 @@ function tmClientSimulationUrl(t){
    }else if(t?.category==='doanh-nghiep'){
      const m=key.match(/(\d+)$/);base=`/demo/doanh-nghiep/mau-${m?m[1]:'1'}/`;
    }else if(t?.category==='dich-vu'){
-     if(key==='dich-vu-5')base='/demo/dich-vu/cua-hang-laptop/';
+     if(key==='dich-vu-5')base='/demo/ban-hang/cua-hang-online/';
      else{const m=key.match(/(\d+)$/);base=`/demo/dich-vu/mau-${m?m[1]:'1'}/`;}
    }else{
      const m=key.match(/mau-(\d+)/);base=`/demo/bat-dong-san/mau-${m?m[1]:'1'}/`;

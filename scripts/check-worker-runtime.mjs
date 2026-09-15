@@ -5,7 +5,7 @@ const routes = [
   ['/demo/blog-ca-nhan/mau-2/','blog-ca-nhan-2','Kinh doanh nội dung'],
   ['/demo/doanh-nghiep/mau-1/','doanh-nghiep-1','Bản tin doanh nghiệp'],
   ['/demo/doanh-nghiep/mau-2/','doanh-nghiep-2','Hình ảnh hoạt động doanh nghiệp'],
-  ['/demo/dich-vu/cua-hang-laptop/','dich-vu-5','Đủ lựa chọn để khách dễ so sánh'],
+  ['/demo/ban-hang/cua-hang-online/','dich-vu-5','Một website bán được nhiều loại sản phẩm.'],
   ['/demo/dich-vu/mua-lan-su-rong/','dich-vu-6','Gói 2 đầu lân'],
 ];
 for (const [path, renderer, marker] of routes) {
@@ -38,10 +38,10 @@ for (const [path] of routes) {
   }
 }
 console.log('OK  runtime all professional demos mobile-safe contact contract');
-const laptopResponse=await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/dich-vu/cua-hang-laptop/'),env:{},next:()=>new Response('NEXT')});
+const laptopResponse=await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/ban-hang/cua-hang-online/'),env:{},next:()=>new Response('NEXT')});
 const laptopHtml=await laptopResponse.text();
-for(const marker of ['Đủ lựa chọn để khách dễ so sánh','16.490.000đ','29.990.000đ','laptopLeadForm','/api/service-leads']) if(!laptopHtml.includes(marker)) throw new Error('Laptop showroom contract missing: '+marker);
-console.log('OK  runtime laptop showroom + tenant lead inbox');
+for(const marker of ['Một website bán được nhiều loại sản phẩm.','ASUS Vivobook 14','Smartphone Pro 5G','Áo khoác Urban Essential','Giỏ hàng','Đặt hàng','laptopLeadForm','/api/service-leads']) if(!laptopHtml.includes(marker)) throw new Error('Commerce storefront contract missing: '+marker);
+console.log('OK  runtime universal commerce storefront + tenant lead inbox');
 const article = await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/doanh-nghiep/mau-2/bai-viet/nang-luc-doanh-nghiep/'),env:{},next:()=>new Response('NEXT')});
 const articleHtml=await article.text();
 if(article.status!==200 || !articleHtml.includes('Checklist thực hành')) throw new Error('professional article runtime failed');

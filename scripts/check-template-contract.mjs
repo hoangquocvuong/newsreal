@@ -137,7 +137,7 @@ if(demoFlagDecl<0||demoLabelUse<0||demoFlagDecl>demoLabelUse){
   console.log('FAIL  marketplace demo runtime flag declaration order');
   failed++;
 }else console.log('OK  marketplace demo runtime flag declaration order');
-for(const route of ['/demo/blog-ca-nhan/mau-1','/demo/blog-ca-nhan/mau-2','/demo/doanh-nghiep/mau-1','/demo/doanh-nghiep/mau-2','/demo/dich-vu/cua-hang-laptop','/demo/dich-vu/mua-lan-su-rong']){
+for(const route of ['/demo/blog-ca-nhan/mau-1','/demo/blog-ca-nhan/mau-2','/demo/doanh-nghiep/mau-1','/demo/doanh-nghiep/mau-2','/demo/ban-hang/cua-hang-online','/demo/dich-vu/mua-lan-su-rong']){
   const ok=fn.includes(route);
   console.log(`${ok?'OK':'FAIL'}  demo route ${route}`);
   if(!ok)failed++;
@@ -162,7 +162,7 @@ for(const pair of [
   ['/demo/blog-ca-nhan/mau-2','blog-ca-nhan-2'],
   ['/demo/doanh-nghiep/mau-1','doanh-nghiep-1'],
   ['/demo/doanh-nghiep/mau-2','doanh-nghiep-2'],
-  ['/demo/dich-vu/cua-hang-laptop','dich-vu-5'],
+  ['/demo/ban-hang/cua-hang-online','dich-vu-5'],
   ['/demo/dich-vu/mua-lan-su-rong','dich-vu-6']
 ]){
   const marker=`return '${pair[1]}'`;
@@ -180,14 +180,14 @@ for(const needle of [
   "if(!html&&c.kind==='creator')html=creatorHome",
   "if(!html&&c.kind==='corporate')html=corpHome",
   "if(!html&&c.kind==='industrial')html=industrialHome",
-  "if(!html&&c.kind==='laptop-store')html=laptopStoreHome",
+  "if(!html&&c.kind==='laptop-store')html=commerceDemoHome",
   'function proPlatformContract(html,demo)',
   'data-pro-admin-quick',
   '/favicons/favicon-16x16.png',
-  'Đủ lựa chọn để khách dễ so sánh',
+  'Một website bán được nhiều loại sản phẩm.',
   'Bản tin doanh nghiệp',
   'Hình ảnh hoạt động doanh nghiệp',
-  'Cẩm nang laptop',
+  'Catalog đa ngành',
   '/bai-viet/'
 ]){
   const ok=fn.includes(needle);
@@ -199,7 +199,7 @@ const sharedDemoTenant=fn.indexOf("const demoReq=new Request('https://batdongsan
 if(proDispatch<0||sharedDemoTenant<0||proDispatch>sharedDemoTenant){
   console.log('FAIL  professional demos bypass shared BDS shell');failed++;
 }else console.log('OK  professional demos bypass shared BDS shell');
-const evPrefixSpecial=fn.indexOf("if(demo==='dich-vu-5')return '/demo/dich-vu/cua-hang-laptop'");
+const evPrefixSpecial=fn.indexOf("if(demo==='dich-vu-5')return '/demo/ban-hang/cua-hang-online'");
 const genericServicePrefix=fn.indexOf(String.raw`if(/^dich-vu-\d+$/.test(demo))return '/demo/dich-vu/mau-'`);
 if(evPrefixSpecial<0||genericServicePrefix<0||evPrefixSpecial>genericServicePrefix){
   console.log('FAIL  Laptop route prefix precedence');failed++;
@@ -223,10 +223,10 @@ for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo sử dụng ảnh chụp t
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  rich demo content ${needle}`); if(!ok) failed++;
 }
 
-for(const needle of ['Bản tin doanh nghiệp','Hình ảnh hoạt động doanh nghiệp','Năng lực cốt lõi','Cẩm nang laptop','Kinh doanh nội dung','Bài nổi bật & bài được đọc nhiều','Nguồn tham khảo chuyên môn','Đủ lựa chọn để khách dễ so sánh']){
+for(const needle of ['Bản tin doanh nghiệp','Hình ảnh hoạt động doanh nghiệp','Năng lực cốt lõi','Catalog đa ngành','Kinh doanh nội dung','Bài nổi bật & bài được đọc nhiều','Nguồn tham khảo chuyên môn','Một website bán được nhiều loại sản phẩm.']){
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  pro real-world layout ${needle}`); if(!ok) failed++;
 }
-const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',10],['dich-vu-6',1]];
+const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',11],['dich-vu-6',1]];
 for(const [k,v] of richSections){
  const marker=`'${k}':{version:${v}`;
  const ok=api.includes(marker); console.log(`${ok?'OK':'FAIL'}  rich structure ${k}`); if(!ok) failed++;
@@ -252,7 +252,7 @@ for(const needle of [
   "settings_schema:laptopSettings",
   "sec('contact','section','Liên hệ'",
   "sec('contact','section','Liên hệ doanh nghiệp'",
-  "sec('contact','section','Nhận tư vấn chọn laptop'"
+  "sec('contact','section','Hỗ trợ khách hàng'"
 ]){const ok=api.includes(needle);console.log(`${ok?'OK':'FAIL'}  professional admin/contact ${needle}`);if(!ok)failed++;}
 for(const needle of ['sxAdminNewPostUrl(key)','sx-head-admin','＋ Đăng bài']){
   const ok=site.includes(needle); console.log(`${ok?'OK':'FAIL'}  professional customer quick-publish ${needle}`); if(!ok) failed++;
@@ -260,7 +260,7 @@ for(const needle of ['sxAdminNewPostUrl(key)','sx-head-admin','＋ Đăng bài']
 for(const needle of ['BUILTIN_PROFESSIONAL_PROFILES','professionalAdminKey()','isProfessionalContactTemplate()','sxpContactForm','sxp-category']){const ok=site.includes(needle)||fs.readFileSync('public/assets/admin.js','utf8').includes(needle);console.log(`${ok?'OK':'FAIL'}  professional client/admin ${needle}`);if(!ok)failed++;}
 
 // V20.9.27.42 — device preview + laptop showroom regression.
-for(const needle of ['data-demo-device="desktop"','Tablet','Mobile','function laptopStoreHome','laptopLeadForm','/api/service-leads']){const ok=fn.includes(needle);console.log(`${ok?'OK':'FAIL'}  preview/laptop ${needle}`);if(!ok)failed++;}
+for(const needle of ['data-demo-device="desktop"','Tablet','Mobile','function commerceDemoHome','laptopLeadForm','/api/service-leads']){const ok=fn.includes(needle);console.log(`${ok?'OK':'FAIL'}  preview/laptop ${needle}`);if(!ok)failed++;}
 for(const needle of ["const laptopSettings=","card_contract:'commerce-product-card-v1'","lead_contract:'service-lead-v1'"]){const ok=api.includes(needle);console.log(`${ok?'OK':'FAIL'}  Laptop admin/API ${needle}`);if(!ok)failed++;}
 
 
