@@ -226,7 +226,7 @@ for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo sử dụng ảnh chụp t
 for(const needle of ['Bản tin doanh nghiệp','Hình ảnh hoạt động doanh nghiệp','Năng lực cốt lõi','Cẩm nang laptop','Kinh doanh nội dung','Bài nổi bật & bài được đọc nhiều','Nguồn tham khảo chuyên môn','Đủ lựa chọn để khách dễ so sánh']){
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  pro real-world layout ${needle}`); if(!ok) failed++;
 }
-const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',9],['dich-vu-6',1]];
+const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',10],['dich-vu-6',1]];
 for(const [k,v] of richSections){
  const marker=`'${k}':{version:${v}`;
  const ok=api.includes(marker); console.log(`${ok?'OK':'FAIL'}  rich structure ${k}`); if(!ok) failed++;
@@ -261,7 +261,7 @@ for(const needle of ['BUILTIN_PROFESSIONAL_PROFILES','professionalAdminKey()','i
 
 // V20.9.27.42 — device preview + laptop showroom regression.
 for(const needle of ['data-demo-device="desktop"','Tablet','Mobile','function laptopStoreHome','laptopLeadForm','/api/service-leads']){const ok=fn.includes(needle);console.log(`${ok?'OK':'FAIL'}  preview/laptop ${needle}`);if(!ok)failed++;}
-for(const needle of ["const laptopSettings=","card_contract:'laptop-product-card-v1'","lead_contract:'service-lead-v1'"]){const ok=api.includes(needle);console.log(`${ok?'OK':'FAIL'}  Laptop admin/API ${needle}`);if(!ok)failed++;}
+for(const needle of ["const laptopSettings=","card_contract:'commerce-product-card-v1'","lead_contract:'service-lead-v1'"]){const ok=api.includes(needle);console.log(`${ok?'OK':'FAIL'}  Laptop admin/API ${needle}`);if(!ok)failed++;}
 
 
 // V20.9.27.22 — legacy customer skeleton preview retired.

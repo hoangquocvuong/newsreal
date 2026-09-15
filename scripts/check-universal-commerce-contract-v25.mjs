@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+const api=fs.readFileSync('functions/api/[[path]].js','utf8'),site=fs.readFileSync('public/assets/site.js','utf8'),admin=fs.readFileSync('public/assets/admin.js','utf8'),html=fs.readFileSync('public/admin.html','utf8'),mig=fs.readFileSync('migrations/0057_universal_commerce_foundation.sql','utf8');
+const must=(x,m)=>{if(!x)throw new Error('FAIL '+m);console.log('OK '+m)};
+must(mig.includes('commerce_products')&&mig.includes('commerce_orders')&&mig.includes('commerce_settings'),'commerce D1 foundation');
+must(api.includes("route==='commerce/catalog'")&&api.includes("route==='commerce/checkout'")&&api.includes("route==='commerce/products'")&&api.includes("route==='commerce/orders'"),'catalog checkout product order APIs');
+must(api.includes("payment_method")&&api.includes("cod_enabled")&&api.includes("bank_enabled")&&api.includes("store_pickup_enabled")&&api.includes("online_enabled"),'tenant payment method contract');
+must(site.includes('renderCommerceStore')&&site.includes('comCartGet')&&site.includes('comCheckout')&&site.includes('comFilter'),'storefront search cart checkout');
+must(html.includes('menuCommerceProducts')&&html.includes('menuCommerceOrders')&&html.includes('menuCommerceSettings'),'commerce Admin navigation');
+must(admin.includes('loadCommerceProducts')&&admin.includes('loadCommerceOrders')&&admin.includes('loadCommerceSettings'),'commerce Admin operations');
+must(api.includes("price:5000000,renewal:5000000")&&mig.includes("price=5000000, renewal_price=5000000"),'5M annual template pricing');
+must(api.includes("content_type:'commerce'")&&api.includes("commerce_contract:'universal-commerce-v1'"),'generic commerce capability not laptop-only engine');
+console.log('Universal Commerce Contract V25: PASS');

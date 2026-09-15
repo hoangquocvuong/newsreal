@@ -11,8 +11,8 @@ must(!fn.includes('leaflet@1.9.4'),'obsolete Leaflet dependency removed from ren
 must(data.includes('LAPTOP PRO')&&data.includes('Laptop gaming')&&data.includes('MacBook'),'real laptop showroom sample taxonomy exists');
 must(fn.includes('16.490.000đ')&&fn.includes('29.990.000đ'),'product cards expose full sample prices');
 must(fn.includes('laptopLeadForm')&&fn.includes('/api/service-leads'),'laptop inquiry submits to tenant lead inbox');
-must(api.includes("price:3000000,renewal:3000000")||api.includes("price:3000000,renewal_price:3000000"),'catalog base price is 3,000,000 VND/year');
-must(api.includes("Laptop văn phòng")&&admin.includes("Sản phẩm & cẩm nang Laptop"),'Admin taxonomy matches showroom categories');
+must(api.includes("price:5000000,renewal:5000000")||api.includes("price:5000000,renewal_price:5000000"),'catalog base price is 5,000,000 VND/year');
+must(api.includes("commerce_contract:'universal-commerce-v1'")&&admin.includes('menuCommerceProducts'),'Admin upgraded from laptop taxonomy to universal commerce');
 must(!api.includes("station_data_contract:'authorized-api-or-demo-v1'")&&!api.includes("map_contract:'leaflet-osm-v1'"),'obsolete EV API/map contracts removed');
 must(!fn.includes('service_ev_charge_5')&&!api.includes('service_ev_charge_5')&&!admin.includes('service_ev_charge_5'),'obsolete EV preset removed from runtime/admin');
 console.log('Laptop Showroom Contract V23: PASS');
