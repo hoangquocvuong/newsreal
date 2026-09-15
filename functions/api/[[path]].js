@@ -761,22 +761,26 @@ function defaultTemplateStructure(key){
 // V20.9.27.37 — Universal Hero Editing Contract.
 // A template opts in by exposing a static hero section (content_source=none / bind_required=0)
 // or hero_editable=1. Existing and future templates then receive the same customer Hero editor.
-function ensureUniversalHeroSettingsSchema(structure={}){
+function ensureUniversalHeroSettingsSchema(structure={},templateKey=''){
  const p=structure&&typeof structure==='object'?structure:{};
  const sections=Array.isArray(p.sections)?p.sections:[];
  const hero=sections.find(x=>String(x?.key||'').toLowerCase()==='hero');
  const staticHero=!!hero&&(Number(hero?.hero_editable||0)===1||String(hero?.content_source||'')==='none'||Number(hero?.bind_required)===0);
  if(!staticHero)return p;
+ const k=String(templateKey||'');
+ const defaults=k==='dich-vu-1'?{title:'Kết nối mạnh. Trọn trải nghiệm số.',description:'Internet tốc độ cao, giải trí FPT Play và Camera AI trong một hệ sinh thái cho gia đình hiện đại.',primary:'Xem gói cước',secondary:'Kiểm tra hạ tầng'}:k==='dich-vu-6'?{title:'',description:'Khai hội rộn ràng – đội hình linh hoạt từ 2 đến 7 đầu lân, múa rồng, trống hội và hiệu ứng theo kịch bản.',primary:'Xem gói biểu diễn',secondary:'Liên hệ báo giá'}:{title:'',description:'',primary:'',secondary:''};
+ const slider=String(p?.gallery_contract||'').includes('slider')||String(hero?.hero_mode||'')==='slider'||Number(hero?.slider||0)===1;
  const universal=[
-  {key:'hero_image',label:'Ảnh Hero trang chủ',type:'image',default:'',help:'Ảnh lớn ở phần đầu trang. Tải JPG, PNG hoặc WEBP tối đa 8 MB.'},
-  {key:'hero_title',label:'Tiêu đề Hero',type:'text',default:''},
-  {key:'hero_description',label:'Mô tả Hero',type:'textarea',default:''},
-  {key:'hero_cta_primary',label:'Nhãn nút Hero chính',type:'text',default:''},
-  {key:'hero_cta_secondary',label:'Nhãn nút Hero phụ',type:'text',default:''}
+  {key:'hero_image',label:'Ảnh chính đầu trang',type:'image',default:'',help:'Đây là ảnh lớn nổi bật ở phần đầu Trang chủ. Thay ảnh tại đây sẽ đổi ảnh khách nhìn thấy đầu tiên khi mở website.'},
+  ...(slider?[{key:'hero_slides',label:'Các ảnh trình chiếu đầu trang',type:'image-list',default:'[]',help:'Đây là các ảnh tự chuyển ở đầu Trang chủ. Bạn có thể thay ảnh, thêm, xóa và sắp xếp các slide.'}]:[]),
+  {key:'hero_title',label:'Tiêu đề lớn',type:'text',default:defaults.title,help:'Dòng chữ lớn nổi bật ở phần đầu Trang chủ.'},
+  {key:'hero_description',label:'Đoạn giới thiệu',type:'textarea',default:defaults.description,help:'Đoạn mô tả nằm ngay dưới tiêu đề lớn.'},
+  {key:'hero_cta_primary',label:'Nút chính',type:'text',default:defaults.primary,help:'Tên nút nổi bật ở phần đầu Trang chủ.'},
+  {key:'hero_cta_secondary',label:'Nút phụ',type:'text',default:defaults.secondary,help:'Tên nút thứ hai nằm cạnh nút chính.'}
  ];
  const schema=Array.isArray(p.settings_schema)?[...p.settings_schema]:[];
  const keys=new Set(schema.map(x=>String(x?.key||'')));
- for(const def of universal)if(!keys.has(def.key)){schema.unshift(def);keys.add(def.key)}
+ for(const def of universal){const i=schema.findIndex(x=>String(x?.key||'')===def.key);if(i>=0)schema[i]={...schema[i],...def};else{schema.unshift(def);keys.add(def.key)}}
  p.settings_schema=schema;
  p.hero_settings_contract='customer-editable-v1';
  return p;
@@ -3769,7 +3773,7 @@ if(route==='me'){
  const profileType=String(content_profile?.content_type||(tc?.category==='tin-tuc'?'news':tc?.category==='bat-dong-san'?'property':'generic'));
  let categoryStructure={};try{categoryStructure=tc?.structure_profile?JSON.parse(tc.structure_profile):defaultTemplateStructure(site.template_key||tc?.template_key||'')}catch(e){categoryStructure=defaultTemplateStructure(site.template_key||tc?.template_key||'')}
  if(!categoryStructure||!Array.isArray(categoryStructure.sections)||!categoryStructure.sections.length)categoryStructure=defaultTemplateStructure(site.template_key||tc?.template_key||'');
- categoryStructure=ensureUniversalHeroSettingsSchema(categoryStructure);
+ categoryStructure=ensureUniversalHeroSettingsSchema(categoryStructure,site.template_key||tc?.template_key||'');
  content_profile=templateCategoryContract(categoryStructure,content_profile,profileType);
  content_profile.settings_schema=Array.isArray(categoryStructure?.settings_schema)?categoryStructure.settings_schema:[];
  try{site.template_settings=JSON.parse(String(site.template_settings_json||'{}'))}catch(e){site.template_settings={}}
@@ -3886,10 +3890,18 @@ if(route==='settings'&&request.method==='PUT'){
  if(seoOgImage&&!/^https?:\/\//i.test(seoOgImage)&&!seoOgImage.startsWith('/'))return json({error:'Ảnh chia sẻ SEO phải là URL http(s) hoặc đường dẫn bắt đầu bằng /'},400);
   let structure=defaultTemplateStructure(site.template_key||'');
  try{const tr=await env.DB.prepare(`SELECT structure_profile FROM template_catalog WHERE template_key=? LIMIT 1`).bind(site.template_key||'').first();if(tr?.structure_profile)structure=JSON.parse(tr.structure_profile)}catch(e){}
- structure=ensureUniversalHeroSettingsSchema(structure);
+ structure=ensureUniversalHeroSettingsSchema(structure,site.template_key||'');
  const schema=Array.isArray(structure?.settings_schema)?structure.settings_schema:[],allowed=new Map(schema.map(x=>[String(x.key||''),x]));
  const incoming=b.template_settings&&typeof b.template_settings==='object'?b.template_settings:{},clean={};
- for(const [key,def] of allowed){let v=String(incoming[key]??def.default??'').trim();const max=def.type==='textarea'?12000:1000;v=v.slice(0,max);if(def.type==='url'&&v&&!/^https?:\/\//i.test(v))return json({error:`${def.label||key}: link phải bắt đầu bằng http:// hoặc https://`},400);if(def.type==='image'&&v&&!/^https?:\/\//i.test(v)&&!v.startsWith('/'))return json({error:`${def.label||key}: ảnh phải là URL http(s) hoặc đường dẫn bắt đầu bằng /`},400);clean[key]=v}
+ for(const [key,def] of allowed){
+  if(def.type==='image-list'){
+    let arr=incoming[key];try{if(typeof arr==='string')arr=JSON.parse(arr)}catch{arr=[]}if(!Array.isArray(arr))arr=[];
+    arr=arr.map(x=>String(x||'').trim()).filter(Boolean).slice(0,10);
+    if(arr.some(v=>!/^https?:\/\//i.test(v)&&!v.startsWith('/')))return json({error:`${def.label||key}: mỗi ảnh phải là URL http(s) hoặc đường dẫn bắt đầu bằng /`},400);
+    clean[key]=arr;continue;
+  }
+  let v=String(incoming[key]??def.default??'').trim();const max=def.type==='textarea'?12000:1000;v=v.slice(0,max);if(def.type==='url'&&v&&!/^https?:\/\//i.test(v))return json({error:`${def.label||key}: link phải bắt đầu bằng http:// hoặc https://`},400);if(def.type==='image'&&v&&!/^https?:\/\//i.test(v)&&!v.startsWith('/'))return json({error:`${def.label||key}: ảnh phải là URL http(s) hoặc đường dẫn bắt đầu bằng /`},400);clean[key]=v
+ }
  await env.DB.batch([
    env.DB.prepare(`UPDATE sites SET name=?,phone=?,zalo=?,facebook=? WHERE id=?`).bind(b.name||site.name,b.phone||'',b.zalo||'',b.facebook||'',site.id),
    env.DB.prepare(`INSERT INTO site_public_settings(site_id,contact_email,settings_json,seo_title,seo_description,seo_og_image,seo_index,updated_at) VALUES(?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
