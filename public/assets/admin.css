@@ -1,0 +1,2 @@
+/* V20.9.27.48 — commerce variant matrix */
+.commerce-variant-table{display:grid;gap:8px;margin-top:12px}.commerce-variant-row{display:grid;grid-template-columns:minmax(160px,1.2fr) repeat(4,minmax(110px,1fr));gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:10px;background:#fff}.commerce-variant-row input{min-width:0}@media(max-width:800px){.commerce-variant-row{grid-template-columns:1fr 1fr}.commerce-variant-row>b{grid-column:1/-1}}

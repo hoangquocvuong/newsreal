@@ -1,0 +1,14 @@
+import fs from 'node:fs';let f=0;const ok=(x,m)=>{console.log((x?'OK ':'FAIL ')+m);if(!x)f++};
+const w=fs.readFileSync('functions/[[path]].js','utf8'),site=fs.readFileSync('public/assets/site.js','utf8'),admin=fs.readFileSync('public/assets/admin.js','utf8'),api=fs.readFileSync('functions/api/[[path]].js','utf8'),html=fs.readFileSync('public/admin.html','utf8');
+ok(w.includes("id=\"pdAdd\"")&&w.includes("q('#pdAdd').onclick=add"),'demo product Add to cart is wired');
+ok(w.includes("id=\"pdBuy\"")&&w.includes("q('#pdBuy').onclick"),'demo Buy now opens checkout');
+ok(w.includes("nr_commerce_demo_cart"),'demo detail cart persists in localStorage');
+ok(site.includes('function comEnsureCart()')&&site.includes('comEnsureCart();comVariantSync(p)'),'customer product detail keeps universal cart/checkout available');
+ok(site.includes('variant_key')&&site.includes('variant_name'),'cart preserves selected variant identity');
+ok(site.includes('function comVariantSync(p)')&&site.includes('comDetailPrice')&&site.includes('comDetailStock'),'variant selection updates price/SKU/stock');
+ok(site.includes('comAdd(${p.id},false)')&&site.includes('comAdd(${p.id},true)'),'customer Add cart and Buy now actions are wired');
+ok(api.includes('function commerceCleanVariants')&&api.includes('stock_qty:Math.max'),'API sanitizes variant matrix');
+ok(api.includes('variants_json FROM commerce_products')&&api.includes('variant_key:vk'),'checkout validates variant inventory and records variant');
+ok(admin.includes('function comGenerateVariantMatrix')&&admin.includes('function comCollectVariants'),'Admin generates and collects variant matrix');
+ok(html.includes('commerceVariantMatrix')&&html.includes('commerceGenerateVariants'),'Admin exposes variant matrix UI');
+if(f)process.exit(1);console.log('Commerce Interaction + Variant Matrix Contract V29: PASS');
