@@ -2111,7 +2111,7 @@ if(route==='trial/convert-request'&&request.method==='POST'){
 }
 
 // V20.6.10 — Trial Direct Checkout v2: payment is created from data already stored on the Trial.
-function templateSalePrice(t){const base=Math.max(0,Number(t?.price||0)),sale=Math.max(0,Number(t?.sale_price||0));const now=Date.now(),start=t?.sale_start?Date.parse(String(t.sale_start).replace(' ','T')+'Z'):0,end=t?.sale_end?Date.parse(String(t.sale_end).replace(' ','T')+'Z'):0;const active=sale>0&&sale<base&&(!start||now>=start)&&(!end||now<end);return {base,final:active?sale:base,active,start,end};}
+async function globalSaleState(env,t){const base=Math.max(0,Number(t?.price||0));let g={enabled:0,discount_amount:0,sale_start:'',sale_end:''};try{g=await env.DB.prepare(`SELECT enabled,discount_amount,sale_start,sale_end FROM global_sale_campaign WHERE id=1`).first()||g}catch(e){}const now=Date.now(),start=g.sale_start?Date.parse(String(g.sale_start).replace(' ','T')):0,end=g.sale_end?Date.parse(String(g.sale_end).replace(' ','T')):0,discount=Math.max(0,Number(g.discount_amount||0));const active=Number(g.enabled)===1&&discount>0&&base>discount&&(!start||now>=start)&&(!end||now<end);return {base,final:active?base-discount:base,active,start,end,discount:active?discount:0};}
 if(route==='trial/direct-checkout'&&request.method==='POST'){
   const b=await body(request),trialToken=String(b.token||'').trim();
   if(!trialToken)return json({error:'Thiếu mã website dùng thử'},400);
@@ -2126,7 +2126,7 @@ if(route==='trial/direct-checkout'&&request.method==='POST'){
   if(!name||!phone||!email||!siteName)return json({error:'Website dùng thử chưa đủ thông tin kích hoạt. Vui lòng liên hệ hỗ trợ.'},409);
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json({error:'Email của website dùng thử không hợp lệ'},409);
   const templateName=String(tpl.name||tr.template_name||templateKey).trim();
-  const commercial=templateSalePrice(tpl),finalPrice=commercial.final,renewalPrice=commercial.base;
+  const commercial=await globalSaleState(env,tpl),finalPrice=commercial.final,renewalPrice=commercial.base;
   if(finalPrice<=0)return json({error:'Giao diện này chưa có giá thanh toán tự động. Vui lòng liên hệ hỗ trợ.'},409);
   const leadId=Number(tr.lead_id||0);if(!leadId)return json({error:'Không tìm thấy hồ sơ dùng thử'},409);
   await env.DB.batch([
@@ -2167,7 +2167,7 @@ if(route==='template-inquiry'&&request.method==='POST'){
   const tpl=templateKey?await env.DB.prepare(`SELECT template_key,name,price,renewal_price,coalesce(sale_price,0) sale_price,coalesce(sale_start,'') sale_start,coalesce(sale_end,'') sale_end FROM template_catalog WHERE template_key=? AND is_active=1 LIMIT 1`).bind(templateKey).first():null;
   if(!tpl)return json({error:'Vui lòng chọn một giao diện đang mở bán trước khi thanh toán'},400);
   const templateName=String(tpl.name||b.template_name||templateKey).trim();
-  const commercial=templateSalePrice(tpl),finalPrice=commercial.final,renewalPrice=commercial.base;
+  const commercial=await globalSaleState(env,tpl),finalPrice=commercial.final,renewalPrice=commercial.base;
   if(finalPrice<=0)return json({error:'Giao diện này chưa có giá thanh toán tự động. Vui lòng liên hệ hỗ trợ.'},409);
 
   let leadId=0;
@@ -3062,6 +3062,19 @@ if(route==='master/renewal-watch'&&request.method==='GET'){
       datetime(sp.renewal_requested_at) DESC,s.id DESC`).all();
   return json({ok:true,renewals:results||[]},200,{'Cache-Control':'no-store, no-cache, must-revalidate, max-age=0'});
 }
+if(route==='master/global-sale'&&request.method==='GET'){
+  if(!await masterOK(env,request))return json({error:'Không có quyền'},401);
+  const sale=await env.DB.prepare(`SELECT enabled,discount_amount,sale_start,sale_end,updated_at FROM global_sale_campaign WHERE id=1`).first();
+  return json({ok:true,sale:sale||{enabled:0,discount_amount:500000,sale_start:'',sale_end:''}});
+}
+if(route==='master/global-sale'&&request.method==='POST'){
+  if(!await masterOK(env,request))return json({error:'Không có quyền'},401);
+  const b=await body(request),enabled=b.enabled===true||Number(b.enabled)===1?1:0,discount=Math.max(0,Math.round(Number(b.discount_amount)||0)),saleStart=String(b.sale_start||'').trim(),saleEnd=String(b.sale_end||'').trim();
+  if(enabled&&(!saleStart||!saleEnd))return json({error:'Vui lòng chọn đủ thời gian SALE'},400);
+  if(enabled&&Date.parse(saleEnd)<=Date.parse(saleStart))return json({error:'Thời gian kết thúc phải sau thời gian bắt đầu'},400);
+  await env.DB.prepare(`INSERT INTO global_sale_campaign(id,enabled,discount_amount,sale_start,sale_end,updated_at) VALUES(1,?,?,?,?,CURRENT_TIMESTAMP) ON CONFLICT(id) DO UPDATE SET enabled=excluded.enabled,discount_amount=excluded.discount_amount,sale_start=excluded.sale_start,sale_end=excluded.sale_end,updated_at=CURRENT_TIMESTAMP`).bind(enabled,discount,saleStart,saleEnd).run();
+  return json({ok:true,sale:{enabled,discount_amount:discount,sale_start:saleStart,sale_end:saleEnd}});
+}
 if(route==='master/template-catalog'&&request.method==='GET'){
   if(!await masterOK(env,request))return json({error:'Không có quyền'},401);
   const {results}=await env.DB.prepare(`SELECT template_key,name,category,preset,price,renewal_price,coalesce(sale_price,0) sale_price,coalesce(sale_start,'') sale_start,coalesce(sale_end,'') sale_end,is_active,sort_order,
@@ -3095,8 +3108,8 @@ if(route==='master/template-save'&&request.method==='POST'){
   const preset=String(b.preset||'').trim();
   const price=Math.max(0,Math.round(Number(b.price)||0));
   const renewal=price; // GLOBAL PRICING CONTRACT: renewal always returns to Master base price
-  const salePrice=Math.max(0,Math.round(Number(b.sale_price)||0));
-  const saleStart=String(b.sale_start||'').trim(),saleEnd=String(b.sale_end||'').trim();
+  const salePrice=0;
+  const saleStart='',saleEnd='';
   const sort=Math.max(0,Math.round(Number(b.sort_order)||0));
   const image=String(b.image_url||'').trim();
   const demo=String(b.demo_url||'').trim();

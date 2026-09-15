@@ -451,6 +451,8 @@ async function ensureMarketCatalog(env){
 async function ensureNewsPreviewAsset(env){
  try{await env.DB.prepare(`UPDATE template_catalog SET image_url='/assets/demo/tin-tuc-1-preview-v2.png',demo_url='/demo/tin-tuc/mau-1/',updated_at=CURRENT_TIMESTAMP WHERE template_key='tin-tuc-1'`).run()}catch(e){}
 }
+async function publicGlobalSale(env){try{return await env.DB.prepare(`SELECT enabled,discount_amount,sale_start,sale_end FROM global_sale_campaign WHERE id=1`).first()||{enabled:0,discount_amount:0,sale_start:'',sale_end:''}}catch(e){return {enabled:0,discount_amount:0,sale_start:'',sale_end:''}}}
+function applyGlobalSaleToTemplates(rows,g){return (rows||[]).map(t=>({...t,global_sale_enabled:Number(g.enabled||0),global_discount_amount:Number(g.discount_amount||0),global_sale_start:g.sale_start||'',global_sale_end:g.sale_end||''}))}
 async function loadTemplateCatalog(env,category=''){
  try{
   await ensureMarketCatalog(env);
@@ -458,13 +460,13 @@ async function loadTemplateCatalog(env,category=''){
    const {results}=await env.DB.prepare(`SELECT template_key,name,category,preset,price,renewal_price,coalesce(sale_price,0) sale_price,coalesce(sale_start,'') sale_start,coalesce(sale_end,'') sale_end,is_active,sort_order,
     image_url,demo_url,badge,description,features,accent,seo_title,seo_slug,primary_keyword,secondary_keywords,meta_description,internal_anchor FROM template_catalog
     WHERE is_active=1 ORDER BY CASE category WHEN 'bat-dong-san' THEN 1 WHEN 'tin-tuc' THEN 2 WHEN 'blog-ca-nhan' THEN 3 WHEN 'doanh-nghiep' THEN 4 WHEN 'ban-hang' THEN 5 WHEN 'landing-page' THEN 6 WHEN 'dich-vu' THEN 7 WHEN 'game' THEN 8 ELSE 99 END,sort_order,template_key`).all();
-   return results||[];
+   return applyGlobalSaleToTemplates(results||[],await publicGlobalSale(env));
   }
   const {results}=await env.DB.prepare(`SELECT template_key,name,category,preset,price,renewal_price,coalesce(sale_price,0) sale_price,coalesce(sale_start,'') sale_start,coalesce(sale_end,'') sale_end,is_active,sort_order,
    image_url,demo_url,badge,description,features,accent,seo_title,seo_slug,primary_keyword,secondary_keywords,meta_description,internal_anchor FROM template_catalog
    WHERE category=? AND is_active=1 ORDER BY sort_order,template_key`).bind(category).all();
-  return results||[];
- }catch(e){return category?TEMPLATE_CATALOG_DEFAULTS.filter(x=>x.category===category):TEMPLATE_CATALOG_DEFAULTS.filter(x=>x.is_active!==0)}
+  return applyGlobalSaleToTemplates(results||[],await publicGlobalSale(env));
+ }catch(e){const rows=category?TEMPLATE_CATALOG_DEFAULTS.filter(x=>x.category===category):TEMPLATE_CATALOG_DEFAULTS.filter(x=>x.is_active!==0);return applyGlobalSaleToTemplates(rows,await publicGlobalSale(env))}
 }
 const CATEGORY_NAMES={
  'bat-dong-san':'Bất động sản','tin-tuc':'Tin tức','blog-ca-nhan':'Blog cá nhân','doanh-nghiep':'Doanh nghiệp','ban-hang':'Bán hàng','landing-page':'Landing Page','dich-vu':'Dịch vụ','game':'Game','san-pham':'Sản phẩm / Affiliate'
@@ -488,10 +490,10 @@ function gameMarketplacePreviewHtml(extraClass=''){
  </div>`;
 }
 function marketSaleState(t){
- const base=Math.max(0,Number(t?.price||0)),sale=Math.max(0,Number(t?.sale_price||0));
- const now=Date.now(),start=t?.sale_start?Date.parse(String(t.sale_start).replace(' ','T')+'Z'):0,end=t?.sale_end?Date.parse(String(t.sale_end).replace(' ','T')+'Z'):0;
- const active=sale>0&&sale<base&&(!start||now>=start)&&(!end||now<end);
- return {base,sale:active?sale:base,active,end:end||0};
+ const base=Math.max(0,Number(t?.price||0)),discount=Math.max(0,Number(t?.global_discount_amount||0));
+ const now=Date.now(),start=t?.global_sale_start?Date.parse(String(t.global_sale_start).replace(' ','T')):0,end=t?.global_sale_end?Date.parse(String(t.global_sale_end).replace(' ','T')):0;
+ const active=Number(t?.global_sale_enabled)===1&&discount>0&&base>discount&&(!start||now>=start)&&(!end||now<end);
+ return {base,sale:active?base-discount:base,active,end:end||0,discount:active?discount:0};
 }
 function templateSeoDetailHtml(t){
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

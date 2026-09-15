@@ -956,9 +956,7 @@ function tmRender(){
    <div class="tm-card-body">
     <div class="tm-card-title"><div><small>${tmEsc(tmCatName(t.category))} · #${Number(t.sort_order||0)}</small><h3>${tmEsc(t.name)}</h3><code>${tmEsc(t.template_key)}</code></div>${t.badge?`<span class="tm-badge">${tmEsc(t.badge)}</span>`:''}</div>
     <div class="tm-prices commercial-admin-prices">
-      <div><small>NĂM ĐẦU</small><strong>${fmtTemplateMoney(t.price)}</strong></div>
-      <div><small>TỪ NĂM 2 / 12 THÁNG</small><strong>${fmtTemplateMoney(t.renewal_price)}</strong></div>
-      <div class="tm-save-value"><small>ƯU ĐÃI</small><strong>${Number(t.renewal_price)>Number(t.price)&&Number(t.price)>0?fmtTemplateMoney(Number(t.renewal_price)-Number(t.price)):'—'}</strong></div>
+      <div><small>GIÁ GỐC / 12 THÁNG</small><strong>${fmtTemplateMoney(t.price)}</strong></div>
     </div>
     <div class="tm-package-mini">Tên miền 1 năm · Hosting 1 năm · Giao diện · Quản trị & bàn giao</div>
     <div class="tm-sample-state ${Number(t.sample_enabled)?'on':'off'}"><b>Bộ bài mẫu:</b> ${Number(t.sample_enabled)?`${Number(t.sample_count||12)} bài · Master cài theo yêu cầu khách`:'Chưa bật cho template'}</div>
@@ -974,10 +972,24 @@ function tmRender(){
  tmList.querySelectorAll('.tm-edit').forEach(b=>b.onclick=()=>tmOpenEditor(tmData.find(x=>x.template_key===b.closest('.tm-card').dataset.key)));
  tmList.querySelectorAll('.tm-toggle').forEach(b=>b.onclick=()=>tmToggle(b.closest('.tm-card').dataset.key));
 }
+let __globalSale={enabled:0,discount_amount:500000,sale_start:'',sale_end:''};
+function gsLocal(v){return String(v||'').replace(' ','T').slice(0,16)}
+function renderGlobalSale(){
+ const e=document.getElementById('gsEnabled'),d=document.getElementById('gsDiscount'),a=document.getElementById('gsStart'),b=document.getElementById('gsEnd'),st=document.getElementById('gsStatus');
+ if(e)e.checked=Number(__globalSale.enabled)===1;if(d)d.value=Number(__globalSale.discount_amount||500000);if(a)a.value=gsLocal(__globalSale.sale_start);if(b)b.value=gsLocal(__globalSale.sale_end);
+ if(st)st.textContent=Number(__globalSale.enabled)===1?'SALE đang bật · giảm '+fmtTemplateMoney(__globalSale.discount_amount||0):'SALE đang tắt';
+}
+async function loadGlobalSale(){try{const r=await mapi('global-sale');__globalSale=r.sale||__globalSale;renderGlobalSale()}catch(e){console.warn('global sale',e)}}
+document.getElementById('saveGlobalSale')?.addEventListener('click',async()=>{
+ const btn=document.getElementById('saveGlobalSale'),enabled=document.getElementById('gsEnabled')?.checked?1:0,discount_amount=Math.max(0,Number(document.getElementById('gsDiscount')?.value||0)),sale_start=document.getElementById('gsStart')?.value||'',sale_end=document.getElementById('gsEnd')?.value||'';
+ if(enabled&&(!sale_start||!sale_end))return alert('Vui lòng chọn đầy đủ thời gian bắt đầu và kết thúc SALE.');if(enabled&&Date.parse(sale_end)<=Date.parse(sale_start))return alert('Thời gian kết thúc SALE phải sau thời gian bắt đầu.');
+ btn.disabled=true;try{const r=await mapi('global-sale',{method:'POST',body:JSON.stringify({enabled,discount_amount,sale_start,sale_end})});__globalSale=r.sale;renderGlobalSale();alert('Đã lưu chiến dịch SALE toàn hệ thống.')}catch(e){alert(e.message||'Không lưu được SALE')}finally{btn.disabled=false}
+});
 async function loadTemplateManager(){
  if(!tmList)return;
  tmList.innerHTML='<div class="empty-state">Đang tải dữ liệu template…</div>';
  try{
+  await loadGlobalSale();
   const r=await mapi('template-catalog');
   tmData=r.templates||[];tmSyncCategoryOptions();tmUpdateStats();tmRender();renderCreateThemePicker(csTemplateKey?.value||'');
  }catch(e){tmList.innerHTML='<div class="empty-state">Không tải được Template Manager.</div>'}
@@ -1010,7 +1022,7 @@ function tmOpenEditor(t=null){
  document.getElementById('tmModalTitle').textContent=t?'Chỉnh sửa template':'Thêm template mới';
  const set=(id,v)=>document.getElementById(id).value=v??'';
  set('teKey',t?.template_key||'');set('teName',t?.name||'');set('teCategory',t?.category||'bat-dong-san');
- set('tePreset',t?.preset||'');set('teSalePrice',t?.sale_price||0);set('teSaleStart',String(t?.sale_start||'').replace(' ','T').slice(0,16));set('teSaleEnd',String(t?.sale_end||'').replace(' ','T').slice(0,16));set('teSeoTitle',t?.seo_title||'');set('teSeoSlug',t?.seo_slug||'');set('tePrimaryKeyword',t?.primary_keyword||'');set('teSecondaryKeywords',t?.secondary_keywords||'');set('teMetaDescription',t?.meta_description||'');set('teInternalAnchor',t?.internal_anchor||'');set('tePrice',t?.price||0);set('teRenewal',t?.renewal_price||0);
+ set('tePreset',t?.preset||'');set('teSeoTitle',t?.seo_title||'');set('teSeoSlug',t?.seo_slug||'');set('tePrimaryKeyword',t?.primary_keyword||'');set('teSecondaryKeywords',t?.secondary_keywords||'');set('teMetaDescription',t?.meta_description||'');set('teInternalAnchor',t?.internal_anchor||'');set('tePrice',t?.price||0);set('teRenewal',t?.renewal_price||0);
  tmAutoFillSeoDraft();
  set('teSort',t?.sort_order||0);set('teAccent',t?.accent||'blue');set('teImage',t?.image_url||'');
  set('teDemo',t?.demo_url||'');set('teBadge',t?.badge||'');set('teDescription',t?.description||'');set('teFeatures',t?.features||'');
@@ -1035,8 +1047,6 @@ function tmOpenEditor(t=null){
  document.getElementById('teActive').checked=t?Number(t.is_active)===1:true;
  document.getElementById('teKey').readOnly=!!t;
  document.getElementById('tePricePreview').textContent=fmtTemplateMoney(t?.price||0);
- document.getElementById('teRenewalPreview').textContent=fmtTemplateMoney(t?.price||0);
- const sv=Number(t?.sale_price||0);document.getElementById('teDiscountPreview').textContent=sv>0&&sv<Number(t?.price||0)?fmtTemplateMoney(sv):fmtTemplateMoney(t?.price||0);
  templateEditorModal.classList.remove('hidden');
 }
 function tmCloseEditor(){templateEditorModal?.classList.add('hidden')}
@@ -1074,13 +1084,10 @@ document.getElementById('tmNextPage')?.addEventListener('click',()=>{__tmPage++;
 document.getElementById('tmPageSize')?.addEventListener('change',e=>{__tmPageSize=Number(e.target.value||8);__tmPage=1;tmRender()});
 [tmSearch,tmCategoryFilter,tmStatusFilter].filter(Boolean).forEach(el=>el.addEventListener(el===tmSearch?'input':'change',()=>{__tmPage=1;}));
 function updateTemplatePricePreview(){
- const p=Number(document.getElementById('tePrice')?.value||0),r=p,sale=Number(document.getElementById('teSalePrice')?.value||0);
- document.getElementById('tePricePreview').textContent=fmtTemplateMoney(p);
- document.getElementById('teRenewalPreview').textContent=fmtTemplateMoney(r);
- document.getElementById('teDiscountPreview').textContent=sale>0&&sale<p?fmtTemplateMoney(sale):fmtTemplateMoney(p);
+ const p=Number(document.getElementById('tePrice')?.value||0);
+ const a=document.getElementById('tePricePreview');if(a)a.textContent=fmtTemplateMoney(p);
 }
 document.getElementById('tePrice')?.addEventListener('input',updateTemplatePricePreview);
-document.getElementById('teSalePrice')?.addEventListener('input',updateTemplatePricePreview);document.getElementById('teSaleStart')?.addEventListener('input',updateTemplatePricePreview);document.getElementById('teSaleEnd')?.addEventListener('input',updateTemplatePricePreview);
 document.getElementById('teContentType')?.addEventListener('change',tmToggleProfileFields);
 document.getElementById('teStructureProfile')?.addEventListener('input',tmRenderStructureHealth);
 document.getElementById('teContentType')?.addEventListener('change',tmRenderStructureHealth);
@@ -1117,7 +1124,7 @@ templateEditorForm?.addEventListener('submit',async e=>{
  tmAutoFillSeoDraft();
  const payload={
   template_key:g('teKey').value,name:g('teName').value,category:g('teCategory').value,preset:g('tePreset').value,
-  price:Number(g('tePrice').value||0),renewal_price:Number(g('tePrice').value||0),sale_price:Number(g('teSalePrice').value||0),sale_start:g('teSaleStart').value||'',sale_end:g('teSaleEnd').value||'',sort_order:Number(g('teSort').value||0),
+  price:Number(g('tePrice').value||0),renewal_price:Number(g('tePrice').value||0),sort_order:Number(g('teSort').value||0),
   accent:g('teAccent').value,image_url:g('teImage').value,demo_url:g('teDemo').value,badge:g('teBadge').value,
   description:g('teDescription').value,features:g('teFeatures').value,seo_title:g('teSeoTitle').value,seo_slug:g('teSeoSlug').value,primary_keyword:g('tePrimaryKeyword').value,secondary_keywords:g('teSecondaryKeywords').value,meta_description:g('teMetaDescription').value,internal_anchor:g('teInternalAnchor').value,is_active:g('teActive').checked?1:0,
   editor_profile:editorProfile,
