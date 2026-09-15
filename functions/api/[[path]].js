@@ -758,6 +758,29 @@ function defaultTemplateStructure(key){
  };
  return p[String(key||'')]||{version:5,content_type:'generic',geometry_locked:0,sidebars:[],sections:[]};
 }
+// V20.9.27.37 — Universal Hero Editing Contract.
+// A template opts in by exposing a static hero section (content_source=none / bind_required=0)
+// or hero_editable=1. Existing and future templates then receive the same customer Hero editor.
+function ensureUniversalHeroSettingsSchema(structure={}){
+ const p=structure&&typeof structure==='object'?structure:{};
+ const sections=Array.isArray(p.sections)?p.sections:[];
+ const hero=sections.find(x=>String(x?.key||'').toLowerCase()==='hero');
+ const staticHero=!!hero&&(Number(hero?.hero_editable||0)===1||String(hero?.content_source||'')==='none'||Number(hero?.bind_required)===0);
+ if(!staticHero)return p;
+ const universal=[
+  {key:'hero_image',label:'Ảnh Hero trang chủ',type:'image',default:'',help:'Ảnh lớn ở phần đầu trang. Tải JPG, PNG hoặc WEBP tối đa 8 MB.'},
+  {key:'hero_title',label:'Tiêu đề Hero',type:'text',default:''},
+  {key:'hero_description',label:'Mô tả Hero',type:'textarea',default:''},
+  {key:'hero_cta_primary',label:'Nhãn nút Hero chính',type:'text',default:''},
+  {key:'hero_cta_secondary',label:'Nhãn nút Hero phụ',type:'text',default:''}
+ ];
+ const schema=Array.isArray(p.settings_schema)?[...p.settings_schema]:[];
+ const keys=new Set(schema.map(x=>String(x?.key||'')));
+ for(const def of universal)if(!keys.has(def.key)){schema.unshift(def);keys.add(def.key)}
+ p.settings_schema=schema;
+ p.hero_settings_contract='customer-editable-v1';
+ return p;
+}
 function structureSectionDefaults(type='section'){
  const t=String(type||'section');
  const staticTypes=new Set(['section','intro','topics','property_search','property_categories','benefits','newsletter','services','stats']);
@@ -3746,6 +3769,7 @@ if(route==='me'){
  const profileType=String(content_profile?.content_type||(tc?.category==='tin-tuc'?'news':tc?.category==='bat-dong-san'?'property':'generic'));
  let categoryStructure={};try{categoryStructure=tc?.structure_profile?JSON.parse(tc.structure_profile):defaultTemplateStructure(site.template_key||tc?.template_key||'')}catch(e){categoryStructure=defaultTemplateStructure(site.template_key||tc?.template_key||'')}
  if(!categoryStructure||!Array.isArray(categoryStructure.sections)||!categoryStructure.sections.length)categoryStructure=defaultTemplateStructure(site.template_key||tc?.template_key||'');
+ categoryStructure=ensureUniversalHeroSettingsSchema(categoryStructure);
  content_profile=templateCategoryContract(categoryStructure,content_profile,profileType);
  content_profile.settings_schema=Array.isArray(categoryStructure?.settings_schema)?categoryStructure.settings_schema:[];
  try{site.template_settings=JSON.parse(String(site.template_settings_json||'{}'))}catch(e){site.template_settings={}}
@@ -3862,6 +3886,7 @@ if(route==='settings'&&request.method==='PUT'){
  if(seoOgImage&&!/^https?:\/\//i.test(seoOgImage)&&!seoOgImage.startsWith('/'))return json({error:'Ảnh chia sẻ SEO phải là URL http(s) hoặc đường dẫn bắt đầu bằng /'},400);
   let structure=defaultTemplateStructure(site.template_key||'');
  try{const tr=await env.DB.prepare(`SELECT structure_profile FROM template_catalog WHERE template_key=? LIMIT 1`).bind(site.template_key||'').first();if(tr?.structure_profile)structure=JSON.parse(tr.structure_profile)}catch(e){}
+ structure=ensureUniversalHeroSettingsSchema(structure);
  const schema=Array.isArray(structure?.settings_schema)?structure.settings_schema:[],allowed=new Map(schema.map(x=>[String(x.key||''),x]));
  const incoming=b.template_settings&&typeof b.template_settings==='object'?b.template_settings:{},clean={};
  for(const [key,def] of allowed){let v=String(incoming[key]??def.default??'').trim();const max=def.type==='textarea'?12000:1000;v=v.slice(0,max);if(def.type==='url'&&v&&!/^https?:\/\//i.test(v))return json({error:`${def.label||key}: link phải bắt đầu bằng http:// hoặc https://`},400);if(def.type==='image'&&v&&!/^https?:\/\//i.test(v)&&!v.startsWith('/'))return json({error:`${def.label||key}: ảnh phải là URL http(s) hoặc đường dẫn bắt đầu bằng /`},400);clean[key]=v}

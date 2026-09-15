@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+const api=fs.readFileSync('functions/api/[[path]].js','utf8');
+const site=fs.readFileSync('public/assets/site.js','utf8');
+const admin=fs.readFileSync('public/assets/admin.js','utf8');
+const must=(ok,msg)=>{if(!ok){console.error('FAIL',msg);process.exit(1)}console.log('OK',msg)};
+must(api.includes('function ensureUniversalHeroSettingsSchema'), 'universal Hero schema normalizer exists');
+must(api.includes("hero_settings_contract='customer-editable-v1'"), 'Hero customer-editable contract is marked');
+must((api.match(/ensureUniversalHeroSettingsSchema\(structure\)/g)||[]).length>=1, 'settings save uses universal Hero schema');
+must(api.includes('categoryStructure=ensureUniversalHeroSettingsSchema(categoryStructure)'), 'Admin /me exposes universal Hero schema');
+must(admin.includes("type==='image'")&&admin.includes('data-template-image-file'), 'Admin renders image upload from schema');
+must(site.includes("settings.hero_image||nrSvcImg(7,'combo')"), 'FPT Hero consumes customer image');
+must(site.includes("hero=settings.hero_image||heroImgs[0]"), 'Lion Hero consumes customer image');
+must(site.includes("heroImg=settings.hero_image||"), 'Showcase Hero consumes customer image');
+console.log('Universal Hero Settings Contract V18: PASS');
