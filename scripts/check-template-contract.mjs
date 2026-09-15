@@ -259,7 +259,7 @@ for(const needle of ['sxAdminNewPostUrl(key)','sx-head-admin','＋ Đăng bài']
 for(const needle of ['BUILTIN_PROFESSIONAL_PROFILES','professionalAdminKey()','isProfessionalContactTemplate()','sxpContactForm','sxp-category']){const ok=site.includes(needle)||fs.readFileSync('public/assets/admin.js','utf8').includes(needle);console.log(`${ok?'OK':'FAIL'}  professional client/admin ${needle}`);if(!ok)failed++;}
 
 // V20.9.26.9 — device preview + EV map/API-ready regression.
-for(const needle of ['hvtPreviewDevice','Máy tính bảng','Điện thoại','id="evMap"','tile.openstreetmap.org','HVT_EV_API_ENDPOINT','hvt-ev-api-endpoint']){const ok=fn.includes(needle);console.log(`${ok?'OK':'FAIL'}  preview/EV ${needle}`);if(!ok)failed++;}
+for(const needle of ['data-demo-device="desktop"','Máy tính bảng','Điện thoại','id="evMap"','tile.openstreetmap.org','HVT_EV_API_ENDPOINT','hvt-ev-api-endpoint']){const ok=fn.includes(needle);console.log(`${ok?'OK':'FAIL'}  preview/EV ${needle}`);if(!ok)failed++;}
 for(const needle of ["const evSettings=","ev_station_api_url","station_data_contract:'authorized-api-or-demo-v1'","map_contract:'leaflet-osm-v1'"]){const ok=api.includes(needle);console.log(`${ok?'OK':'FAIL'}  EV admin/API ${needle}`);if(!ok)failed++;}
 
 
