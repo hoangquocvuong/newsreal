@@ -915,7 +915,7 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
 
  let site,trialCtx=null;
  const trialToken=String(u.searchParams.get('nr_trial')||'');
- if(marketHost&&trialToken&&(/^mau-[1-5]$/.test(demo)||/^tin-tuc-[1-4]$/.test(demo)||/^dich-vu-\d+$/.test(demo)||/^blog-ca-nhan-[1-2]$/.test(demo)||/^doanh-nghiep-[1-2]$/.test(demo)||demo==='game-1'||demo==='san-pham-1')){
+ if(marketHost&&trialToken){
    try{trialCtx=await env.DB.prepare(`SELECT wt.*,s.domain,s.name,s.preset,s.template_key FROM website_trials wt JOIN sites s ON s.id=wt.site_id WHERE wt.trial_token=? LIMIT 1`).bind(trialToken).first()}catch(e){}
    if(trialCtx&&trialCtx.status!=='pending_activation'){
      const expired=Date.parse(String(trialCtx.expires_at).replace(' ','T')+'Z')<=Date.now()||trialCtx.status==='expired';
@@ -923,6 +923,7 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
      site=await env.DB.prepare(`SELECT * FROM sites WHERE id=? AND status='active'`).bind(trialCtx.site_id).first();
    }
  }
+ if(marketHost&&trialToken&&!site){return htmlResponse('<h1>404 - Không tìm thấy website dùng thử</h1><p>Phiên dùng thử không hợp lệ, đã hết hạn hoặc nội dung không thuộc website này.</p>',404)}
  if(!site && marketHost && (/^mau-[1-5]$/.test(demo)||/^tin-tuc-[1-4]$/.test(demo)||/^dich-vu-\d+$/.test(demo)||/^blog-ca-nhan-[1-2]$/.test(demo)||/^doanh-nghiep-[1-2]$/.test(demo)||demo==='game-1'||demo==='san-pham-1')){
    // Every marketplace demo uses the same isolated demo tenant unless nr_trial selects a real trial tenant.
    const demoReq=new Request('https://batdongsan2027.org.uk'+path+u.search,request);
