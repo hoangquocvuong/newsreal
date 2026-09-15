@@ -824,7 +824,7 @@ function tmNormalizeStructureDraft(raw,contentType='generic'){
   p.article_sidebar={enabled:1,sticky:1,internal_scroll:0,...(p.article_sidebar&&typeof p.article_sidebar==='object'?p.article_sidebar:{})};
   p.article_sidebar.enabled=1;p.article_sidebar.sticky=1;p.article_sidebar.internal_scroll=0;
  }
- p.sections=p.sections.map((x,i)=>{const type=String(x?.type||'section'),d=tmStructureDefaults(type),rawSlots=Math.max(0,Number(x?.slots||x?.limit||0)),dc=Math.max(1,Number(x?.desktop_columns||x?.columns||1));const slot_hosts=(Array.isArray(x?.slot_hosts)?x.slot_hosts:[]).map(h=>({selector:String(h?.selector||'').trim(),slots:Math.max(0,Number(h?.slots||0))})).filter(h=>h.selector&&h.slots>0);const slots=slot_hosts.length?slot_hosts.reduce((s,h)=>s+h.slots,0):rawSlots;return {...x,key:String(x?.key||`section-${i+1}`),type,slots,slot_contract:'exact',slot_hosts,desktop_columns:dc,tablet_columns:Math.max(1,Number(x?.tablet_columns||Math.min(2,dc))),mobile_columns:Math.max(1,Number(x?.mobile_columns||1)),fill_policy:x?.fill_policy||(d.bind_required?'complete_rows':'natural'),column_mode:['computed','fixed'].includes(String(x?.column_mode||''))?String(x.column_mode):'fixed',desktop_rows:Math.max(0,Number(x?.desktop_rows||0)),content_source:x?.content_source||d.content_source,bind_required:x?.bind_required===false||Number(x?.bind_required)===0?0:d.bind_required,empty_policy:x?.empty_policy||(d.bind_required?'slots':'message')}});return p;
+ p.sections=p.sections.map((x,i)=>{const type=String(x?.type||'section'),d=tmStructureDefaults(type),rawSlots=Math.max(0,Number(x?.slots||x?.limit||0)),dc=Math.max(1,Number(x?.desktop_columns||x?.columns||1));const slot_hosts=(Array.isArray(x?.slot_hosts)?x.slot_hosts:[]).map(h=>({selector:String(h?.selector||'').trim(),slots:Math.max(0,Number(h?.slots||0))})).filter(h=>h.selector&&h.slots>0);const slots=slot_hosts.length?slot_hosts.reduce((s,h)=>s+h.slots,0):rawSlots;const inferredCategory=String(x?.category||((x?.content_source||d.content_source)==='category'?(x?.title||''):'')).trim();return {...x,key:String(x?.key||`section-${i+1}`),type,category:inferredCategory,slots,slot_contract:'exact',slot_hosts,desktop_columns:dc,tablet_columns:Math.max(1,Number(x?.tablet_columns||Math.min(2,dc))),mobile_columns:Math.max(1,Number(x?.mobile_columns||1)),fill_policy:x?.fill_policy||(d.bind_required?'complete_rows':'natural'),column_mode:['computed','fixed'].includes(String(x?.column_mode||''))?String(x.column_mode):'fixed',desktop_rows:Math.max(0,Number(x?.desktop_rows||0)),content_source:x?.content_source||d.content_source,bind_required:x?.bind_required===false||Number(x?.bind_required)===0?0:d.bind_required,empty_policy:x?.empty_policy||(d.bind_required?'slots':'message')}});return p;
 }
 function tmValidateStructure(raw){
  const p=tmNormalizeStructureDraft(raw,document.getElementById('teContentType')?.value||'generic'),errors=[],warnings=[],keys=new Set();
@@ -1119,7 +1119,11 @@ templateEditorForm?.addEventListener('submit',async e=>{
  // blocked by those legacy warnings; preserve the sold geometry byte-for-byte.
  if(geometryLocked)structureProfile=tmStructureProfile(current);
  const structureCheck=tmValidateStructure(structureProfile);
- if(g('teActive').checked&&!structureCheck.ok&&!geometryLocked){alert('Chưa thể đưa template vào Kho giao diện:\n\n- '+structureCheck.errors.join('\n- '));return}
+ const isExisting=!!current;
+ // SAVE CONTRACT V2: legacy/existing templates must remain editable even when an
+ // older structure profile does not satisfy today's publish contract. Validation
+ // is advisory on edit; only creation of a brand-new active template is blocked.
+ if(g('teActive').checked&&!structureCheck.ok&&!geometryLocked&&!isExisting){alert('Template mới chưa đạt chuẩn để đưa vào Kho giao diện:\n\n- '+structureCheck.errors.join('\n- '));return}
  if(!Array.isArray(structureProfile.sections))structureProfile.sections=[];
  tmAutoFillSeoDraft();
  const payload={

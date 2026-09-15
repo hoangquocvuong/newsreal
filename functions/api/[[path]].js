@@ -787,7 +787,8 @@ function normalizeStructureProfile(raw,key,contentType='generic'){
    const desktop=Math.max(1,Math.min(6,Number(x?.desktop_columns||x?.columns||1)));
    const slotHosts=(Array.isArray(x?.slot_hosts)?x.slot_hosts:[]).slice(0,12).map(h=>({selector:String(h?.selector||'').slice(0,180),slots:Math.max(0,Math.min(60,Number(h?.slots||0)))})).filter(h=>h.selector&&h.slots>0);
    const exactSlots=slotHosts.length?slotHosts.reduce((s,h)=>s+h.slots,0):slots;
-   return {key:String(x?.key||`section-${i+1}`).slice(0,80),type,title:String(x?.title||'').slice(0,160),category:String(x?.category||'').slice(0,120),eyebrow:String(x?.eyebrow||'').slice(0,120),limit:Math.max(0,Math.min(60,Number(x?.limit||0))),slots:exactSlots,slot_contract:(p.content_type==='news'&&String(x?.slot_contract||'')==='sidebar-balanced')?'sidebar-balanced':'exact',slot_hosts:slotHosts,layout_variant:String(x?.layout_variant||'').slice(0,80),column_mode:['computed','fixed'].includes(String(x?.column_mode||''))?String(x.column_mode):'fixed',desktop_columns:desktop,tablet_columns:Math.max(1,Math.min(4,Number(x?.tablet_columns||Math.min(2,desktop)))),mobile_columns:Math.max(1,Math.min(2,Number(x?.mobile_columns||1))),fill_policy:['complete_rows','natural'].includes(String(x?.fill_policy||''))?String(x.fill_policy):(defs.bind_required?'complete_rows':'natural'),grid_selector:String(x?.grid_selector||'').slice(0,180),content_source:String(x?.content_source||defs.content_source).slice(0,60),bind_required:x?.bind_required===false||Number(x?.bind_required)===0?0:defs.bind_required,empty_policy:['slots','message','hide'].includes(String(x?.empty_policy||''))?String(x.empty_policy):(defs.bind_required?'slots':'message')};
+   const inferredCategory=String(x?.category||((x?.content_source||defs.content_source)==='category'?(x?.title||''):'')).trim().slice(0,120);
+   return {key:String(x?.key||`section-${i+1}`).slice(0,80),type,title:String(x?.title||'').slice(0,160),category:inferredCategory,eyebrow:String(x?.eyebrow||'').slice(0,120),limit:Math.max(0,Math.min(60,Number(x?.limit||0))),slots:exactSlots,slot_contract:(p.content_type==='news'&&String(x?.slot_contract||'')==='sidebar-balanced')?'sidebar-balanced':'exact',slot_hosts:slotHosts,layout_variant:String(x?.layout_variant||'').slice(0,80),column_mode:['computed','fixed'].includes(String(x?.column_mode||''))?String(x.column_mode):'fixed',desktop_columns:desktop,tablet_columns:Math.max(1,Math.min(4,Number(x?.tablet_columns||Math.min(2,desktop)))),mobile_columns:Math.max(1,Math.min(2,Number(x?.mobile_columns||1))),fill_policy:['complete_rows','natural'].includes(String(x?.fill_policy||''))?String(x.fill_policy):(defs.bind_required?'complete_rows':'natural'),grid_selector:String(x?.grid_selector||'').slice(0,180),content_source:String(x?.content_source||defs.content_source).slice(0,60),bind_required:x?.bind_required===false||Number(x?.bind_required)===0?0:defs.bind_required,empty_policy:['slots','message','hide'].includes(String(x?.empty_policy||''))?String(x.empty_policy):(defs.bind_required?'slots':'message')};
  });
  return p;
 }
@@ -3130,14 +3131,18 @@ if(route==='master/template-save'&&request.method==='POST'){
   // their stored structure when Master edits price/SEO/preview metadata. Legacy
   // structure warnings therefore cannot block a non-layout save. New/unlocked
   // templates are still required to pass the Universal Layout Contract.
-  const existingTemplate=await env.DB.prepare(`SELECT structure_profile FROM template_catalog WHERE template_key=? LIMIT 1`).bind(key).first();
+  const existingTemplate=await env.DB.prepare(`SELECT structure_profile,is_active FROM template_catalog WHERE template_key=? LIMIT 1`).bind(key).first();
   let existingStructure=null;
   if(existingTemplate?.structure_profile){try{existingStructure=JSON.parse(existingTemplate.structure_profile)}catch(e){existingStructure=null}}
   const legacyGeometryLocked=Number(existingStructure?.geometry_locked||0)===1;
   if(legacyGeometryLocked)structureProfile=existingStructure;
   const structureProfileJson=JSON.stringify(structureProfile);
   const structureValidation=validateStructureProfile(structureProfile,{active});
-  if(active&&!structureValidation.ok&&!legacyGeometryLocked)return json({error:'Khung giao diện chưa đạt chuẩn để đưa vào Kho template.',details:structureValidation.errors,warnings:structureValidation.warnings},400);
+  // SAVE CONTRACT V2: validation must not lock administrators out of existing
+  // templates. Existing rows may predate the current contract; normalize what is
+  // safe and return diagnostics, but allow metadata/content/pricing edits. Only a
+  // brand-new active template must satisfy the publish contract before creation.
+  if(active&&!structureValidation.ok&&!legacyGeometryLocked&&!existingTemplate)return json({error:'Template mới chưa đạt chuẩn để đưa vào Kho template.',details:structureValidation.errors,warnings:structureValidation.warnings},400);
   let editorProfile={};
   try{editorProfile=typeof b.editor_profile==='object'&&b.editor_profile?b.editor_profile:JSON.parse(String(b.editor_profile||'{}'))}catch(e){return json({error:'Cấu hình form đăng bài không hợp lệ'},400)}
   const allowedContentTypes=['property','news','product','app','service','game','generic'];
