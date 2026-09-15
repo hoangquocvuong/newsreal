@@ -184,7 +184,7 @@ for(const needle of [
   'function proPlatformContract(html,demo)',
   'data-pro-admin-quick',
   '/favicons/favicon-16x16.png',
-  'Một website bán được nhiều loại sản phẩm.',
+  'ASUS Vivobook 14',
   'Bản tin doanh nghiệp',
   'Hình ảnh hoạt động doanh nghiệp',
   'Catalog đa ngành',
@@ -223,7 +223,7 @@ for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo sử dụng ảnh chụp t
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  rich demo content ${needle}`); if(!ok) failed++;
 }
 
-for(const needle of ['Bản tin doanh nghiệp','Hình ảnh hoạt động doanh nghiệp','Năng lực cốt lõi','Catalog đa ngành','Kinh doanh nội dung','Bài nổi bật & bài được đọc nhiều','Nguồn tham khảo chuyên môn','Một website bán được nhiều loại sản phẩm.']){
+for(const needle of ['Bản tin doanh nghiệp','Hình ảnh hoạt động doanh nghiệp','Năng lực cốt lõi','Catalog đa ngành','Kinh doanh nội dung','Bài nổi bật & bài được đọc nhiều','Nguồn tham khảo chuyên môn','ASUS Vivobook 14']){
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  pro real-world layout ${needle}`); if(!ok) failed++;
 }
 const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',11],['dich-vu-6',1]];
