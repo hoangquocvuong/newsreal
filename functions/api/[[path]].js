@@ -3166,7 +3166,7 @@ if(route==='master/template-save'&&request.method==='POST'){
 
   await env.DB.prepare(`INSERT INTO template_catalog
     (template_key,name,category,preset,price,renewal_price,sale_price,sale_start,sale_end,is_active,sort_order,image_url,demo_url,badge,description,features,accent,seo_title,seo_slug,primary_keyword,secondary_keywords,meta_description,internal_anchor,editor_profile,sample_enabled,sample_count,layout_profile,structure_profile,updated_at)
-    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
     ON CONFLICT(template_key) DO UPDATE SET
       name=excluded.name,category=excluded.category,preset=excluded.preset,price=excluded.price,
       renewal_price=excluded.renewal_price,sale_price=excluded.sale_price,sale_start=excluded.sale_start,sale_end=excluded.sale_end,is_active=excluded.is_active,sort_order=excluded.sort_order,
