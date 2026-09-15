@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+const api=fs.readFileSync('functions/api/[[path]].js','utf8');
+const must=(ok,msg)=>{if(!ok){console.error('FAIL',msg);process.exitCode=1}else console.log('OK',msg)};
+const renewal=api.slice(api.indexOf('async function createRenewalPayment'),api.indexOf('async function notifyMasterRenewalPaid'));
+must(renewal.includes('tc.price renewal_price'),'renewal payment reads current Master template price');
+must(!renewal.includes('1999000')&&!renewal.includes('sp.renewal_price'),'renewal payment has no legacy/hard-coded price fallback');
+must(renewal.includes("if(amount<=0)throw new Error('Chưa có giá gia hạn hợp lệ')"),'renewal fails closed when Master price is missing/invalid');
+const trial=api.slice(api.indexOf("if(route==='trial/direct-checkout'"),api.indexOf("if(route==='template-inquiry'"));
+must(trial.includes('globalSaleState(env,tpl)')&&trial.includes('renewalPrice=commercial.base'),'trial checkout uses global sale and preserves Master base renewal price');
+const direct=api.slice(api.indexOf("if(route==='template-inquiry'"),api.indexOf("if(route==='master/global-sale'"));
+must(direct.includes('globalSaleState(env,tpl)')&&direct.includes('renewalPrice=commercial.base'),'direct template checkout uses the same pricing engine');
+must(api.includes('site_sample_tombstones'),'sample deletion tombstones are implemented');
+must(api.includes('Customer deletion is permanent across sample-pack upgrades/repairs'),'sample upgrade explicitly protects customer deletion');
+must(api.includes("UPDATE posts SET type=?,is_sample=1,sample_key=CASE WHEN coalesce(sample_key,'')='' THEN ? ELSE sample_key END"),'sample repair changes technical identity only, not customer title/content/category');
+must(api.includes("INSERT INTO site_sample_tombstones(site_id,sample_key,deleted_at)"),'Admin delete records sample tombstone before deletion');
+must(api.includes("SELECT 1 found FROM site_sample_tombstones WHERE site_id=? AND sample_key=? LIMIT 1"),'sample seed skips customer-deleted sample keys');
+if(process.exitCode)process.exit(process.exitCode);
+console.log('Payment + Sample Handover Contract V13: PASS');
