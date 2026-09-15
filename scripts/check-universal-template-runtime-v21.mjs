@@ -5,7 +5,7 @@ const ok=(m)=>console.log('OK',m);
 const fn=(src.match(/function realTop\(d\)\{[\s\S]*?\n\}/)||[])[0]||'';
 if(!fn.includes('class="nr-demo-bar"')||!fn.includes('data-demo-device="desktop"')||!fn.includes('data-demo-device="tablet"')||!fn.includes('data-demo-device="mobile"')) fail('professional demos must use canonical nr-demo-bar/device controls'); else ok('professional demos use canonical demo bar/device controls');
 if(fn.includes('real-demo-top')||fn.includes('hvtPreviewDevice')||fn.includes('hvt-device-stage')) fail('legacy professional preview runtime still present'); else ok('legacy professional preview runtime removed');
-if(!src.includes('<span>Máy tính bảng</span>')||!src.includes('<span>Điện thoại</span>')) fail('canonical device labels must be Vietnamese everywhere'); else ok('canonical device labels unified');
+if(!src.includes('<span>Tablet</span>')||!src.includes('<span>Mobile</span>')) fail('canonical device labels must use PC / Tablet / Mobile everywhere'); else ok('canonical PC / Tablet / Mobile labels unified');
 if(!src.includes('/assets/style.css?v=20.9.27.40')) fail('professional demos must load shared platform stylesheet'); else ok('professional demos load shared platform stylesheet');
 if(!src.includes("const isServiceDemo=!!serviceNum")) fail('service demos must stay in shared demo classification'); else ok('service demos remain in shared classification');
 if(!process.exitCode) console.log('Universal Template Runtime Contract V21: PASS');

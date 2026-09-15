@@ -24,7 +24,7 @@ for (const [path, renderer, marker] of routes) {
 }
 const previewResponse=await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/blog-ca-nhan/mau-1/'),env:{},next:()=>new Response('NEXT')});
 const previewHtml=await previewResponse.text();
-for(const marker of ['data-demo-device="desktop"','Máy tính bảng','Điện thoại','nr-device-stage']) if(!previewHtml.includes(marker)) throw new Error('device preview toolbar missing: '+marker);
+for(const marker of ['data-demo-device="desktop"','Tablet','Mobile','nr-device-stage']) if(!previewHtml.includes(marker)) throw new Error('device preview toolbar missing: '+marker);
 console.log('OK  runtime canonical PC/Tablet/Mobile preview toolbar');
 for(const marker of ['/favicons/favicon-16x16.png','data-pro-admin-quick']) if(!previewHtml.includes(marker)) throw new Error('professional platform contract missing: '+marker);
 console.log('OK  runtime professional shared favicon + quick-publish contract');
@@ -52,7 +52,7 @@ console.log('OK  runtime legacy customer skeleton simulation retired');
 
 const lionResponse=await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/dich-vu/mua-lan-su-rong/'),env:{},next:()=>new Response('NEXT')});
 const lionHtml=await lionResponse.text();
-for(const marker of ['Gói 2 đầu lân','Gói 7 đầu lân','Múa rồng','Trống hội','Liên hệ báo giá','Giá tiền','data-demo-device="desktop"','Máy tính bảng','Điện thoại','/favicons/favicon-16x16.png','data-pro-admin-quick']) if(!lionHtml.includes(marker)) throw new Error('lion template contract missing: '+marker);
+for(const marker of ['Gói 2 đầu lân','Gói 7 đầu lân','Múa rồng','Trống hội','Liên hệ báo giá','Giá tiền','data-demo-device="desktop"','Tablet','Mobile','/favicons/favicon-16x16.png','data-pro-admin-quick']) if(!lionHtml.includes(marker)) throw new Error('lion template contract missing: '+marker);
 if(lionHtml.includes('sales-chat.js')||lionHtml.includes('Tư vấn online')) throw new Error('lion template leaked HVT sales chat');
 const lm=/href=\"([^\"]*\/bai-viet\/[^\"]+)\"/.exec(lionHtml);
 if(!lm) throw new Error('lion article link missing');

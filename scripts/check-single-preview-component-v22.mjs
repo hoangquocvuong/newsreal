@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+const src=fs.readFileSync('functions/[[path]].js','utf8');
+let failed=0;
+const ok=m=>console.log('OK  '+m), fail=m=>{console.error('FAIL '+m);failed++};
+for(const marker of ['<span>PC</span>','<span>Tablet</span>','<span>Mobile</span>']) src.includes(marker)?ok('preview label '+marker.replace(/<[^>]+>/g,'')):fail('missing canonical preview label '+marker);
+if(src.includes('<span>Máy tính bảng</span>')||src.includes('<span>Điện thoại</span>')) fail('legacy Vietnamese device labels remain in canonical preview component'); else ok('no alternate device labels remain');
+for(const marker of ['data-demo-device="desktop"','data-demo-device="tablet"','data-demo-device="mobile"','nr-device-stage','nr-device-frame']) src.includes(marker)?ok('shared runtime '+marker):fail('missing shared runtime '+marker);
+const bars=[...src.matchAll(/class="nr-demo-bar"/g)].length;
+bars>=1?ok('canonical nr-demo-bar is the preview component'):fail('canonical nr-demo-bar missing');
+if(failed) process.exit(1);
+console.log('Single Preview Component Contract V22: PASS');
