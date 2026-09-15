@@ -271,7 +271,7 @@ function configureAdminForTemplate(){
    document.getElementById('menuServiceLeads')?.classList.remove('hidden');
    postType.value='service';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
    if(menuNew)menuNew.textContent='Đăng bài mới';if(menuPosts)menuPosts.textContent=professionalAdminKey()==='dich-vu-5'?'Quản lý nội dung':'Quản lý dịch vụ';if(overviewBtn)overviewBtn.textContent='＋ Đăng bài mới';
-   if(postTitle)postTitle.placeholder=professionalAdminKey()==='dich-vu-5'?'Ví dụ: Khảo sát lắp sạc tại nhà cần kiểm tra những gì?':'Ví dụ: Gói Internet Home 500';
+   if(postTitle)postTitle.placeholder=professionalAdminKey()==='dich-vu-5'?'Ví dụ: ASUS Vivobook 14 Core i5 16GB 512GB':'Ví dụ: Gói Internet Home 500';
  }else if(news){
    if(isProfessionalContactTemplate())document.getElementById('menuServiceLeads')?.classList.remove('hidden');
    postType.value='news';
