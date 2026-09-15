@@ -1,0 +1,14 @@
+import fs from 'node:fs';let f=0;const ok=(v,m)=>{console.log((v?'OK ':'FAIL ')+m);if(!v)f++};
+const w=fs.readFileSync('functions/[[path]].js','utf8'),api=fs.readFileSync('functions/api/[[path]].js','utf8'),site=fs.readFileSync('public/assets/site.js','utf8'),admin=fs.readFileSync('public/assets/admin.js','utf8'),html=fs.readFileSync('public/admin.html','utf8'),css=fs.readFileSync('public/assets/style.css','utf8');
+ok(w.includes('commerceDemoProductDetail')&&w.includes('/san-pham/${'),'demo product detail uses dedicated page URL');
+ok(w.includes('grid-template-columns:.8fr 1.2fr')&&w.includes('ec-checkout{grid-column:2'),'demo checkout is large two-column popup');
+ok(site.includes('function comRenderProductDetail')&&site.includes('/san-pham/'),'customer storefront product detail page');
+ok(css.includes('com-product-main')&&css.includes('com-product-content'),'full product detail layout');
+ok(css.includes('width:min(1120px,94vw)')&&css.includes('grid-template-columns:minmax(300px,.85fr)'),'customer checkout large modal');
+ok(api.includes('fields_schema_json')&&api.includes('cleanFields'),'category-driven schema API');
+ok(api.includes("request.method==='PUT'")&&api.includes('UPDATE commerce_categories SET'),'category schema update API');
+ok(html.includes('commerceCategoryForm')&&html.includes('commerceDynamicFields'),'Admin category schema and dynamic product form');
+ok(admin.includes('comRenderDynamicFields')&&admin.includes('comCollectSchema'),'Admin auto-generates fields from category schema');
+ok(admin.includes("variant:r.querySelector('[data-sf=variant]').checked"),'schema can mark variant fields');
+ok(fs.existsSync('migrations/0060_commerce_dynamic_schema_product_detail.sql'),'D1 migration 0060');
+if(f)process.exit(1);console.log('Universal Product Detail + Dynamic Schema Contract V28: PASS');
