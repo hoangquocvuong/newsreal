@@ -979,6 +979,16 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
    html=html.replace('</head>','<meta name="robots" content="noindex,follow"></head>');
    return htmlNoCache(demo?demoInject(html,demo,trialCtx):themedHtml(html,site.preset));
  }
+ if(path==='/xem-bai'&&u.searchParams.get('id')){
+   const p=await env.DB.prepare(`SELECT * FROM posts WHERE id=? AND site_id=? AND status='published'`).bind(+u.searchParams.get('id'),site.id).first();
+   if(!p)return htmlResponse('<h1>404 - Không tìm thấy nội dung</h1>',404);
+   const keep=new URLSearchParams();for(const k of ['nr_trial','tenant'])if(u.searchParams.get(k))keep.set(k,u.searchParams.get(k));
+   const key=String(site.template_key||''),preset=String(site.preset||'');
+   if(key==='game-1'||preset==='game_clash_1'){const q=keep.toString();return Response.redirect(origin+'/base/'+slugify(p.title)+'.html'+(q?'?'+q:''),302)}
+   if(key==='san-pham-1'||preset==='product_affiliate_1'){const q=keep.toString();return Response.redirect(origin+'/san-pham/'+slugify(p.title)+'.html'+(q?'?'+q:''),302)}
+   if(/^dich-vu-[1-6]$/.test(key)||/^blog-ca-nhan-[1-2]$/.test(key)||/^doanh-nghiep-[1-2]$/.test(key)){const q=new URLSearchParams(keep);q.set('id',String(p.id));return Response.redirect(origin+'/?'+q.toString(),302)}
+   const target=postUrl(origin,p).slice(origin.length),qs=keep.toString();return Response.redirect(origin+target+(qs?'?'+qs:''),302);
+ }
  if(path==='/property'&&u.searchParams.get('id')){
    const p=await env.DB.prepare(`SELECT * FROM posts WHERE id=? AND site_id=? AND status='published'`).bind(+u.searchParams.get('id'),site.id).first();if(p){const dest=postUrl(origin,p).slice(origin.length);return Response.redirect(origin+(demo?demoPrefixForPath(rawPath,demo):'')+dest,301);}
  }

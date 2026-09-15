@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+const site=fs.readFileSync('public/assets/site.js','utf8');
+const admin=fs.readFileSync('public/assets/admin.js','utf8');
+const worker=fs.readFileSync('functions/[[path]].js','utf8');
+let f=0;const ok=(c,m)=>{console.log(`${c?'OK':'FAIL'}  ${m}`);if(!c)f++};
+ok(site.includes('function nrNormalizeContentPost(post={})'),'universal content normalizer exists');
+ok(site.includes('SITE_DATA.posts=nrNormalizeContentPosts(SITE_DATA.posts)'),'all template posts normalized centrally');
+ok(site.includes('data-ld-price>Giá tiền</button>')&&site.includes('Xem chi tiết gói →'),'lion trial/demo use canonical price/detail controls');
+ok(admin.includes('function adminViewPostUrl(x)')&&admin.includes('>Xem</button>'),'Admin real/sample rows have View action');
+ok(worker.includes("if(path==='/xem-bai'&&u.searchParams.get('id'))"),'universal view route exists');
+if(f)process.exit(1);console.log('Universal content contract V11: PASS');

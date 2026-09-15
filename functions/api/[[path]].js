@@ -1413,18 +1413,14 @@ async function seedDemoForSite(env,siteId,opts={}){
     const x=rows[i]||{};
     const sampleKey=String(x.sample_key||`${site.template_key||x.type||'sample'}:${i+1}`);
     const listingCode=String(x.listing_code||`SAMPLE-${String(i+1).padStart(3,'0')}`);
-    const exists=await env.DB.prepare(`SELECT id,type,is_sample,sample_key,listing_code,extra_json FROM posts WHERE site_id=? AND (sample_key=? OR (listing_code<>'' AND listing_code=?)) LIMIT 1`).bind(siteId,sampleKey,listingCode).first();
+    const exists=await env.DB.prepare(`SELECT id,type,is_sample,sample_key,listing_code FROM posts WHERE site_id=? AND (sample_key=? OR (listing_code<>'' AND listing_code=?)) LIMIT 1`).bind(siteId,sampleKey,listingCode).first();
     if(exists){
       // V20.9.27.25 — repair technical sample identity without overwriting customer edits.
       // Earlier professional packs could be inserted as `news` when editor_profile had
       // not yet been synchronized, which made both Admin > Tin mẫu and the live renderer
       // hide them. Keep edited title/content/category, but restore canonical type/flags.
-      let oldExtra={};let newExtra={};
-      try{oldExtra=JSON.parse(String(exists.extra_json||'{}'))}catch(e){oldExtra={}}
-      try{newExtra=JSON.parse(String(x.extra_json||'{}'))}catch(e){newExtra={}}
-      const mergedExtra={...newExtra,...oldExtra};
-      await env.DB.prepare(`UPDATE posts SET type=?,is_sample=1,sample_key=CASE WHEN coalesce(sample_key,'')='' THEN ? ELSE sample_key END,extra_json=? WHERE id=? AND site_id=?`)
-        .bind(x.type||'property',sampleKey,JSON.stringify(mergedExtra),exists.id,siteId).run();
+      await env.DB.prepare(`UPDATE posts SET type=?,is_sample=1,sample_key=CASE WHEN coalesce(sample_key,'')='' THEN ? ELSE sample_key END WHERE id=? AND site_id=?`)
+        .bind(x.type||'property',sampleKey,exists.id,siteId).run();
       skipped++;continue
     }
     if(String(x.type||'')==='news'){
@@ -1451,32 +1447,6 @@ async function seedDemoForSite(env,siteId,opts={}){
 // same posts only as an in-memory layout scaffold, then the browser removes
 // article/listing cards after render. This keeps section/category order identical
 // to the populated template without writing anything to a customer site.
-function normalizeTemplateContentRecord(input={},templateKey='',contentType=''){
-  const p={...(input||{})};
-  let extra={};
-  try{extra=p.extra_json&&typeof p.extra_json==='object'?{...p.extra_json}:JSON.parse(String(p.extra_json||'{}'))}catch(e){extra={}}
-  const type=String(p.type||contentType||'news').toLowerCase();
-  const isService=type==='service'||/^dich-vu-/.test(String(templateKey||''));
-  if(!extra.service_price&&p.service_price)extra.service_price=String(p.service_price);
-  if(!extra.service_price&&isService&&p.price)extra.service_price=String(p.price);
-  if(!extra.service_cta&&p.service_cta)extra.service_cta=String(p.service_cta);
-  if(!extra.service_cta&&p.cta_label)extra.service_cta=String(p.cta_label);
-  if(isService){
-    if(!extra.service_cta)extra.service_cta='Liên hệ báo giá';
-    if(!extra.card_secondary_label)extra.card_secondary_label='Giá tiền';
-    if(!extra.detail_label)extra.detail_label='Xem chi tiết gói →';
-  }else{
-    if(!extra.detail_label)extra.detail_label='Đọc chi tiết →';
-  }
-  p.type=type;
-  p.title=String(p.title||p.name||'').trim();
-  p.category=String(p.category||p.cat||'').trim();
-  p.image=String(p.image||p.image_url||p.thumbnail||p.img||'').trim();
-  p.content=p.content!=null?String(p.content):String(p.description||p.excerpt||'');
-  p.extra_json=JSON.stringify(extra);
-  return p;
-}
-
 async function buildTemplatePreviewBlueprint(env,templateKey,site={}){
   // V20.9.24.2 — read-only showroom preview must never seed/ALTER the catalogue.
   const key=String(templateKey||site?.template_key||'').trim();
@@ -1673,9 +1643,7 @@ async function buildTemplatePreviewBlueprint(env,templateKey,site={}){
     }
     let i=0;while(posts.length<totalNeed){const cat=baseCats[i%baseCats.length];posts.push({id:920000+posts.length,type:contentType==='generic'?'news':contentType,title:`${cat} · Nội dung mẫu ${String(posts.length+1).padStart(2,'0')}`,category:cat,image:'',content:'Nội dung mẫu dùng làm khung bố cục xem trước.',status:'published',featured:posts.length===0?1:0,verified:1,listing_code:`SAMPLE-${String(posts.length+1).padStart(3,'0')}`,views:0,is_sample:1,sample_key:`${key||'template'}:generic-${posts.length+1}`,__nr_blueprint:1});i++;}
   }
-  const canonicalKey=resolvedKey||key||String(t?.template_key||'');
-  posts=(Array.isArray(posts)?posts:[]).map(x=>normalizeTemplateContentRecord(x,canonicalKey,contentType));
-  return {posts,content_type:contentType,template_key:canonicalKey,editor_profile:ep};
+  return {posts,content_type:contentType,template_key:key||String(t?.template_key||''),editor_profile:ep};
 }
 
 async function nextOrderCode(env){
