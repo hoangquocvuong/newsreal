@@ -1,6 +1,6 @@
 import fs from 'node:fs';let f=0;const ok=(x,m)=>{console.log((x?'OK ':'FAIL ')+m);if(!x)f++};
 const w=fs.readFileSync('functions/[[path]].js','utf8'),site=fs.readFileSync('public/assets/site.js','utf8'),admin=fs.readFileSync('public/assets/admin.js','utf8'),api=fs.readFileSync('functions/api/[[path]].js','utf8'),html=fs.readFileSync('public/admin.html','utf8');
-ok(w.includes("id=\"pdAdd\"")&&w.includes("q('#pdAdd').onclick=add"),'demo product Add to cart is wired');
+ok(w.includes("id=\"pdAdd\"")&&(w.includes("q('#pdAdd').onclick=add")||w.includes("q('#pdAdd').onclick=()=>add(false)")),'demo product Add to cart is wired');
 ok(w.includes("id=\"pdBuy\"")&&w.includes("q('#pdBuy').onclick"),'demo Buy now opens checkout');
 ok(w.includes("nr_commerce_demo_cart"),'demo detail cart persists in localStorage');
 ok(site.includes('function comEnsureCart()')&&site.includes('comEnsureCart();comVariantSync(p)'),'customer product detail keeps universal cart/checkout available');

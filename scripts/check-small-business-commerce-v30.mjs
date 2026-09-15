@@ -1,0 +1,12 @@
+import fs from 'node:fs';let f=0;const ok=(x,m)=>{console.log((x?'OK ':'FAIL ')+m);if(!x)f++};
+const w=fs.readFileSync('functions/[[path]].js','utf8'),site=fs.readFileSync('public/assets/site.js','utf8'),css=fs.readFileSync('public/assets/style.css','utf8');
+ok((w.match(/nr_commerce_demo_cart/g)||[]).length>=2,'demo home and detail share one cart storage key');
+ok(w.includes('pdCartBtn')&&w.includes('pdCartCount'),'product detail exposes visible cart menu and count');
+ok(w.includes("q('#pdCartBtn').onclick")&&w.includes('renderCart()'),'detail cart opens without returning home');
+ok(w.includes("localStorage.setItem(K,JSON.stringify(a));render()")&&w.includes("function normalize(i)"),'storefront hydrates detail cart items');
+ok(w.includes('height:min(680px,88vh)')&&w.includes('overflow:hidden'),'demo checkout is compact and avoids horizontal scrolling');
+ok(css.includes('V49 Small Business Commerce UX'),'customer storefront has small-business UX contract');
+ok(css.includes('.com-detail-head')&&site.includes('comDetailCartCount'),'customer product detail keeps shop/cart navigation');
+ok(css.includes('.com-cart{height:min(680px,88vh)!important'),'customer checkout uses compact desktop modal');
+ok(css.includes('.com-checkout{display:grid;grid-template-columns:1fr 1fr'),'customer checkout uses space-efficient two-column fields');
+if(f)process.exit(1);console.log('Small Business Commerce UX Contract V30: PASS');
