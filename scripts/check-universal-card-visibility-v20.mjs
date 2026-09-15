@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+const css=fs.readFileSync(new URL('../public/assets/style.css',import.meta.url),'utf8');
+const js=fs.readFileSync(new URL('../public/assets/site.js',import.meta.url),'utf8');
+const must=(ok,msg)=>{if(!ok){console.error('FAIL',msg);process.exit(1)}console.log('OK',msg)};
+must(css.includes('V20.9.27.39 — Universal Card Visibility Contract'),'visibility contract marker exists');
+must(css.includes('.viettel-net-list{grid-template-columns:repeat(3,minmax(0,1fr))'),'Viettel desktop uses 3 safe columns');
+must(css.includes('.viettel-net-list .horizontal{display:flex;flex-direction:column'),'Viettel Internet cards use vertical layout');
+must(css.includes('object-fit:contain;object-position:center'),'service artwork uses contain semantics');
+must(css.includes('.tel-card h3,.tel-speed,.tel-desc,.tel-detail-link,.tel-price,.tel-price strong{white-space:normal;overflow:visible;text-overflow:clip'),'critical card text cannot be ellipsized/clipped');
+must(css.includes('@media(max-width:980px)')&&css.includes('repeat(2,minmax(0,1fr))'),'tablet uses 2 columns');
+must(css.includes('@media(max-width:680px)')&&css.includes('.viettel-net-list{grid-template-columns:1fr}'),'mobile uses 1 column');
+must(js.includes('Xem chi tiết & khuyến mãi →')&&js.includes('tel-card-bottom'),'card renderer retains CTA and price');
+console.log('Universal Card Visibility Contract V20: PASS');
