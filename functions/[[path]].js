@@ -964,6 +964,22 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
    if(demo)html=html.replace('</head>','<meta name="robots" content="noindex,follow"></head>');
    return htmlNoCache(demo?demoInject(html,demo,trialCtx):themedHtml(html,site.preset));
  }
+ // V20.9.27.26 — GLOBAL PROFESSIONAL ARTICLE ROUTE.
+ // Trial/showcase links use /<demo-prefix>/bai-viet/<slug>/?id=... . After stripDemoPath
+ // the route is /bai-viet/<slug>/ and must boot the selected tenant/template shell,
+ // never fall through to the legacy NEWSREAL/BDS static index.
+ if(/^\/bai-viet\/[^/]+\/?$/i.test(path) && u.searchParams.get('id')){
+   const key=String(site.template_key||trialCtx?.template_key||''),preset=String(site.preset||'');
+   const professional=/^dich-vu-[1-6]$/.test(key)||/^blog-ca-nhan-[1-2]$/.test(key)||/^doanh-nghiep-[1-2]$/.test(key)||['service_ev_charge_5','service_lion_dance_6','personal_blog_1','personal_blog_2','corporate_modern_1','corporate_industry_2'].includes(preset);
+   if(professional){
+     const p=await env.DB.prepare(`SELECT * FROM posts WHERE id=? AND site_id=? AND status='published' LIMIT 1`).bind(+u.searchParams.get('id'),site.id).first();
+     if(!p)return htmlResponse('<h1>404 - Không tìm thấy bài viết</h1><p>Nội dung không thuộc website dùng thử này.</p>',404);
+     const description=String(p.content||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,170);
+     let html=inject(INDEX_HTML,metaTags({title:`${p.title} | ${siteName}`,description,image:p.image||'',url:origin+rawPath,type:'article'}));
+     html=html.replace(/<meta name="robots"[^>]*>/ig,'').replace('</head>','<meta name="robots" content="noindex,follow"></head>');
+     return htmlNoCache(demo?demoInject(html,demo,trialCtx):themedHtml(html,preset));
+   }
+ }
  if(path==='/'){
    const hero=await env.DB.prepare(`SELECT * FROM posts WHERE site_id=? AND status='published' AND image<>'' ORDER BY featured DESC,id DESC LIMIT 1`).bind(site.id).first();
    const title=String(site.seo_title||'').trim()||`${siteName} - Bất động sản & tin tức thị trường`,desc=String(site.seo_description||'').trim()||`${siteName} - tin đăng bất động sản, nhà đất bán, cho thuê và thông tin thị trường mới nhất.`;
