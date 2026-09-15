@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+const api=fs.readFileSync('functions/api/[[path]].js','utf8');
+const admin=fs.readFileSync('public/assets/admin.js','utf8');
+const site=fs.readFileSync('public/assets/site.js','utf8');
+const must=(ok,msg)=>{if(!ok)throw new Error(msg);console.log('OK',msg)};
+must(api.includes("key:'hero_image'")&&api.includes("type:'image'"),'Hero image is part of customer template settings schema');
+must(api.includes("def.type==='image'")&&api.includes("v.startsWith('/')"),'Backend validates persisted customer hero image paths');
+must(admin.includes('data-template-image-file')&&admin.includes("tenantUrl('/upload')"),'Admin customer settings can upload Hero image through tenant media upload');
+must(site.includes("settings.hero_image||nrSvcImg(7,'combo')"),'FPT Hero renders customer image with template default fallback');
+must(site.includes("settings.hero_title||'Kết nối mạnh. Trọn trải nghiệm số.'"),'FPT Hero title is customer editable');
+console.log('Customer Hero Settings Contract V17: PASS');
