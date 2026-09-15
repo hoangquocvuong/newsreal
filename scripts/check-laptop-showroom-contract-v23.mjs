@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+const fn=fs.readFileSync('functions/[[path]].js','utf8');
+const api=fs.readFileSync('functions/api/[[path]].js','utf8');
+const data=fs.readFileSync('functions/_shared/pro-sample-data.js','utf8');
+const admin=fs.readFileSync('public/assets/admin.js','utf8');
+const must=(ok,msg)=>{if(!ok){console.error('FAIL',msg);process.exit(1)}console.log('OK',msg)};
+must(fn.includes("c.kind==='laptop-store'"),'dich-vu-5 uses laptop showroom renderer');
+must(fn.includes('/demo/dich-vu/cua-hang-laptop'),'canonical laptop demo route exists');
+must(!fn.includes('function evHome('),'obsolete EV renderer removed');
+must(!fn.includes('leaflet@1.9.4'),'obsolete Leaflet dependency removed from renderer');
+must(data.includes('LAPTOP PRO')&&data.includes('Laptop gaming')&&data.includes('MacBook'),'real laptop showroom sample taxonomy exists');
+must(fn.includes('18.990.000đ')&&fn.includes('29.990.000đ'),'product cards expose full sample prices');
+must(fn.includes('laptopLeadForm')&&fn.includes('/api/service-leads'),'laptop inquiry submits to tenant lead inbox');
+must(api.includes("price:3000000,renewal:3000000")||api.includes("price:3000000,renewal_price:3000000"),'catalog base price is 3,000,000 VND/year');
+must(api.includes("Laptop văn phòng")&&admin.includes("Sản phẩm & cẩm nang Laptop"),'Admin taxonomy matches showroom categories');
+must(!api.includes("station_data_contract:'authorized-api-or-demo-v1'")&&!api.includes("map_contract:'leaflet-osm-v1'"),'obsolete EV API/map contracts removed');
+must(!fn.includes('service_ev_charge_5')&&!api.includes('service_ev_charge_5')&&!admin.includes('service_ev_charge_5'),'obsolete EV preset removed from runtime/admin');
+console.log('Laptop Showroom Contract V23: PASS');

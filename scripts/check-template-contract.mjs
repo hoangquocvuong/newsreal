@@ -131,13 +131,13 @@ for(const key of ['dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4','dich-vu-5','d
 }
 
 // Regression: demoInject must declare new template flags before demoLabel reads them.
-const demoFlagDecl=Math.min(...['const isBlogDemo=','const isCorpDemo=','const isEvDemo='].map(x=>fn.indexOf(x)).filter(x=>x>=0));
+const demoFlagDecl=Math.min(...['const isBlogDemo=','const isCorpDemo='].map(x=>fn.indexOf(x)).filter(x=>x>=0));
 const demoLabelUse=fn.indexOf('const demoLabel=');
 if(demoFlagDecl<0||demoLabelUse<0||demoFlagDecl>demoLabelUse){
   console.log('FAIL  marketplace demo runtime flag declaration order');
   failed++;
 }else console.log('OK  marketplace demo runtime flag declaration order');
-for(const route of ['/demo/blog-ca-nhan/mau-1','/demo/blog-ca-nhan/mau-2','/demo/doanh-nghiep/mau-1','/demo/doanh-nghiep/mau-2','/demo/dich-vu/tram-sac-vinfast','/demo/dich-vu/mua-lan-su-rong']){
+for(const route of ['/demo/blog-ca-nhan/mau-1','/demo/blog-ca-nhan/mau-2','/demo/doanh-nghiep/mau-1','/demo/doanh-nghiep/mau-2','/demo/dich-vu/cua-hang-laptop','/demo/dich-vu/mua-lan-su-rong']){
   const ok=fn.includes(route);
   console.log(`${ok?'OK':'FAIL'}  demo route ${route}`);
   if(!ok)failed++;
@@ -162,7 +162,7 @@ for(const pair of [
   ['/demo/blog-ca-nhan/mau-2','blog-ca-nhan-2'],
   ['/demo/doanh-nghiep/mau-1','doanh-nghiep-1'],
   ['/demo/doanh-nghiep/mau-2','doanh-nghiep-2'],
-  ['/demo/dich-vu/tram-sac-vinfast','dich-vu-5'],
+  ['/demo/dich-vu/cua-hang-laptop','dich-vu-5'],
   ['/demo/dich-vu/mua-lan-su-rong','dich-vu-6']
 ]){
   const marker=`return '${pair[1]}'`;
@@ -180,14 +180,14 @@ for(const needle of [
   "if(!html&&c.kind==='creator')html=creatorHome",
   "if(!html&&c.kind==='corporate')html=corpHome",
   "if(!html&&c.kind==='industrial')html=industrialHome",
-  "if(!html&&c.kind==='ev')html=evHome",
+  "if(!html&&c.kind==='laptop-store')html=laptopStoreHome",
   'function proPlatformContract(html,demo)',
   'data-pro-admin-quick',
   '/favicons/favicon-16x16.png',
-  'Tìm điểm sạc',
+  'Laptop dễ xem, dễ so sánh',
   'Bản tin doanh nghiệp',
   'Hình ảnh hoạt động doanh nghiệp',
-  'Thư viện kiến thức xe điện',
+  'Cẩm nang laptop',
   '/bai-viet/'
 ]){
   const ok=fn.includes(needle);
@@ -199,12 +199,12 @@ const sharedDemoTenant=fn.indexOf("const demoReq=new Request('https://batdongsan
 if(proDispatch<0||sharedDemoTenant<0||proDispatch>sharedDemoTenant){
   console.log('FAIL  professional demos bypass shared BDS shell');failed++;
 }else console.log('OK  professional demos bypass shared BDS shell');
-const evPrefixSpecial=fn.indexOf("if(demo==='dich-vu-5')return '/demo/dich-vu/tram-sac-vinfast'");
+const evPrefixSpecial=fn.indexOf("if(demo==='dich-vu-5')return '/demo/dich-vu/cua-hang-laptop'");
 const genericServicePrefix=fn.indexOf(String.raw`if(/^dich-vu-\d+$/.test(demo))return '/demo/dich-vu/mau-'`);
 if(evPrefixSpecial<0||genericServicePrefix<0||evPrefixSpecial>genericServicePrefix){
-  console.log('FAIL  EV route prefix precedence');failed++;
-}else console.log('OK  EV route prefix precedence');
-for(const asset of ['blog1-hero.webp','blog2-hero.webp','corp1-hero.webp','corp2-hero.webp','ev-hero.webp','ev-1.webp']){
+  console.log('FAIL  Laptop route prefix precedence');failed++;
+}else console.log('OK  Laptop route prefix precedence');
+for(const asset of ['blog1-hero.webp','blog2-hero.webp','corp1-hero.webp','corp2-hero.webp']){
   const ok=fs.existsSync('public/assets/showcase/'+asset);
   console.log(`${ok?'OK':'FAIL'}  showcase asset ${asset}`);if(!ok)failed++;
 }
@@ -219,14 +219,14 @@ if(/designedRows\*cols/.test(site)){
 }else console.log('OK  no computed slot target');
 
 // V20.9.25.7 — professional real-content demo regression checks
-for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo sử dụng ảnh chụp thực tế từ Unsplash','Thương hiệu cá nhân','Kinh doanh nội dung','Giới thiệu & năng lực','Dự án tiêu biểu','Kiến thức sạc']){
+for(const needle of ['PRO_REAL_DEMO_DATA','Ảnh demo sử dụng ảnh chụp thực tế từ Unsplash','Thương hiệu cá nhân','Kinh doanh nội dung','Giới thiệu & năng lực','Dự án tiêu biểu','Laptop gaming']){
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  rich demo content ${needle}`); if(!ok) failed++;
 }
 
-for(const needle of ['Bản tin doanh nghiệp','Hình ảnh hoạt động doanh nghiệp','Năng lực cốt lõi','Thư viện kiến thức xe điện','Kinh doanh nội dung','Bài nổi bật & bài được đọc nhiều','Nguồn tham khảo chuyên môn','IEA · Electric vehicle charging 2026']){
+for(const needle of ['Bản tin doanh nghiệp','Hình ảnh hoạt động doanh nghiệp','Năng lực cốt lõi','Cẩm nang laptop','Kinh doanh nội dung','Bài nổi bật & bài được đọc nhiều','Nguồn tham khảo chuyên môn','Laptop dễ xem, dễ so sánh']){
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  pro real-world layout ${needle}`); if(!ok) failed++;
 }
-const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',8],['dich-vu-6',1]];
+const richSections=[['blog-ca-nhan-1',7],['blog-ca-nhan-2',7],['doanh-nghiep-1',8],['doanh-nghiep-2',8],['dich-vu-5',9],['dich-vu-6',1]];
 for(const [k,v] of richSections){
  const marker=`'${k}':{version:${v}`;
  const ok=api.includes(marker); console.log(`${ok?'OK':'FAIL'}  rich structure ${k}`); if(!ok) failed++;
@@ -237,7 +237,7 @@ for(const [label,needle] of [
   ['real-photo catalog refresh','const proRefresh=['],
   ['real-photo corporate cover','photo-1521737711867-e3b97375f902'],
   ['real-photo industrial cover','photo-1504917595217-d4dc5ebe6122'],
-  ['real-photo EV cover','photo-1755555707544-5f2cea7413c1']
+  ['real-photo Laptop cover','photo-1496181133206-80ce9b88a853']
 ]){
   const ok=fn.includes(needle); console.log(`${ok?'OK':'FAIL'}  ${label}`); if(!ok) failed++;
 }
@@ -249,18 +249,19 @@ for(const needle of [
   "'doanh-nghiep-1':{id:'news'",
   "'dich-vu-5':{id:'service'",
   "settings_schema:proSettings",
+  "settings_schema:laptopSettings",
   "sec('contact','section','Liên hệ'",
   "sec('contact','section','Liên hệ doanh nghiệp'",
-  "sec('contact','section','Đăng ký khảo sát'"
+  "sec('contact','section','Nhận tư vấn chọn laptop'"
 ]){const ok=api.includes(needle);console.log(`${ok?'OK':'FAIL'}  professional admin/contact ${needle}`);if(!ok)failed++;}
 for(const needle of ['sxAdminNewPostUrl(key)','sx-head-admin','＋ Đăng bài']){
   const ok=site.includes(needle); console.log(`${ok?'OK':'FAIL'}  professional customer quick-publish ${needle}`); if(!ok) failed++;
 }
 for(const needle of ['BUILTIN_PROFESSIONAL_PROFILES','professionalAdminKey()','isProfessionalContactTemplate()','sxpContactForm','sxp-category']){const ok=site.includes(needle)||fs.readFileSync('public/assets/admin.js','utf8').includes(needle);console.log(`${ok?'OK':'FAIL'}  professional client/admin ${needle}`);if(!ok)failed++;}
 
-// V20.9.26.9 — device preview + EV map/API-ready regression.
-for(const needle of ['data-demo-device="desktop"','Tablet','Mobile','id="evMap"','tile.openstreetmap.org','HVT_EV_API_ENDPOINT','hvt-ev-api-endpoint']){const ok=fn.includes(needle);console.log(`${ok?'OK':'FAIL'}  preview/EV ${needle}`);if(!ok)failed++;}
-for(const needle of ["const evSettings=","ev_station_api_url","station_data_contract:'authorized-api-or-demo-v1'","map_contract:'leaflet-osm-v1'"]){const ok=api.includes(needle);console.log(`${ok?'OK':'FAIL'}  EV admin/API ${needle}`);if(!ok)failed++;}
+// V20.9.27.42 — device preview + laptop showroom regression.
+for(const needle of ['data-demo-device="desktop"','Tablet','Mobile','function laptopStoreHome','laptopLeadForm','/api/service-leads']){const ok=fn.includes(needle);console.log(`${ok?'OK':'FAIL'}  preview/laptop ${needle}`);if(!ok)failed++;}
+for(const needle of ["const laptopSettings=","card_contract:'laptop-product-card-v1'","lead_contract:'service-lead-v1'"]){const ok=api.includes(needle);console.log(`${ok?'OK':'FAIL'}  Laptop admin/API ${needle}`);if(!ok)failed++;}
 
 
 // V20.9.27.22 — legacy customer skeleton preview retired.

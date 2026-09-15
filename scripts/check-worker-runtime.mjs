@@ -5,7 +5,7 @@ const routes = [
   ['/demo/blog-ca-nhan/mau-2/','blog-ca-nhan-2','Kinh doanh nội dung'],
   ['/demo/doanh-nghiep/mau-1/','doanh-nghiep-1','Bản tin doanh nghiệp'],
   ['/demo/doanh-nghiep/mau-2/','doanh-nghiep-2','Hình ảnh hoạt động doanh nghiệp'],
-  ['/demo/dich-vu/tram-sac-vinfast/','dich-vu-5','Thư viện kiến thức xe điện'],
+  ['/demo/dich-vu/cua-hang-laptop/','dich-vu-5','Laptop dễ xem, dễ so sánh'],
   ['/demo/dich-vu/mua-lan-su-rong/','dich-vu-6','Gói 2 đầu lân'],
 ];
 for (const [path, renderer, marker] of routes) {
@@ -38,10 +38,10 @@ for (const [path] of routes) {
   }
 }
 console.log('OK  runtime all professional demos mobile-safe contact contract');
-const evResponse=await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/dich-vu/tram-sac-vinfast/'),env:{},next:()=>new Response('NEXT')});
-const evHtml=await evResponse.text();
-for(const marker of ['id="evMap"','tile.openstreetmap.org','HVT_EV_API_ENDPOINT','Dữ liệu mẫu']) if(!evHtml.includes(marker)) throw new Error('EV map/API contract missing: '+marker);
-console.log('OK  runtime EV map + authorized API-ready fallback');
+const laptopResponse=await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/dich-vu/cua-hang-laptop/'),env:{},next:()=>new Response('NEXT')});
+const laptopHtml=await laptopResponse.text();
+for(const marker of ['Laptop dễ xem, dễ so sánh','18.990.000đ','29.990.000đ','laptopLeadForm','/api/service-leads']) if(!laptopHtml.includes(marker)) throw new Error('Laptop showroom contract missing: '+marker);
+console.log('OK  runtime laptop showroom + tenant lead inbox');
 const article = await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/doanh-nghiep/mau-2/bai-viet/nang-luc-doanh-nghiep/'),env:{},next:()=>new Response('NEXT')});
 const articleHtml=await article.text();
 if(article.status!==200 || !articleHtml.includes('Checklist thực hành')) throw new Error('professional article runtime failed');
