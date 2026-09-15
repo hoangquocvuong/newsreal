@@ -2322,9 +2322,16 @@ function sxText(html=''){const d=document.createElement('div');d.innerHTML=Strin
 function sxPostUrl(p){const u=new URL('/bai-viet/'+sxSlug(p.title||('bai-'+p.id))+'/',location.origin);u.searchParams.set('id',String(p.id||''));const q=new URLSearchParams(location.search);for(const k of ['nr_trial','tenant'])if(q.get(k))u.searchParams.set(k,q.get(k));return u.pathname+u.search}
 function sxCard(p){const img=getImages(p)[0]||p.image||'/assets/marketing-demo.webp',txt=sxText(p.content||'').slice(0,135);return `<article class="sxp-card"><a class="sxp-card-img" href="${sxPostUrl(p)}"><img src="${esc(img)}" alt="${esc(p.title||'Bài viết')}"></a><div><small>${esc(p.category||'Bài viết')}</small><h3><a href="${sxPostUrl(p)}">${esc(p.title||'Bài viết')}</a></h3>${txt?`<p>${esc(txt)}${txt.length>=135?'…':''}</p>`:''}<a class="sxp-more" href="${sxPostUrl(p)}">Đọc chi tiết →</a></div></article>`}
 function sxAdminNewPostUrl(key=''){
+ // V20.9.27.34 — all Trial → Admin CTAs must preserve the resolved trial context.
+ // Trial showroom URLs intentionally may expose only nr_trial; tenant is injected by
+ // the server into NR_TRIAL_TENANT, so reading location.search alone loses the site.
+ if(window.NR_TRIAL_TOKEN&&typeof nrDemoAdminUrl==='function')return nrDemoAdminUrl(key,'newpost');
  const q=new URLSearchParams();
  const cur=new URLSearchParams(location.search);
- for(const k of ['tenant','nr_trial'])if(cur.get(k))q.set(k,cur.get(k));
+ const tenant=cur.get('tenant')||window.NR_TRIAL_TENANT||'';
+ const token=cur.get('nr_trial')||window.NR_TRIAL_TOKEN||'';
+ if(tenant)q.set('tenant',tenant);
+ if(token)q.set('nr_trial',token);
  if(key)q.set('template',key);
  q.set('tab','newpost');
  return '/admin?'+q.toString();

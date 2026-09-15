@@ -121,6 +121,46 @@ window.nrDemoAdminUrl=function(templateKey,tab){
  if(window.NR_TRIAL_TOKEN){const q=new URLSearchParams();if(window.NR_TRIAL_TENANT)q.set('tenant',window.NR_TRIAL_TENANT);q.set('nr_trial',window.NR_TRIAL_TOKEN);if(key)q.set('template',key);if(tab)q.set('tab',tab);return '/admin?'+q.toString()}
  const q=new URLSearchParams();if(key)q.set('template',key);if(tab)q.set('tab',tab);return 'https://batdongsan2027.org.uk/admin'+(q.toString()?'?'+q.toString():'')
 };
+// V20.9.27.35 — one canonical Trial -> Admin context contract for every template family.
+// Any local /admin link rendered by static HTML, legacy JS or professional renderers is
+// normalized to the same tenant + trial token + template context. Existing tab/action params survive.
+window.nrCanonicalAdminHref=function(raw){
+ if(!raw||typeof raw!=='string')return raw;
+ try{
+  const u=new URL(raw,location.origin);
+  if(u.origin!==location.origin||u.pathname!=='/admin')return raw;
+  const key=String(u.searchParams.get('template')||window.NR_DEMO_THEME||'').trim();
+  const tab=String(u.searchParams.get('tab')||'').trim();
+  if(window.NR_TRIAL_TOKEN){
+   const q=new URLSearchParams(u.search);
+   if(window.NR_TRIAL_TENANT)q.set('tenant',window.NR_TRIAL_TENANT);
+   q.set('nr_trial',window.NR_TRIAL_TOKEN);
+   if(key)q.set('template',key);
+   if(tab)q.set('tab',tab);
+   return '/admin?'+q.toString();
+  }
+  return window.nrDemoAdminUrl(key,tab);
+ }catch(e){return raw}
+};
+window.nrApplyCanonicalAdminLinks=function(root){
+ const scope=root&&root.querySelectorAll?root:document;
+ scope.querySelectorAll('a[href]').forEach(a=>{
+  const h=a.getAttribute('href')||'';
+  if(!h)return;
+  const fixed=window.nrCanonicalAdminHref(h);
+  if(fixed!==h)a.setAttribute('href',fixed);
+ });
+};
+document.addEventListener('DOMContentLoaded',()=>{
+ window.nrApplyCanonicalAdminLinks(document);
+ new MutationObserver(muts=>{
+  muts.forEach(m=>m.addedNodes.forEach(n=>{
+   if(n.nodeType!==1)return;
+   if(n.matches&&n.matches('a[href]')){const h=n.getAttribute('href')||'';const fixed=window.nrCanonicalAdminHref(h);if(fixed!==h)n.setAttribute('href',fixed)}
+   window.nrApplyCanonicalAdminLinks(n);
+  }));
+ }).observe(document.body,{childList:true,subtree:true});
+});
 window.NR_ESTATE_CORE={
  'mau-1':{brand:'BẤT ĐỘNG SẢN',cls:'theme-estate-default'},
  'mau-2':{brand:'BẤT ĐỘNG SẢN',cls:'theme-estate-green'},
