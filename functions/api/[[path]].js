@@ -316,11 +316,11 @@ function renewalOrderCode(siteId){
 async function createRenewalPayment(env,siteId,years=1){
   years=Math.max(1,Math.min(3,Number(years||1)));
   const row=await env.DB.prepare(`SELECT s.id,s.name,s.domain,u.email admin_email,cp.full_name customer_name,cp.email customer_email,
-    ss.expires_at,coalesce(sp.renewal_price,1999000) renewal_price
+    ss.expires_at,coalesce(tc.price,sp.renewal_price,1999000) renewal_price
     FROM sites s LEFT JOIN users u ON u.site_id=s.id AND u.role='admin'
     LEFT JOIN customer_profiles cp ON cp.site_id=s.id
     LEFT JOIN service_subscriptions ss ON ss.site_id=s.id
-    LEFT JOIN service_promotions sp ON sp.site_id=s.id WHERE s.id=? ORDER BY u.id LIMIT 1`).bind(siteId).first();
+    LEFT JOIN service_promotions sp ON sp.site_id=s.id LEFT JOIN template_catalog tc ON tc.template_key=s.template_key WHERE s.id=? ORDER BY u.id LIMIT 1`).bind(siteId).first();
   if(!row)throw new Error('Website không tồn tại');
   const amount=Math.max(0,Number(row.renewal_price||0))*years;
   if(amount<=0)throw new Error('Chưa có giá gia hạn hợp lệ');
@@ -933,7 +933,10 @@ async function ensureTemplateCatalog(env){
     `ALTER TABLE template_catalog ADD COLUMN primary_keyword TEXT NOT NULL DEFAULT ''`,
     `ALTER TABLE template_catalog ADD COLUMN secondary_keywords TEXT NOT NULL DEFAULT ''`,
     `ALTER TABLE template_catalog ADD COLUMN meta_description TEXT NOT NULL DEFAULT ''`,
-    `ALTER TABLE template_catalog ADD COLUMN internal_anchor TEXT NOT NULL DEFAULT ''`
+    `ALTER TABLE template_catalog ADD COLUMN internal_anchor TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE template_catalog ADD COLUMN sale_price INTEGER NOT NULL DEFAULT 0`,
+    `ALTER TABLE template_catalog ADD COLUMN sale_start TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE template_catalog ADD COLUMN sale_end TEXT NOT NULL DEFAULT ''`
   ];
   for(const q of alters){try{await env.DB.prepare(q).run()}catch(e){}}
 
@@ -991,7 +994,7 @@ async function ensureTemplateCatalog(env){
   ];
   for(const d of seeds){
     await env.DB.prepare(`INSERT OR IGNORE INTO template_catalog
-      (template_key,name,category,preset,price,renewal_price,is_active,sort_order,image_url,demo_url,badge,description,features,accent)
+      (template_key,name,category,preset,price,renewal_price,sale_price,sale_start,sale_end,is_active,sort_order,image_url,demo_url,badge,description,features,accent)
       VALUES(?,?,?,?,?,?,1,?,?,?,?,?,?,?)`)
       .bind(d.key,d.name,d.category,d.preset,d.price,d.renewal,d.sort,d.image,d.demo,d.badge,d.description,d.features,d.accent).run();
 
@@ -1990,9 +1993,9 @@ if(route==='renewal/info'&&request.method==='GET'){
   const raw=String(u.searchParams.get('token')||'');if(!raw)return json({error:'Thiếu mã xác nhận'},400);
   const hash=await sha256(raw);
   const row=await env.DB.prepare(`SELECT rt.id token_id,rt.expires_at,rt.used_at,s.id site_id,s.name,s.domain,ss.expires_at service_expires_at,cp.full_name,
-    coalesce(sp.renewal_status,'none') renewal_status,coalesce(sp.renewal_price,1999000) renewal_price
+    coalesce(sp.renewal_status,'none') renewal_status,coalesce(tc.price,sp.renewal_price,1999000) renewal_price
     FROM renewal_response_tokens rt JOIN sites s ON s.id=rt.site_id LEFT JOIN service_subscriptions ss ON ss.site_id=s.id
-    LEFT JOIN customer_profiles cp ON cp.site_id=s.id LEFT JOIN service_promotions sp ON sp.site_id=s.id WHERE rt.token_hash=?`).bind(hash).first();
+    LEFT JOIN customer_profiles cp ON cp.site_id=s.id LEFT JOIN service_promotions sp ON sp.site_id=s.id LEFT JOIN template_catalog tc ON tc.template_key=s.template_key WHERE rt.token_hash=?`).bind(hash).first();
   if(!row)return json({error:'Liên kết không hợp lệ'},404);
   if(new Date(row.expires_at+'Z')<=new Date())return json({error:'Liên kết đã hết hạn'},410);
   return json({ok:true,site:{name:row.name,domain:row.domain},customer_name:row.full_name||'',expires_at:row.service_expires_at||'',renewal_status:row.renewal_status,renewal_price:Number(row.renewal_price||0),responded:!!row.used_at});
@@ -2108,13 +2111,14 @@ if(route==='trial/convert-request'&&request.method==='POST'){
 }
 
 // V20.6.10 — Trial Direct Checkout v2: payment is created from data already stored on the Trial.
+function templateSalePrice(t){const base=Math.max(0,Number(t?.price||0)),sale=Math.max(0,Number(t?.sale_price||0));const now=Date.now(),start=t?.sale_start?Date.parse(String(t.sale_start).replace(' ','T')+'Z'):0,end=t?.sale_end?Date.parse(String(t.sale_end).replace(' ','T')+'Z'):0;const active=sale>0&&sale<base&&(!start||now>=start)&&(!end||now<end);return {base,final:active?sale:base,active,start,end};}
 if(route==='trial/direct-checkout'&&request.method==='POST'){
   const b=await body(request),trialToken=String(b.token||'').trim();
   if(!trialToken)return json({error:'Thiếu mã website dùng thử'},400);
   // V20.9.24.2 — migrated tables are read/write directly; no request-time schema ensure.
   const tr=await trialByToken(env,trialToken);if(!tr)return json({error:'Website dùng thử không tồn tại'},404);
   const templateKey=String(tr.template_key||'').trim();
-  const tpl=await env.DB.prepare(`SELECT template_key,name,price,renewal_price FROM template_catalog WHERE template_key=? AND is_active=1 LIMIT 1`).bind(templateKey).first();
+  const tpl=await env.DB.prepare(`SELECT template_key,name,price,renewal_price,coalesce(sale_price,0) sale_price,coalesce(sale_start,'') sale_start,coalesce(sale_end,'') sale_end FROM template_catalog WHERE template_key=? AND is_active=1 LIMIT 1`).bind(templateKey).first();
   if(!tpl)return json({error:'Giao diện của website dùng thử không còn mở bán'},409);
   const name=String(tr.customer_name||'').trim(),phone=String(tr.phone||'').trim(),email=String(tr.email||'').trim().toLowerCase();
   const siteName=String(tr.site_name||'').trim(),note=String(tr.note||'').trim(),facebook=String(tr.facebook||'').trim();
@@ -2122,7 +2126,7 @@ if(route==='trial/direct-checkout'&&request.method==='POST'){
   if(!name||!phone||!email||!siteName)return json({error:'Website dùng thử chưa đủ thông tin kích hoạt. Vui lòng liên hệ hỗ trợ.'},409);
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json({error:'Email của website dùng thử không hợp lệ'},409);
   const templateName=String(tpl.name||tr.template_name||templateKey).trim();
-  const finalPrice=Math.max(0,Number(tpl.price||0)),renewalPrice=Math.max(0,Number(tpl.renewal_price||0));
+  const commercial=templateSalePrice(tpl),finalPrice=commercial.final,renewalPrice=commercial.base;
   if(finalPrice<=0)return json({error:'Giao diện này chưa có giá thanh toán tự động. Vui lòng liên hệ hỗ trợ.'},409);
   const leadId=Number(tr.lead_id||0);if(!leadId)return json({error:'Không tìm thấy hồ sơ dùng thử'},409);
   await env.DB.batch([
@@ -2135,7 +2139,7 @@ if(route==='trial/direct-checkout'&&request.method==='POST'){
   await env.DB.prepare(`INSERT INTO purchase_payments(lead_id,order_code,token_hash,amount,status,provider) VALUES(?,?,?,?,'pending','bank_qr')`).bind(leadId,orderCode,tokenHash,finalPrice).run();
   await env.DB.prepare(`UPDATE sales_leads SET payment_order_code=?,payment_status='pending',paid_amount=0,paid_at=NULL,last_activity_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(orderCode,leadId).run();
   await trialEvent(env,tr,'payment_started',{lead_id:leadId,amount:finalPrice,direct_checkout:true});
-  const listPrice=Math.max(finalPrice,renewalPrice||0),discount=Math.max(0,listPrice-finalPrice);
+  const listPrice=renewalPrice,discount=Math.max(0,listPrice-finalPrice);
   const cfg=paymentConfig(env),origin=String(env.PUBLIC_APP_URL||u.origin).replace(/\/$/,'');
   let provider='bank_qr',memo=orderCode,qrCode='',checkoutUrl='',paymentLinkId='',providerOrderCode=null;
   let bankName=cfg.bankName,accountName=cfg.accountName,accountNumber=cfg.accountNumber,qrUrl=purchasePaymentQr(env,finalPrice,memo);
@@ -2160,10 +2164,10 @@ if(route==='template-inquiry'&&request.method==='POST'){
   if(!name||!phone||!email||!siteName)return json({error:'Vui lòng nhập họ tên, số điện thoại, email chính xác và tên website mong muốn'},400);
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json({error:'Email không hợp lệ. Đây là email dùng để nhận link kích hoạt website.'},400);
   // V20.9.24.2 — migrated tables are read/write directly; no request-time schema ensure.
-  const tpl=templateKey?await env.DB.prepare(`SELECT template_key,name,price,renewal_price FROM template_catalog WHERE template_key=? AND is_active=1 LIMIT 1`).bind(templateKey).first():null;
+  const tpl=templateKey?await env.DB.prepare(`SELECT template_key,name,price,renewal_price,coalesce(sale_price,0) sale_price,coalesce(sale_start,'') sale_start,coalesce(sale_end,'') sale_end FROM template_catalog WHERE template_key=? AND is_active=1 LIMIT 1`).bind(templateKey).first():null;
   if(!tpl)return json({error:'Vui lòng chọn một giao diện đang mở bán trước khi thanh toán'},400);
   const templateName=String(tpl.name||b.template_name||templateKey).trim();
-  const finalPrice=Math.max(0,Number(tpl.price||0)),renewalPrice=Math.max(0,Number(tpl.renewal_price||0));
+  const commercial=templateSalePrice(tpl),finalPrice=commercial.final,renewalPrice=commercial.base;
   if(finalPrice<=0)return json({error:'Giao diện này chưa có giá thanh toán tự động. Vui lòng liên hệ hỗ trợ.'},409);
 
   let leadId=0;
@@ -2193,7 +2197,7 @@ if(route==='template-inquiry'&&request.method==='POST'){
   await env.DB.prepare(`INSERT INTO purchase_payments(lead_id,order_code,token_hash,amount,status,provider) VALUES(?,?,?,?,'pending','bank_qr')`).bind(leadId,orderCode,tokenHash,finalPrice).run();
   await env.DB.prepare(`UPDATE sales_leads SET payment_order_code=?,payment_status='pending',paid_amount=0,paid_at=NULL,last_activity_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(orderCode,leadId).run();
 
-  const listPrice=Math.max(finalPrice,renewalPrice||0),discount=Math.max(0,listPrice-finalPrice);
+  const listPrice=renewalPrice,discount=Math.max(0,listPrice-finalPrice);
   const cfg=paymentConfig(env),origin=String(env.PUBLIC_APP_URL||u.origin).replace(/\/$/,'');
   let provider='bank_qr',memo=orderCode,qrCode='',checkoutUrl='',paymentLinkId='',providerOrderCode=null;
   let bankName=cfg.bankName,accountName=cfg.accountName,accountNumber=cfg.accountNumber,qrUrl=purchasePaymentQr(env,finalPrice,memo);
@@ -3060,7 +3064,7 @@ if(route==='master/renewal-watch'&&request.method==='GET'){
 }
 if(route==='master/template-catalog'&&request.method==='GET'){
   if(!await masterOK(env,request))return json({error:'Không có quyền'},401);
-  const {results}=await env.DB.prepare(`SELECT template_key,name,category,preset,price,renewal_price,is_active,sort_order,
+  const {results}=await env.DB.prepare(`SELECT template_key,name,category,preset,price,renewal_price,coalesce(sale_price,0) sale_price,coalesce(sale_start,'') sale_start,coalesce(sale_end,'') sale_end,is_active,sort_order,
     image_url,demo_url,badge,description,features,accent,editor_profile,
     coalesce(sample_enabled,0) sample_enabled,coalesce(sample_count,12) sample_count,layout_profile,structure_profile,updated_at
     FROM template_catalog ORDER BY category,sort_order,template_key`).all();
@@ -3071,13 +3075,14 @@ if(route==='master/template-price'&&request.method==='POST'){
   const b=await body(request);
   const key=String(b.template_key||'').trim();
   const price=Math.max(0,Math.round(Number(b.price)||0));
-  const renewal=Math.max(0,Math.round(Number(b.renewal_price)||0));
+  const renewal=price;
+  const salePrice=Math.max(0,Math.round(Number(b.sale_price)||0));const saleStart=String(b.sale_start||'').trim(),saleEnd=String(b.sale_end||'').trim();
   if(!key)return json({error:'Thiếu mã template'},400);
   const row=await env.DB.prepare(`SELECT template_key FROM template_catalog WHERE template_key=?`).bind(key).first();
   if(!row)return json({error:'Không tìm thấy template'},404);
-  await env.DB.prepare(`UPDATE template_catalog SET price=?,renewal_price=?,updated_at=CURRENT_TIMESTAMP WHERE template_key=?`)
-    .bind(price,renewal,key).run();
-  return json({ok:true,template_key:key,price,renewal_price:renewal});
+  await env.DB.prepare(`UPDATE template_catalog SET price=?,renewal_price=?,sale_price=?,sale_start=?,sale_end=?,updated_at=CURRENT_TIMESTAMP WHERE template_key=?`)
+    .bind(price,renewal,salePrice,saleStart,saleEnd,key).run();
+  return json({ok:true,template_key:key,price,renewal_price:renewal,sale_price:salePrice,sale_start:saleStart,sale_end:saleEnd});
 }
 
 
@@ -3089,7 +3094,9 @@ if(route==='master/template-save'&&request.method==='POST'){
   const category=String(b.category||'bat-dong-san').trim();
   const preset=String(b.preset||'').trim();
   const price=Math.max(0,Math.round(Number(b.price)||0));
-  const renewal=Math.max(0,Math.round(Number(b.renewal_price)||0));
+  const renewal=price; // GLOBAL PRICING CONTRACT: renewal always returns to Master base price
+  const salePrice=Math.max(0,Math.round(Number(b.sale_price)||0));
+  const saleStart=String(b.sale_start||'').trim(),saleEnd=String(b.sale_end||'').trim();
   const sort=Math.max(0,Math.round(Number(b.sort_order)||0));
   const image=String(b.image_url||'').trim();
   const demo=String(b.demo_url||'').trim();
@@ -3140,17 +3147,17 @@ if(route==='master/template-save'&&request.method==='POST'){
   if(!key||!name)return json({error:'Mã template và tên template là bắt buộc'},400);
 
   await env.DB.prepare(`INSERT INTO template_catalog
-    (template_key,name,category,preset,price,renewal_price,is_active,sort_order,image_url,demo_url,badge,description,features,accent,seo_title,seo_slug,primary_keyword,secondary_keywords,meta_description,internal_anchor,editor_profile,sample_enabled,sample_count,layout_profile,structure_profile,updated_at)
-    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+    (template_key,name,category,preset,price,renewal_price,sale_price,sale_start,sale_end,is_active,sort_order,image_url,demo_url,badge,description,features,accent,seo_title,seo_slug,primary_keyword,secondary_keywords,meta_description,internal_anchor,editor_profile,sample_enabled,sample_count,layout_profile,structure_profile,updated_at)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
     ON CONFLICT(template_key) DO UPDATE SET
       name=excluded.name,category=excluded.category,preset=excluded.preset,price=excluded.price,
-      renewal_price=excluded.renewal_price,is_active=excluded.is_active,sort_order=excluded.sort_order,
+      renewal_price=excluded.renewal_price,sale_price=excluded.sale_price,sale_start=excluded.sale_start,sale_end=excluded.sale_end,is_active=excluded.is_active,sort_order=excluded.sort_order,
       image_url=excluded.image_url,demo_url=excluded.demo_url,badge=excluded.badge,
       description=excluded.description,features=excluded.features,accent=excluded.accent,
       seo_title=excluded.seo_title,seo_slug=excluded.seo_slug,primary_keyword=excluded.primary_keyword,secondary_keywords=excluded.secondary_keywords,meta_description=excluded.meta_description,internal_anchor=excluded.internal_anchor,
       editor_profile=excluded.editor_profile,sample_enabled=excluded.sample_enabled,sample_count=excluded.sample_count,layout_profile=excluded.layout_profile,structure_profile=excluded.structure_profile,
       updated_at=CURRENT_TIMESTAMP`)
-    .bind(key,name,category,preset,price,renewal,active,sort,image,demo,badge,description,features,accent,seoTitle,seoSlug,primaryKeyword,secondaryKeywords,metaDescription,internalAnchor,editorProfileJson,sampleEnabled,sampleCount,layoutProfileJson,structureProfileJson).run();
+    .bind(key,name,category,preset,price,renewal,salePrice,saleStart,saleEnd,active,sort,image,demo,badge,description,features,accent,seoTitle,seoSlug,primaryKeyword,secondaryKeywords,metaDescription,internalAnchor,editorProfileJson,sampleEnabled,sampleCount,layoutProfileJson,structureProfileJson).run();
   return json({ok:true,template_key:key,structure_validation:structureValidation});
 }
 

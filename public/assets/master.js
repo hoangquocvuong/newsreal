@@ -1010,7 +1010,7 @@ function tmOpenEditor(t=null){
  document.getElementById('tmModalTitle').textContent=t?'Chỉnh sửa template':'Thêm template mới';
  const set=(id,v)=>document.getElementById(id).value=v??'';
  set('teKey',t?.template_key||'');set('teName',t?.name||'');set('teCategory',t?.category||'bat-dong-san');
- set('tePreset',t?.preset||'');set('teSeoTitle',t?.seo_title||'');set('teSeoSlug',t?.seo_slug||'');set('tePrimaryKeyword',t?.primary_keyword||'');set('teSecondaryKeywords',t?.secondary_keywords||'');set('teMetaDescription',t?.meta_description||'');set('teInternalAnchor',t?.internal_anchor||'');set('tePrice',t?.price||0);set('teRenewal',t?.renewal_price||0);
+ set('tePreset',t?.preset||'');set('teSalePrice',t?.sale_price||0);set('teSaleStart',String(t?.sale_start||'').replace(' ','T').slice(0,16));set('teSaleEnd',String(t?.sale_end||'').replace(' ','T').slice(0,16));set('teSeoTitle',t?.seo_title||'');set('teSeoSlug',t?.seo_slug||'');set('tePrimaryKeyword',t?.primary_keyword||'');set('teSecondaryKeywords',t?.secondary_keywords||'');set('teMetaDescription',t?.meta_description||'');set('teInternalAnchor',t?.internal_anchor||'');set('tePrice',t?.price||0);set('teRenewal',t?.renewal_price||0);
  tmAutoFillSeoDraft();
  set('teSort',t?.sort_order||0);set('teAccent',t?.accent||'blue');set('teImage',t?.image_url||'');
  set('teDemo',t?.demo_url||'');set('teBadge',t?.badge||'');set('teDescription',t?.description||'');set('teFeatures',t?.features||'');
@@ -1035,9 +1035,8 @@ function tmOpenEditor(t=null){
  document.getElementById('teActive').checked=t?Number(t.is_active)===1:true;
  document.getElementById('teKey').readOnly=!!t;
  document.getElementById('tePricePreview').textContent=fmtTemplateMoney(t?.price||0);
- document.getElementById('teRenewalPreview').textContent=fmtTemplateMoney(t?.renewal_price||0);
- const sv=Math.max(0,Number(t?.renewal_price||0)-Number(t?.price||0));
- document.getElementById('teDiscountPreview').textContent=sv>0?fmtTemplateMoney(sv):'0đ';
+ document.getElementById('teRenewalPreview').textContent=fmtTemplateMoney(t?.price||0);
+ const sv=Number(t?.sale_price||0);document.getElementById('teDiscountPreview').textContent=sv>0&&sv<Number(t?.price||0)?fmtTemplateMoney(sv):fmtTemplateMoney(t?.price||0);
  templateEditorModal.classList.remove('hidden');
 }
 function tmCloseEditor(){templateEditorModal?.classList.add('hidden')}
@@ -1075,14 +1074,13 @@ document.getElementById('tmNextPage')?.addEventListener('click',()=>{__tmPage++;
 document.getElementById('tmPageSize')?.addEventListener('change',e=>{__tmPageSize=Number(e.target.value||8);__tmPage=1;tmRender()});
 [tmSearch,tmCategoryFilter,tmStatusFilter].filter(Boolean).forEach(el=>el.addEventListener(el===tmSearch?'input':'change',()=>{__tmPage=1;}));
 function updateTemplatePricePreview(){
- const p=Number(document.getElementById('tePrice')?.value||0),r=Number(document.getElementById('teRenewal')?.value||0);
+ const p=Number(document.getElementById('tePrice')?.value||0),r=p,sale=Number(document.getElementById('teSalePrice')?.value||0);
  document.getElementById('tePricePreview').textContent=fmtTemplateMoney(p);
  document.getElementById('teRenewalPreview').textContent=fmtTemplateMoney(r);
- const save=Math.max(0,r-p);
- document.getElementById('teDiscountPreview').textContent=save>0?fmtTemplateMoney(save):'0đ';
+ document.getElementById('teDiscountPreview').textContent=sale>0&&sale<p?fmtTemplateMoney(sale):fmtTemplateMoney(p);
 }
 document.getElementById('tePrice')?.addEventListener('input',updateTemplatePricePreview);
-document.getElementById('teRenewal')?.addEventListener('input',updateTemplatePricePreview);
+document.getElementById('teSalePrice')?.addEventListener('input',updateTemplatePricePreview);document.getElementById('teSaleStart')?.addEventListener('input',updateTemplatePricePreview);document.getElementById('teSaleEnd')?.addEventListener('input',updateTemplatePricePreview);
 document.getElementById('teContentType')?.addEventListener('change',tmToggleProfileFields);
 document.getElementById('teStructureProfile')?.addEventListener('input',tmRenderStructureHealth);
 document.getElementById('teContentType')?.addEventListener('change',tmRenderStructureHealth);
@@ -1119,7 +1117,7 @@ templateEditorForm?.addEventListener('submit',async e=>{
  tmAutoFillSeoDraft();
  const payload={
   template_key:g('teKey').value,name:g('teName').value,category:g('teCategory').value,preset:g('tePreset').value,
-  price:Number(g('tePrice').value||0),renewal_price:Number(g('teRenewal').value||0),sort_order:Number(g('teSort').value||0),
+  price:Number(g('tePrice').value||0),renewal_price:Number(g('tePrice').value||0),sale_price:Number(g('teSalePrice').value||0),sale_start:g('teSaleStart').value||'',sale_end:g('teSaleEnd').value||'',sort_order:Number(g('teSort').value||0),
   accent:g('teAccent').value,image_url:g('teImage').value,demo_url:g('teDemo').value,badge:g('teBadge').value,
   description:g('teDescription').value,features:g('teFeatures').value,seo_title:g('teSeoTitle').value,seo_slug:g('teSeoSlug').value,primary_keyword:g('tePrimaryKeyword').value,secondary_keywords:g('teSecondaryKeywords').value,meta_description:g('teMetaDescription').value,internal_anchor:g('teInternalAnchor').value,is_active:g('teActive').checked?1:0,
   editor_profile:editorProfile,

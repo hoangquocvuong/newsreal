@@ -224,12 +224,12 @@ Sức khỏe" rows="6"></textarea>
 <label>Số bài trong bộ mẫu<input id="teSampleCount" max="30" min="1" step="1" type="number" value="12"/></label>
 <div class="tm-sample-help"><b>Chống trùng tự động</b><span>Mỗi bài có sample_key riêng. Đồng bộ lại không nhân đôi bài.</span></div>
 <div class="wide te-section-title"><b>Chi phí gói website</b><span>Đây là thông tin khách nhìn thấy ngoài Kho giao diện.</span></div>
-<label>Giá ưu đãi năm đầu (VNĐ)<input id="tePrice" min="0" step="1000" type="number" value="0"/></label>
-<label>Giá từ năm 2 / 12 tháng<input id="teRenewal" min="0" step="1000" type="number" value="0"/></label>
-<div class="wide te-discount-preview">
-<span>Ưu đãi lần đầu</span><strong id="teDiscountPreview">0đ</strong>
-<small>Tự tính = Giá từ năm 2 − Giá năm đầu</small>
-</div>
+<label>Giá gốc / 12 tháng (VNĐ)<input id="tePrice" min="0" step="1000" type="number" value="0"/></label>
+<label>Giá SALE (VNĐ, để 0 = không sale)<input id="teSalePrice" min="0" step="1000" type="number" value="0"/></label>
+<label>Bắt đầu SALE<input id="teSaleStart" type="datetime-local"/></label>
+<label>Kết thúc SALE<input id="teSaleEnd" type="datetime-local"/></label>
+<input id="teRenewal" type="hidden" value="0"/>
+<div class="wide te-discount-preview"><span>Giá khách mới hiện tại</span><strong id="teDiscountPreview">0đ</strong><small>SALE tự áp dụng trong thời gian chiến dịch. Gia hạn luôn quay về giá gốc.</small></div>
 <div class="wide te-section-title"><b>Hiển thị trong Kho giao diện</b><span>Chỉ giữ những trường cần thiết để khách nhận diện và mở demo.</span></div>
 <label>Thứ tự hiển thị<input id="teSort" min="0" step="1" type="number" value="0"/></label>
 <label>Badge <span class="optional">(tùy chọn)</span><input id="teBadge" placeholder="VD: ĐỀ XUẤT / MỚI"/></label>

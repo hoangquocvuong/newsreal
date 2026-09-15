@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+const api=fs.readFileSync('functions/api/[[path]].js','utf8');
+const worker=fs.readFileSync('functions/[[path]].js','utf8');
+const master=fs.readFileSync('public/assets/master.js','utf8');
+const ui=fs.readFileSync('public/control-center/index.html','utf8');
+const migration=fs.readFileSync('migrations/0051_global_template_pricing_sale.sql','utf8');
+const ok=(v,m)=>{if(!v)throw new Error('Pricing contract: '+m);console.log('OK ',m)};
+ok(worker.includes('function marketSaleState(t)'), 'marketplace sale derives from Master fields');
+ok(!worker.includes('ÁP DỤNG NGAY VOUCHER GIẢM 500K'), 'legacy 500K voucher removed from template marketplace');
+ok(worker.includes('data-sale-countdown'), 'sale countdown rendered');
+ok(api.includes('function templateSalePrice(t)'), 'checkout sale computed server-side');
+ok((api.match(/finalPrice=commercial\.final/g)||[]).length>=2, 'trial and direct checkout automatically use sale price');
+ok(api.includes('coalesce(tc.price,sp.renewal_price,1999000) renewal_price'), 'renewal reads Master base price');
+ok(ui.includes('Giá gốc / 12 tháng')&&ui.includes('Giá SALE')&&ui.includes('Kết thúc SALE'), 'Master exposes base/sale/time controls');
+ok(master.includes("sale_price:Number(g('teSalePrice').value||0)"), 'Master persists sale campaign');
+ok(migration.includes('UPDATE template_catalog SET renewal_price = price'), 'migration normalizes renewal to base price');
+console.log('Global Pricing Contract V1: PASS');
