@@ -3761,9 +3761,14 @@ if(route==='service-info'&&request.method==='GET'){
  try{ss=await env.DB.prepare(`SELECT plan_name,sale_price,payment_status,service_status,started_at,expires_at,domain_status,domain_registered_at,domain_expires_at,registrar FROM service_subscriptions WHERE site_id=?`).bind(site.id).first()}catch(e){console.log('service-info subscription:',e?.message||e)}
  try{cp=await env.DB.prepare(`SELECT full_name,email,phone FROM customer_profiles WHERE site_id=?`).bind(site.id).first()}catch(e){console.log('service-info customer:',e?.message||e)}
  try{sp=await env.DB.prepare(`SELECT * FROM service_promotions WHERE site_id=?`).bind(site.id).first()}catch(e){console.log('service-info promotion:',e?.message||e)}
- const sale=Number(ss?.sale_price||0);
- const listPrice=Number(sp?.list_price||1999000);
- const firstDiscount=Number(sp?.first_discount||0);
+ // V20.9.27.33 — customer-facing pricing is always derived from the site's current Template Manager price.
+ // Legacy service_promotions prices are historical snapshots only and must never override Master pricing.
+ let tpl=null;try{tpl=await env.DB.prepare(`SELECT template_key,name,price FROM template_catalog WHERE template_key=? LIMIT 1`).bind(site.template_key||'').first()}catch(e){console.log('service-info template price:',e?.message||e)}
+ const listPrice=Math.max(0,Number(tpl?.price||0));
+ if(listPrice<=0)return json({error:'Template chưa được cấu hình giá trong Master Control'},409);
+ const saleState=await globalSaleState(env,{price:listPrice});
+ const firstPrice=Math.max(0,Number(saleState.final_price||listPrice));
+ const firstDiscount=Math.max(0,listPrice-firstPrice);
  const service={
    plan_name:ss?.plan_name||'Gói website trọn gói',
    payment_status:ss?.payment_status||'unpaid',
@@ -3779,8 +3784,8 @@ if(route==='service-info'&&request.method==='GET'){
    promotion_name:sp?.promotion_name||'Ưu đãi kích hoạt lần đầu',
    list_price:listPrice,
    first_discount:firstDiscount,
-   first_price:Number(sp?.first_price ?? (sale||Math.max(0,listPrice-firstDiscount))),
-   renewal_price:Number(sp?.renewal_price||listPrice),
+   first_price:firstPrice,
+   renewal_price:listPrice,
    renewal_status:sp?.renewal_status||'none',
    renewal_stage:sp?.renewal_stage||'none',
    renewal_requested_at:sp?.renewal_requested_at||null,
