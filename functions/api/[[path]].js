@@ -3167,6 +3167,16 @@ if(route==='master/template-save'&&request.method==='POST'){
   const seoTitle=String(b.seo_title||'').trim().slice(0,90),seoSlug=String(b.seo_slug||'').trim().toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,90),primaryKeyword=String(b.primary_keyword||'').trim().slice(0,120),secondaryKeywords=String(b.secondary_keywords||'').trim().slice(0,500),metaDescription=String(b.meta_description||'').trim().slice(0,180),internalAnchor=String(b.internal_anchor||'').trim().slice(0,120);
   const accent=['blue','green','orange','purple','red'].includes(String(b.accent||''))?String(b.accent):'blue';
   const active=b.is_active===false||Number(b.is_active)===0?0:1;
+  // TEMPLATE SEO LANDING CONTRACT V35: every active template must be indexable
+  // through one complete, unique SEO landing definition before Master can save it.
+  if(active){
+    const missing=[];
+    if(!seoTitle)missing.push('seo_title');if(!seoSlug)missing.push('seo_slug');if(!primaryKeyword)missing.push('primary_keyword');
+    if(!secondaryKeywords)missing.push('secondary_keywords');if(!metaDescription)missing.push('meta_description');if(!internalAnchor)missing.push('internal_anchor');
+    if(missing.length)return json({error:'Template đang bật phải có đầy đủ SEO Landing Page.',missing},400);
+    const duplicateSeo=await env.DB.prepare(`SELECT template_key FROM template_catalog WHERE seo_slug=? AND template_key<>? LIMIT 1`).bind(seoSlug,key).first();
+    if(duplicateSeo)return json({error:'SEO slug đã được template khác sử dụng.',seo_slug:seoSlug,template_key:duplicateSeo.template_key},409);
+  }
   const sampleEnabled=b.sample_enabled===true||Number(b.sample_enabled)===1?1:0;
   const sampleCount=Math.max(1,Math.min(30,Math.round(Number(b.sample_count)||12)));
   let layoutProfile={};try{layoutProfile=typeof b.layout_profile==='object'&&b.layout_profile?b.layout_profile:JSON.parse(String(b.layout_profile||'{}'))}catch(e){return json({error:'Cấu hình bố cục không hợp lệ'},400)}
