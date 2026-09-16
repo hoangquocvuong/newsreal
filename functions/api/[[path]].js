@@ -914,6 +914,10 @@ function validateStructureProfile(p,{active=0}={}){
  if(active&&errors.length)warnings.push('Template đang bật bán nhưng structure chưa đạt chuẩn.');
  return {ok:errors.length===0,errors,warnings};
 }
+// V20.9.27.53 — CUSTOMER/TRIAL UPDATE IMMUTABILITY CONTRACT
+// Source/runtime releases may evolve shared engine + template_catalog defaults, but must
+// never reset tenant-owned content/settings/orders/products/categories or active Trial data.
+// Existing tenant mutations belong only to explicit user actions or lifecycle operations.
 async function ensureTemplateCatalog(env){
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS template_catalog(
     template_key TEXT PRIMARY KEY,
@@ -1135,6 +1139,8 @@ async function ensureTemplateCatalog(env){
 }
 
 
+// V20.9.27.53 — identity repair is merge-only: fill a missing template_key; never
+// replace a tenant's selected template identity or any tenant-owned customization/data.
 async function ensureSiteTemplateIdentity(env){
   // V20.9.24.2 — schema is migration-owned. Keep only a legacy data repair path;
   // never run ALTER/CREATE/template seeding from request traffic.
