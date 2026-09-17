@@ -97,7 +97,12 @@ async function siteFor(env,req){
     LEFT JOIN site_public_settings ps ON ps.site_id=s.id
     LEFT JOIN customer_profiles cp ON cp.site_id=s.id`;
   let s=await env.DB.prepare(baseSql+` WHERE lower(s.domain)=? AND s.status='active'`).bind(h).first();
-  if(!s&&(h==='localhost'||h.endsWith('.pages.dev')))s=await env.DB.prepare(baseSql+` WHERE s.status='active' ORDER BY s.id LIMIT 1`).first();
+  // V20.9.27.55 TENANT ISOLATION: shared hosts must fail closed. Never fall back to the first active customer.
+  // Local/shared preview may opt into one tenant only through an explicit DEFAULT_TENANT_DOMAIN binding.
+  if(!s&&(h==='localhost'||h.endsWith('.pages.dev'))&&env.DEFAULT_TENANT_DOMAIN){
+    const d=String(env.DEFAULT_TENANT_DOMAIN||'').replace(/^www\./,'').toLowerCase();
+    if(d)s=await env.DB.prepare(baseSql+` WHERE lower(s.domain)=? AND s.status='active'`).bind(d).first();
+  }
   if(s){
     // Sites created before V9.3.5 also get useful defaults automatically.
     s.phone=String(s.phone||s.customer_phone||'');
