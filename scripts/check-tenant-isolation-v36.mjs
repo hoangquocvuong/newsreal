@@ -23,7 +23,7 @@ for(const table of tenantTables){
 }
 
 const required=[
- ['commerce product read','FROM commerce_products p LEFT JOIN commerce_categories c ON c.id=p.category_id WHERE p.site_id=?'],
+ ['commerce product read','FROM commerce_products p LEFT JOIN commerce_categories c ON c.id=p.category_id AND c.site_id=p.site_id WHERE p.site_id=?'],
  ['commerce product update','WHERE id=? AND site_id=?'],
  ['commerce category read','FROM commerce_categories WHERE site_id=?'],
  ['commerce order read','FROM commerce_orders WHERE site_id=?'],
