@@ -34,7 +34,14 @@ async function publisherSite(env,domain){
   return env.DB.prepare(`SELECT * FROM sites WHERE lower(replace(domain,'www.',''))=? AND status='active' LIMIT 1`).bind(h).first();
 }
 async function body(r){try{return await r.json()}catch{return {}}} function tok(){return crypto.randomUUID()+crypto.randomUUID()}
-function host(req){const u=new URL(req.url);return req.headers.get('X-Tenant')||u.searchParams.get('tenant')||u.hostname}
+// V20.9.27.56 STRICT TENANT BOUNDARY: tenant overrides are preview-only.
+function actualHost(req){return String(new URL(req.url).hostname||'').replace(/^www\./,'').toLowerCase()}
+function sharedTenantHost(h){return h==='localhost'||h.endsWith('.pages.dev')||h==='app.hoangvuongtech.com'}
+function host(req){
+  const u=new URL(req.url),actual=actualHost(req);
+  if(!sharedTenantHost(actual))return actual;
+  return String(req.headers.get('X-Tenant')||u.searchParams.get('tenant')||actual).replace(/^www\./,'').toLowerCase();
+}
 async function ensureSitePublicSettings(env){
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS site_public_settings(
     site_id INTEGER PRIMARY KEY,
@@ -99,7 +106,7 @@ async function siteFor(env,req){
   let s=await env.DB.prepare(baseSql+` WHERE lower(s.domain)=? AND s.status='active'`).bind(h).first();
   // V20.9.27.55 TENANT ISOLATION: shared hosts must fail closed. Never fall back to the first active customer.
   // Local/shared preview may opt into one tenant only through an explicit DEFAULT_TENANT_DOMAIN binding.
-  if(!s&&(h==='localhost'||h.endsWith('.pages.dev'))&&env.DEFAULT_TENANT_DOMAIN){
+  if(!s&&sharedTenantHost(actualHost(req))&&env.DEFAULT_TENANT_DOMAIN){
     const d=String(env.DEFAULT_TENANT_DOMAIN||'').replace(/^www\./,'').toLowerCase();
     if(d)s=await env.DB.prepare(baseSql+` WHERE lower(s.domain)=? AND s.status='active'`).bind(d).first();
   }
@@ -453,17 +460,19 @@ async function renewalCompletedEmail(env,row,newExpiry){
 
 async function completeRenewal(env,siteId){
   const row=await env.DB.prepare(`SELECT s.id,s.name,s.domain,u.email admin_email,cp.full_name customer_name,cp.email customer_email,cp.order_code,
-      ss.expires_at,ss.domain_expires_at,ss.plan_name,coalesce(sp.term_months,12) term_months,coalesce(sp.renewal_selected_months,sp.term_months,12) renewal_selected_months,coalesce(sp.renewal_price,1999000) renewal_price,
+      ss.expires_at,ss.domain_expires_at,ss.plan_name,coalesce(sp.term_months,12) term_months,coalesce(sp.renewal_selected_months,sp.term_months,12) renewal_selected_months,tc.price renewal_price,
       coalesce(sp.renewal_status,'none') renewal_status,coalesce(sp.renewal_stage,'none') renewal_stage
     FROM sites s LEFT JOIN users u ON u.site_id=s.id AND u.role='admin'
     LEFT JOIN customer_profiles cp ON cp.site_id=s.id
     LEFT JOIN service_subscriptions ss ON ss.site_id=s.id
     LEFT JOIN service_promotions sp ON sp.site_id=s.id
+    LEFT JOIN template_catalog tc ON tc.template_key=s.template_key
     WHERE s.id=? ORDER BY u.id LIMIT 1`).bind(siteId).first();
   if(!row) return {ok:false,status:404,error:'Website không tồn tại'};
   if(String(row.renewal_stage||'none')==='renewed') return {ok:false,status:409,error:'Chu kỳ gia hạn này đã hoàn tất, không thể cộng thêm lần nữa'};
   if(String(row.renewal_stage||'none')!=='paid') return {ok:false,status:400,error:'Cần xác nhận khách đã thanh toán trước khi hoàn tất gia hạn'};
   if(!row.expires_at) return {ok:false,status:400,error:'Chưa có ngày hết hạn dịch vụ'};
+  if(!(Number(row.renewal_price)>0)) return {ok:false,status:409,error:'Giá gia hạn chưa được cấu hình trong Kho mẫu'};
   const oldExpiry=String(row.expires_at).slice(0,10);
   const minTerm=Math.max(1,Number(row.renewal_selected_months||row.term_months||12));
   const domainExpiry=String(row.domain_expires_at||'').slice(0,10);
@@ -2046,12 +2055,13 @@ if(route==='renewal/info'&&request.method==='GET'){
   const raw=String(u.searchParams.get('token')||'');if(!raw)return json({error:'Thiếu mã xác nhận'},400);
   const hash=await sha256(raw);
   const row=await env.DB.prepare(`SELECT rt.id token_id,rt.expires_at,rt.used_at,s.id site_id,s.name,s.domain,ss.expires_at service_expires_at,cp.full_name,
-    coalesce(sp.renewal_status,'none') renewal_status,coalesce(tc.price,sp.renewal_price,1999000) renewal_price
+    coalesce(sp.renewal_status,'none') renewal_status,tc.price renewal_price
     FROM renewal_response_tokens rt JOIN sites s ON s.id=rt.site_id LEFT JOIN service_subscriptions ss ON ss.site_id=s.id
     LEFT JOIN customer_profiles cp ON cp.site_id=s.id LEFT JOIN service_promotions sp ON sp.site_id=s.id LEFT JOIN template_catalog tc ON tc.template_key=s.template_key WHERE rt.token_hash=?`).bind(hash).first();
   if(!row)return json({error:'Liên kết không hợp lệ'},404);
   if(new Date(row.expires_at+'Z')<=new Date())return json({error:'Liên kết đã hết hạn'},410);
-  return json({ok:true,site:{name:row.name,domain:row.domain},customer_name:row.full_name||'',expires_at:row.service_expires_at||'',renewal_status:row.renewal_status,renewal_price:Number(row.renewal_price||0),responded:!!row.used_at});
+  if(!(Number(row.renewal_price)>0))return json({error:'Giá gia hạn chưa được cấu hình trong Kho mẫu'},409);
+  return json({ok:true,site:{name:row.name,domain:row.domain},customer_name:row.full_name||'',expires_at:row.service_expires_at||'',renewal_status:row.renewal_status,renewal_price:Number(row.renewal_price),responded:!!row.used_at});
 }
 if(route==='renewal/respond'&&request.method==='POST'){
   const b=await body(request),raw=String(b.token||''),decision=String(b.decision||'');

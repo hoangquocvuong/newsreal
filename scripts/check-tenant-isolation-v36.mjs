@@ -7,8 +7,8 @@ ok(api.includes('V20.9.27.55 TENANT ISOLATION'),'API declares tenant isolation c
 ok(web.includes('V20.9.27.55 TENANT ISOLATION'),'web runtime declares tenant isolation contract');
 ok(!api.includes("WHERE s.status='active' ORDER BY s.id LIMIT 1"),'API shared host cannot fall back to first active tenant');
 ok(!web.includes("WHERE s.status='active' ORDER BY s.id LIMIT 1"),'web shared host cannot fall back to first active tenant');
-ok(api.includes("req.headers.get('X-Tenant')||u.searchParams.get('tenant')||u.hostname"),'API resolves explicit tenant before hostname');
-ok(web.includes("req.headers.get('X-Tenant')||u.searchParams.get('tenant')||u.hostname"),'web resolves explicit tenant before hostname');
+ok(api.includes("req.headers.get('X-Tenant')||u.searchParams.get('tenant')||actual"),'API resolves explicit tenant on shared hosts');
+ok(web.includes("req.headers.get('X-Tenant')||u.searchParams.get('tenant')||actual"),'web resolves explicit tenant on shared hosts');
 ok(api.includes('s.token=? AND s.site_id=?'),'session token is bound to resolved site');
 
 const tenantTables=['posts','site_public_settings','commerce_categories','commerce_products','commerce_orders','commerce_coupons','commerce_settings','service_leads','game_base_stats','game_base_votes'];
