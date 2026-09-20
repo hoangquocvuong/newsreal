@@ -1,0 +1,5 @@
+import fs from 'node:fs';
+const html=fs.readFileSync('public/admin.html','utf8'), js=fs.readFileSync('public/assets/admin.js','utf8'), api=fs.readFileSync('functions/api/[[path]].js','utf8');
+const checks=[
+ ['simple title',html.includes('<h1>Thêm sản phẩm</h1>')],['no visible URL image field',!html.includes('placeholder="URL ảnh chính"')],['no visible gallery URL field',!html.includes('Gallery ảnh, mỗi URL')],['one description field',html.includes('name="description"')&&!html.includes('name="short_description"')],['quick category',html.includes('commerceQuickAddCategory')&&js.includes("Tên danh mục mới")],['category required',js.includes("Vui lòng chọn danh mục")],['success category',js.includes("đã được đăng vào <b>")],['publish state',js.includes('Đang đăng sản phẩm...')],['product list status',js.includes('Đang bán')],['default categories API',api.includes("'Công nghệ','Điện thoại','Thời trang','Mỹ phẩm','Gia dụng','Nội thất','Phụ kiện','Thể thao','Khác'")]
+]; let bad=0;for(const [n,ok] of checks){console.log(ok?'PASS':'FAIL',n);if(!ok)bad++}if(bad)process.exit(1);console.log('Commerce Simple Admin V26: PASS');
