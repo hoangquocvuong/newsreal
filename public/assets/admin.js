@@ -278,12 +278,9 @@ function configureAdminForTemplate(){
  if(product){
    postType.value='product';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
    // Commerce has one clear product workflow. Keep sample articles only as optional reference material.
-   // Commerce is product-first: remove generic article workflow entirely from the main navigation.
-   const legacyNew=document.getElementById('menuNewPost'),legacyPosts=document.getElementById('menuPosts');
-   if(legacyNew){legacyNew.classList.add('hidden');legacyNew.style.display='none';legacyNew.setAttribute('aria-hidden','true')}
-   if(legacyPosts){legacyPosts.classList.add('hidden');legacyPosts.style.display='none';legacyPosts.setAttribute('aria-hidden','true')}
-   document.getElementById('tab-newpost')?.classList.add('hidden');document.getElementById('tab-posts')?.classList.add('hidden');
-   if(overviewBtn){overviewBtn.textContent='＋ Thêm sản phẩm';overviewBtn.onclick=()=>showTab('commerce-products')}
+   document.getElementById('menuNewPost')?.classList.add('hidden');
+   document.querySelector('[data-tab="posts"]')?.classList.add('hidden');
+   if(menuNew)menuNew.textContent='Thêm sản phẩm';if(menuPosts)menuPosts.textContent='Quản lý sản phẩm';if(overviewBtn){overviewBtn.textContent='＋ Thêm sản phẩm';overviewBtn.onclick=()=>showTab('commerce-products')}
    if(postTitle)postTitle.placeholder='Ví dụ: Sản phẩm mới';
    const wanted=new URLSearchParams(location.search).get('tab');if(wanted==='newpost'||wanted==='posts')setTimeout(()=>showTab('commerce-products'),0);
  }else if(game){
@@ -304,7 +301,7 @@ function configureAdminForTemplate(){
  updateContentTypeUI();
 }
 
-function showTab(n){if((n==='newpost'||n==='posts')&&(!!adminCapabilities().commerce?.enabled||!!adminCapabilities().commerce?.products||CLIENT_PRESET==='universal_commerce_5'||CLIENT_TEMPLATE_KEY==='dich-vu-5'))n='commerce-products';document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));document.getElementById('tab-'+n).classList.remove('hidden');document.querySelectorAll('.menu-btn').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));if(n==='posts')loadPosts();if(n==='samples')loadSamplePosts();if(n==='stats')loadStats();if(n==='service')loadService();if(n==='serviceleads')loadServiceLeads();if(n==='commerce-products')loadCommerceProducts();if(n==='commerce-orders')loadCommerceOrders();if(n==='commerce-settings')loadCommerceSettings()}
+function showTab(n){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));document.getElementById('tab-'+n).classList.remove('hidden');document.querySelectorAll('.menu-btn').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));if(n==='posts')loadPosts();if(n==='samples')loadSamplePosts();if(n==='stats')loadStats();if(n==='service')loadService();if(n==='serviceleads')loadServiceLeads();if(n==='commerce-products')loadCommerceProducts();if(n==='commerce-orders')loadCommerceOrders();if(n==='commerce-settings')loadCommerceSettings()}
 document.querySelectorAll('.menu-btn').forEach(b=>b.onclick=()=>{const n=b.dataset.tab;if(n==='newpost')resetPostEditor();else if(editingId?.value){editingId.value='';editorContext='create'}showTab(n)});
 let websiteSettingsSnapshot=null,CLIENT_TEMPLATE_SETTINGS={};
 function templateSettingsSchema(){return Array.isArray(CLIENT_PROFILE?.settings_schema)?CLIENT_PROFILE.settings_schema:[]}
