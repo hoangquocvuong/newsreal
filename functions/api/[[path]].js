@@ -902,10 +902,16 @@ function deriveAdminCapabilities(structure={},editorProfile={}){
  const ep=editorProfile&&typeof editorProfile==='object'?editorProfile:{};
  const sections=Array.isArray(sp.sections)?sp.sections:[];
  const type=String(ep.content_type||sp.content_type||'generic').toLowerCase();
- const hasSection=(...names)=>sections.some(sec=>names.includes(String(sec?.key||sec?.type||'').toLowerCase()));
- const commerce=!!sp.commerce_contract||type==='commerce'||hasSection('products','catalog','shop','store');
- const leads=!!sp.lead_contract||hasSection('contact','lead','leads','inquiry','quote');
- return {contract:'admin-capabilities-v1',content:true,samples:true,statistics:true,website_settings:true,service_info:true,support:true,password:true,content_type:type,news:type==='news',service:type==='service'||type==='commerce',game:type==='game',product:type==='product',leads,commerce:{enabled:commerce,products:commerce,orders:commerce,payment_shipping:commerce},categories:Array.isArray(ep.categories)?ep.categories:[],settings_schema:Array.isArray(sp.settings_schema)?sp.settings_schema:[]};
+ const declared=sp.admin_modules&&typeof sp.admin_modules==='object'?sp.admin_modules:{};
+ // Capability source of truth: explicit admin_modules first; legacy contracts second.
+ // Generic section names (e.g. a section titled products/contact) NEVER grant privileged Admin modules.
+ const commerceContract=!!sp.commerce_contract||type==='commerce';
+ const commerce=declared.commerce&&typeof declared.commerce==='object'?declared.commerce:{};
+ const products=commerce.products===true||(commerce.products!==false&&commerceContract);
+ const orders=commerce.orders===true||(commerce.orders!==false&&commerceContract);
+ const paymentShipping=commerce.payment_shipping===true||(commerce.payment_shipping!==false&&commerceContract);
+ const leads=declared.leads===true||(declared.leads!==false&&!!sp.lead_contract);
+ return {contract:'admin-capabilities-v2',content:true,samples:true,statistics:true,website_settings:true,service_info:true,support:true,password:true,content_type:type,news:type==='news',service:type==='service'||type==='commerce',game:type==='game',product:type==='product',leads,commerce:{enabled:products||orders||paymentShipping,products,orders,payment_shipping:paymentShipping},categories:Array.isArray(ep.categories)?ep.categories:[],settings_schema:Array.isArray(sp.settings_schema)?sp.settings_schema:[]};
 }
 
 function validateStructureProfile(p,{active=0}={}){

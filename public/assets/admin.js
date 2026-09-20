@@ -237,17 +237,28 @@ function isGameTemplate(){
 }
 function adminCapabilities(){
  const c=CLIENT_PROFILE?.admin_capabilities;
- if(c&&c.contract==='admin-capabilities-v1')return c;
+ if(c&&/^admin-capabilities-v[12]$/.test(c.contract||''))return c;
  // Compatibility fallback for old API responses: infer from content profile only.
  const type=String(CLIENT_PROFILE?.content_type||'generic').toLowerCase();
  return {contract:'compat',content_type:type,news:type==='news',service:type==='service'||type==='commerce',game:type==='game',product:type==='product',leads:false,commerce:{enabled:false,products:false,orders:false,payment_shipping:false}};
 }
 function applyAdminCapabilities(){
- const cap=adminCapabilities(), commerce=cap.commerce||{};
- const visibility={menuServiceLeads:!!cap.leads,menuCommerceProducts:!!commerce.products,menuCommerceOrders:!!commerce.orders,menuCommerceSettings:!!commerce.payment_shipping};
- Object.entries(visibility).forEach(([id,on])=>document.getElementById(id)?.classList.toggle('hidden',!on));
- // If a URL asks for a module the template does not own, fall back safely to Overview.
- const active=document.querySelector('.menu-btn.active');if(active&&active.classList.contains('hidden'))showTab('overview');
+ const cap=adminCapabilities(), commerce=cap.commerce||{}, host=document.getElementById('dynamicAdminModules');
+ // Optional modules are NOT present in static HTML. Build them only from the resolved site's capability contract.
+ // This prevents commerce controls flashing/leaking into unrelated templates and lets future templates opt in by data.
+ if(host){
+   const modules=[];
+   if(cap.leads)modules.push({id:'menuServiceLeads',tab:'serviceleads',icon:'☎',label:'Khách cần tư vấn'});
+   if(commerce.products)modules.push({id:'menuCommerceProducts',tab:'commerce-products',icon:'▣',label:'Sản phẩm'});
+   if(commerce.orders)modules.push({id:'menuCommerceOrders',tab:'commerce-orders',icon:'🛒',label:'Đơn hàng'});
+   if(commerce.payment_shipping)modules.push({id:'menuCommerceSettings',tab:'commerce-settings',icon:'₫',label:'Thanh toán & vận chuyển'});
+   host.innerHTML=modules.map(m=>`<button id="${m.id}" class="menu-btn" data-tab="${m.tab}"><span>${m.icon}</span>${m.label}</button>`).join('');
+   host.querySelectorAll('.menu-btn').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+ }
+ const wanted=new URLSearchParams(location.search).get('tab')||'';
+ const allowed=new Set(['overview','newpost','posts','samples','stats','service','support','settings','password']);
+ if(cap.leads)allowed.add('serviceleads');if(commerce.products)allowed.add('commerce-products');if(commerce.orders)allowed.add('commerce-orders');if(commerce.payment_shipping)allowed.add('commerce-settings');
+ if(wanted&&!allowed.has(wanted))history.replaceState(null,'',location.pathname+location.search.replace(/([?&])tab=[^&]*&?/,(m,p)=>p==='?'?'?':'').replace(/[?&]$/,''));
 }
 function configureAdminForTemplate(){
  const cap=adminCapabilities();
