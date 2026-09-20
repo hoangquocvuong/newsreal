@@ -1740,8 +1740,6 @@ async function nrBootMain(){
    const s=d.site||{};
    if(s?.favicon_url){let f=document.querySelector('link[rel=\"icon\"]');if(!f){f=document.createElement('link');f.rel='icon';document.head.appendChild(f)}f.href=s.favicon_url}
    const activeTemplateKey=demoTemplateKey||s.template_key||'';
-   const unifiedProfile=window.NRTemplateSystem?.resolve({templateKey:activeTemplateKey,preset:s.preset||'',category:s.template_category||''});
-   if(unifiedProfile){document.body.dataset.templateProfile=unifiedProfile.kind;document.documentElement.dataset.templateProfile=unifiedProfile.kind;}
    if(activeTemplateKey&&!selfContainedDemo){
      try{
        const td=(demoCatalogPromise&&activeTemplateKey===demoTemplateKey)
