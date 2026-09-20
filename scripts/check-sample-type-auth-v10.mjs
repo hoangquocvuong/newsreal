@@ -4,7 +4,7 @@ const admin=fs.readFileSync('public/assets/admin.js','utf8');
 const activate=fs.readFileSync('public/assets/activate.js','utf8');
 const site=fs.readFileSync('public/assets/site.js','utf8');
 function ok(c,m){if(!c){console.error('FAIL',m);process.exit(1)}console.log('OK',m)}
-ok(api.includes("const currentVersion=5"),'sample pack repair version 5');
+ok(api.includes("const currentVersion=6"),'sample pack repair version 6');
 ok(api.includes("['dich-vu-5','dich-vu-6'].includes(resolvedKey)?'service':'news'"),'professional sample type canonical');
 ok(api.includes("UPDATE posts SET type=?,is_sample=1"),'existing sample technical identity repaired');
 ok(admin.includes("const rows=(await fetchAdminPosts()).filter(isSamplePost);"),'Tin mẫu is not hidden by template type filter');

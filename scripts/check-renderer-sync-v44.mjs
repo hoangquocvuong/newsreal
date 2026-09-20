@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 const s=fs.readFileSync('public/assets/site.js','utf8');
 const must=[
-  'nrNormalizeContentPosts(Array.isArray(window.NR_POSTS)?window.NR_POSTS:[])',
+  'nrNormalizeContentPosts(Array.isArray(SITE_DATA?.posts)?SITE_DATA.posts:[])',
   'const serviceCardSpec=x=>',
   'const serviceDetailBenefits=x=>',
   "c.includes('camera')",

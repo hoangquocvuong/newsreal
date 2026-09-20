@@ -2273,7 +2273,7 @@ function renderServiceProvider(site={},key='dich-vu-1'){
  const cfg=NR_SERVICE_PROVIDERS[key]||NR_SERVICE_PROVIDERS['dich-vu-1'];
  const settings=sxSettings(site);
  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
- let posts=[]; try{posts=nrNormalizeContentPosts(Array.isArray(window.NR_POSTS)?window.NR_POSTS:[]).filter(x=>x.status!=='draft')}catch{}
+ let posts=[]; try{posts=nrNormalizeContentPosts(Array.isArray(SITE_DATA?.posts)?SITE_DATA.posts:[]).filter(x=>x.status!=='draft').sort((a,b)=>(Number(a?.is_sample||0)-Number(b?.is_sample||0))||(Number(b?.id||0)-Number(a?.id||0)))}catch{}
  if(nrServiceIsShowroom(key)) posts=cfg.samples.map((x,i)=>({title:x[1],category:x[0],content:x[4],image:x[5]||nrSvcFallback(key,x[0]),fallback_image:nrSvcFallback(key,x[0]),extra_json:{service_speed_down:x[2],service_price:nrSvcDemoPrice(key,i,x[3]),service_promo:x[4]}}));
  const root=document.querySelector('main')||document.body; const ex=x=>{try{return typeof x.extra_json==='object'?x.extra_json:JSON.parse(x.extra_json||'{}')}catch{return {}}};
  const arr=i=>posts.filter(x=>x.category===cfg.cats[i]).slice(0,60);

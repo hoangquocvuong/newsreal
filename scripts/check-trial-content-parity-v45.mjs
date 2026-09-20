@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+const site=fs.readFileSync('public/assets/site.js','utf8');
+const api=fs.readFileSync('functions/api/[[path]].js','utf8');
+const must=(ok,msg)=>{if(!ok)throw new Error(msg)};
+must(site.includes("Array.isArray(SITE_DATA?.posts)?SITE_DATA.posts:[]"),'service renderer must consume API SITE_DATA.posts');
+must(!site.includes("Array.isArray(window.NR_POSTS)?window.NR_POSTS:[]"),'legacy NR_POSTS source still active');
+must(site.includes("Number(a?.is_sample||0)-Number(b?.is_sample||0)"),'customer posts must sort before samples');
+must(api.includes('const currentVersion=6;'),'sample pack version must be bumped so existing trials receive missing canonical samples');
+must(api.includes("installDefaultTemplateSamples(env,site.id,{source:'trial-backfill'})"),'trial sample backfill missing');
+must(api.includes("ORDER BY coalesce(is_sample,0) ASC,id DESC LIMIT 100"),'public API must return customer posts before samples');
+console.log('Trial Content Parity V45: PASS');
