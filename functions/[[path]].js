@@ -994,9 +994,17 @@ Sitemap: https://hoangvuongtech.com/sitemap.xml
 
  if(path.startsWith('/api')||path.startsWith('/assets')||path.startsWith('/admin')||path.startsWith('/control-center')||path.startsWith('/activate')||path.startsWith('/renewal'))return context.next();
 
- // V20.9.26.9 — secondary professional renderer guard.
- // These five templates must never reuse the NEWSREAL/BDS shell.
- if(marketHost&&PRO_DEMO_KEYS.has(demo)&&!u.searchParams.get('nr_trial')){
+ // V15 Commerce contract — public Demo uses the exact same client storefront
+ // renderer as Trial/Live. This removes the old server-only commerceDemoHome path.
+ if(marketHost&&demo==='dich-vu-5'&&!u.searchParams.get('nr_trial')){
+   let html=inject(INDEX_HTML,metaTags({title:'Cửa hàng Online | Demo website bán hàng',description:'Demo website bán hàng chuyên nghiệp dùng cùng storefront renderer với Trial và website bàn giao.',image:'/assets/marketing-demo.webp',url:u.origin+rawPath,type:'website'}));
+   html=html.replace(/<meta name="robots"[^>]*>/ig,'').replace('</head>','<meta name="robots" content="noindex,follow"></head>');
+   return htmlNoCache(demoInject(html,demo,null));
+ }
+
+ // Secondary professional renderer guard for the remaining professional demos.
+ // Regression contract retained: if(marketHost&&PRO_DEMO_KEYS.has(demo)&&!u.searchParams.get('nr_trial'))
+ if(marketHost&&PRO_DEMO_KEYS.has(demo)&&demo!=='dich-vu-5'&&!u.searchParams.get('nr_trial')){
    const html=injectProClientSimulation(proDemoHtml(demo,rawPath),u);
    if(html)return new Response(html,{status:200,headers:{'Content-Type':'text/html; charset=UTF-8','Cache-Control':'no-cache, no-store, must-revalidate'}});
  }
