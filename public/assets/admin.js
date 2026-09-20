@@ -312,16 +312,6 @@ function configureAdminForTemplate(){
  updateContentTypeUI();
 }
 
-function nrForceCommerceAdminUX(){
- const title=((document.getElementById('welcome')?.textContent||'')+' '+(document.title||'')).toLowerCase();
- const hasCommerce=!!document.getElementById('menuCommerceProducts')||!!document.querySelector('[data-tab="commerce-products"]')||title.includes('bán hàng')||title.includes('ban hang');
- if(!hasCommerce)return false;
- ['menuNewPost','menuPosts'].forEach(id=>{const el=document.getElementById(id);if(el){el.style.setProperty('display','none','important');el.setAttribute('aria-hidden','true')}});
- const btn=document.querySelector('#tab-overview .admin-page-head button');if(btn){btn.textContent='＋ Thêm sản phẩm';btn.onclick=()=>showTab('commerce-products')}
- return true;
-}
-new MutationObserver(()=>nrForceCommerceAdminUX()).observe(document.documentElement,{subtree:true,childList:true,characterData:true});
-window.addEventListener('DOMContentLoaded',()=>{nrForceCommerceAdminUX();setTimeout(nrForceCommerceAdminUX,300);setTimeout(nrForceCommerceAdminUX,1200)});
 function showTab(n){if((n==='newpost'||n==='posts')&&(!!adminCapabilities().commerce?.enabled||!!adminCapabilities().commerce?.products||CLIENT_PRESET==='universal_commerce_5'||CLIENT_TEMPLATE_KEY==='dich-vu-5'))n='commerce-products';document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));document.getElementById('tab-'+n).classList.remove('hidden');document.querySelectorAll('.menu-btn').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));if(n==='posts')loadPosts();if(n==='samples')loadSamplePosts();if(n==='stats')loadStats();if(n==='service')loadService();if(n==='serviceleads')loadServiceLeads();if(n==='commerce-products')loadCommerceProducts();if(n==='commerce-orders')loadCommerceOrders();if(n==='commerce-settings')loadCommerceSettings()}
 document.querySelectorAll('.menu-btn').forEach(b=>b.onclick=()=>{const n=b.dataset.tab;if(n==='newpost')resetPostEditor();else if(editingId?.value){editingId.value='';editorContext='create'}showTab(n)});
 let websiteSettingsSnapshot=null,CLIENT_TEMPLATE_SETTINGS={};
