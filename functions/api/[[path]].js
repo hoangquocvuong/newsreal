@@ -911,7 +911,9 @@ function deriveAdminCapabilities(structure={},editorProfile={}){
  const orders=commerce.orders===true||(commerce.orders!==false&&commerceContract);
  const paymentShipping=commerce.payment_shipping===true||(commerce.payment_shipping!==false&&commerceContract);
  const leads=declared.leads===true||(declared.leads!==false&&!!sp.lead_contract);
- return {contract:'admin-capabilities-v2',content:true,samples:true,statistics:true,website_settings:true,service_info:true,support:true,password:true,content_type:type,news:type==='news',service:type==='service'||type==='commerce',game:type==='game',product:type==='product',leads,commerce:{enabled:products||orders||paymentShipping,products,orders,payment_shipping:paymentShipping},categories:Array.isArray(ep.categories)?ep.categories:[],settings_schema:Array.isArray(sp.settings_schema)?sp.settings_schema:[]};
+ const content=declared.content===true||(declared.content!==false&&type!=='commerce');
+ const samples=content&&(declared.samples!==false);
+ return {contract:'admin-capabilities-v3',content,samples,statistics:true,website_settings:true,service_info:true,support:true,password:true,content_type:type,news:type==='news',service:type==='service'&&content,game:type==='game',product:type==='product',leads,commerce:{enabled:products||orders||paymentShipping,products,orders,payment_shipping:paymentShipping},categories:Array.isArray(ep.categories)?ep.categories:[],settings_schema:Array.isArray(sp.settings_schema)?sp.settings_schema:[]};
 }
 
 function validateStructureProfile(p,{active=0}={}){
