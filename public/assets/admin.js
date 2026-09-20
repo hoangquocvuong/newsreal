@@ -283,7 +283,7 @@ const ADMIN_MENU_SPECS={
  samples:{tab:'samples',icon:'✦',label:'Tin mẫu'},
  stats:{tab:'stats',icon:'↗',label:'Thống kê'},
  leads:{tab:'serviceleads',icon:'☎',label:'Khách cần tư vấn'},
- products:{tab:'commerce-products',icon:'▣',label:'Sản phẩm'},
+ products:{tab:'commerce-products',icon:'＋',label:'Thêm sản phẩm'},
  orders:{tab:'commerce-orders',icon:'🛒',label:'Đơn hàng'},
  commerceSettings:{tab:'commerce-settings',icon:'₫',label:'Thanh toán & vận chuyển'},
  service:{tab:'service',icon:'◷',label:'Dịch vụ & gia hạn'},
