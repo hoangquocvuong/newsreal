@@ -6,9 +6,9 @@ const checks=[
  ['API resolves site from trial token first', /JOIN website_trials wt ON wt\.site_id=s\.id WHERE wt\.trial_token=\?/.test(api)],
  ['invalid trial token fails closed', /if\(!s\)return null;/.test(api)],
  ['server site identity wins over template URL', /return CLIENT_TEMPLATE_KEY\|\|requested/.test(admin)],
- ['Admin capability contract is server-derived', /content_profile\.admin_capabilities=deriveAdminCapabilities/.test(api)],
- ['Admin applies capability visibility on every boot', /function applyAdminCapabilities\(\)/.test(admin)&&/applyAdminCapabilities\(\)/.test(admin)],
- ['commerce menu is not bound to one template key', !/serviceKey==='dich-vu-5'.*menuCommerceProducts/s.test(admin)],
- ['lead menu is capability driven', /if\(cap\.leads\)modules\.push/.test(admin)]
+ ['optional menus reset on every template boot', /menuCommerceProducts','menuCommerceOrders','menuCommerceSettings/.test(admin)&&/classList\.add\('hidden'\)/.test(admin)],
+ ['commerce menus only enabled for dich-vu-5', /serviceKey==='dich-vu-5'/.test(admin)],
+ ['lion only enables lead inbox', /serviceKey==='dich-vu-6'.*menuServiceLeads/s.test(admin)],
+ ['lion has own editor copy', /Gói 2 đầu lân khai trương/.test(admin)]
 ];
 let bad=0;console.log('Admin Trial + Template Isolation V40');for(const [n,ok] of checks){console.log(ok?'OK  ':'FAIL',n);if(!ok)bad++}if(bad)process.exit(1);console.log('Admin Trial + Template Isolation V40: PASS');

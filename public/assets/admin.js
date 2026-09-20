@@ -235,75 +235,75 @@ function isGameTemplate(){
  if(override)return /^game-\d+$/i.test(override);
  return CLIENT_TEMPLATE_KEY==='game-1'||CLIENT_CATEGORY==='game'||CLIENT_PROFILE?.content_type==='game'||CLIENT_PROFILE?.id==='game-base'||String(CLIENT_PRESET||'').startsWith('game_');
 }
-function adminCapabilities(){
- const c=CLIENT_PROFILE?.admin_capabilities;
- if(c&&/^admin-capabilities-v[12]$/.test(c.contract||''))return c;
- // Compatibility fallback for old API responses: infer from content profile only.
- const type=String(CLIENT_PROFILE?.content_type||'generic').toLowerCase();
- return {contract:'compat',content_type:type,news:type==='news',service:type==='service'||type==='commerce',game:type==='game',product:type==='product',leads:false,commerce:{enabled:false,products:false,orders:false,payment_shipping:false}};
-}
-function applyAdminCapabilities(){
- const cap=adminCapabilities(), commerce=cap.commerce||{}, host=document.getElementById('dynamicAdminModules');
- // Commerce-first Admin: product shops do not expose article authoring, while sample content remains available for reference/editing.
- const menuNew=document.getElementById('menuNewPost'),menuPosts=document.getElementById('menuPosts');
- if(menuNew)menuNew.classList.toggle('hidden',cap.content===false);
- if(menuPosts)menuPosts.classList.toggle('hidden',cap.content===false);
- // Optional modules are NOT present in static HTML. Build them only from the resolved site's capability contract.
- // This prevents commerce controls flashing/leaking into unrelated templates and lets future templates opt in by data.
- if(host){
-   const modules=[];
-   if(cap.leads)modules.push({id:'menuServiceLeads',tab:'serviceleads',icon:'☎',label:'Khách cần tư vấn'});
-   if(commerce.products)modules.push({id:'menuCommerceProducts',tab:'commerce-products',icon:'▣',label:'Sản phẩm'});
-   if(commerce.orders)modules.push({id:'menuCommerceOrders',tab:'commerce-orders',icon:'🛒',label:'Đơn hàng'});
-   if(commerce.payment_shipping)modules.push({id:'menuCommerceSettings',tab:'commerce-settings',icon:'₫',label:'Thanh toán & vận chuyển'});
-   host.innerHTML=modules.map(m=>`<button id="${m.id}" class="menu-btn" data-tab="${m.tab}"><span>${m.icon}</span>${m.label}</button>`).join('');
-   host.querySelectorAll('.menu-btn').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
- }
- const wanted=new URLSearchParams(location.search).get('tab')||'';
- const allowed=new Set(['overview','samples','stats','service','support','settings','password']);
- if(cap.content!==false){allowed.add('newpost');allowed.add('posts');}
- if(cap.leads)allowed.add('serviceleads');if(commerce.products)allowed.add('commerce-products');if(commerce.orders)allowed.add('commerce-orders');if(commerce.payment_shipping)allowed.add('commerce-settings');
- if(wanted&&!allowed.has(wanted))history.replaceState(null,'',location.pathname+location.search.replace(/([?&])tab=[^&]*&?/,(m,p)=>p==='?'?'?':'').replace(/[?&]$/,''));
-}
 function configureAdminForTemplate(){
- const cap=adminCapabilities();
- const commerceMode=!!cap.commerce?.enabled,product=!!cap.product,game=!product&&!!cap.game,news=!product&&!game&&!!cap.news,service=!commerceMode&&!product&&!game&&!!cap.service;
+ const product=isProductTemplate(),game=!product&&isGameTemplate(),news=!product&&!game&&isNewsTemplate(),service=!product&&!game&&isServiceTemplate();
  document.body.classList.toggle('admin-template-news',news);
  document.body.classList.toggle('admin-template-game',game);
- applyAdminCapabilities();
- const picker=document.getElementById('contentTypePicker'),notice=document.getElementById('newsTemplateNotice');
- const menuNew=document.getElementById('menuNewPostText'),menuPosts=document.getElementById('menuPostsText');
+ // Start from a clean capability set on every boot. Template-specific menus must
+ // never leak from another template/profile. Commerce belongs only to dich-vu-5.
+ ['menuServiceLeads','menuCommerceProducts','menuCommerceOrders','menuCommerceSettings'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
+ const picker=document.getElementById('contentTypePicker');
+ const notice=document.getElementById('newsTemplateNotice');
+ const menuNew=document.getElementById('menuNewPostText');
+ const menuPosts=document.getElementById('menuPostsText');
  const overviewBtn=document.querySelector('#tab-overview .admin-page-head .btn.primary');
- if(overviewBtn&&commerceMode){overviewBtn.textContent='＋ Thêm sản phẩm';overviewBtn.dataset.commerceShortcut='1';overviewBtn.onclick=(e)=>{e.preventDefault();showTab('commerce-products')};}
  const profile=resolvedContentProfile();
  const editorLabel=document.getElementById('contentEditorLabel'),editorHelp=document.getElementById('contentEditorHelp');
  if(editorLabel)editorLabel.textContent=profile.contentLabel||(news?'Nội dung bài viết':'Mô tả chi tiết');
  if(editorHelp)editorHelp.textContent=profile.contentHelp||'Soạn và định dạng nội dung.';
  renderProfileFields();
- if(commerceMode){
-   postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
- }else if(product){
+ if(product){
    postType.value='product';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
    if(menuNew)menuNew.textContent='Thêm sản phẩm';if(menuPosts)menuPosts.textContent='Quản lý sản phẩm';if(overviewBtn)overviewBtn.textContent='＋ Thêm sản phẩm';
-   if(postTitle)postTitle.placeholder='Ví dụ: Sản phẩm mới';
+   if(postTitle)postTitle.placeholder='Ví dụ: Chuột không dây Logitech G304';
+   document.querySelector('#tab-overview .admin-page-head p')?.replaceChildren(document.createTextNode('Quản lý sản phẩm, giá, voucher, link mua hàng và nội dung review.'));
+   document.querySelector('#tab-overview .admin-kpis .kpi:first-child small')?.replaceChildren(document.createTextNode('TỔNG SẢN PHẨM'));
+   document.querySelector('#tab-overview .admin-kpis .kpi:first-child span')?.replaceChildren(document.createTextNode('Sản phẩm đã đăng'));
  }else if(game){
+   // Gaming không có workflow lead/tư vấn. Xóa hẳn menu khỏi DOM để code khác không thể bật lại.
+   document.getElementById('menuServiceLeads')?.remove();
    postType.value='game';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
    if(menuNew)menuNew.textContent='Đăng base mới';if(menuPosts)menuPosts.textContent='Quản lý base';if(overviewBtn)overviewBtn.textContent='＋ Đăng base mới';
    if(postTitle)postTitle.placeholder='Ví dụ: TH18 War Base Link – Anti 3 Stars';
+   const catLabel=postCategory?.closest('label');if(catLabel){const n=[...catLabel.childNodes].find(x=>x.nodeType===3&&String(x.textContent).trim());if(n)n.textContent='Nhóm Base\n';const h=catLabel.querySelector('.field-help');if(h)h.textContent='Chọn Town Hall, Builder Hall hoặc Clan Capital. Level và Type/District bên dưới sẽ tự đổi theo đúng bộ lọc của giao diện.'}
+   document.querySelector('#tab-overview .admin-page-head p')?.replaceChildren(document.createTextNode('Quản lý base Clash of Clans, Copy Base Link và theo dõi hiệu quả website.'));
+   document.querySelector('#tab-overview .admin-kpis .kpi:first-child small')?.replaceChildren(document.createTextNode('TỔNG BASE'));
+   document.querySelector('#tab-overview .admin-kpis .kpi:first-child span')?.replaceChildren(document.createTextNode('Base đã đăng'));
  }else if(service){
+   document.getElementById('menuServiceLeads')?.classList.remove('hidden');
    postType.value='service';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
-   if(menuNew)menuNew.textContent='Đăng bài mới';if(menuPosts)menuPosts.textContent=profile.label||'Quản lý dịch vụ';if(overviewBtn)overviewBtn.textContent='＋ Đăng bài mới';
-   if(postTitle)postTitle.placeholder='Nhập tiêu đề nội dung';
+   const serviceKey=professionalAdminKey();
+   if(menuNew)menuNew.textContent='Đăng bài mới';if(menuPosts)menuPosts.textContent=serviceKey==='dich-vu-5'?'Bài viết / Cẩm nang':serviceKey==='dich-vu-6'?'Quản lý gói & bài viết':'Quản lý dịch vụ';
+   if(serviceKey==='dich-vu-5'){['menuCommerceProducts','menuCommerceOrders','menuCommerceSettings','menuServiceLeads'].forEach(id=>document.getElementById(id)?.classList.remove('hidden'))}
+   else if(serviceKey==='dich-vu-6'){document.getElementById('menuServiceLeads')?.classList.remove('hidden')}
+   if(overviewBtn)overviewBtn.textContent='＋ Đăng bài mới';
+   if(postTitle)postTitle.placeholder=serviceKey==='dich-vu-5'?'Ví dụ: ASUS Vivobook 14 Core i5 16GB 512GB':serviceKey==='dich-vu-6'?'Ví dụ: Gói 2 đầu lân khai trương':'Ví dụ: Gói Internet Home 500';
  }else if(news){
-   postType.value='news';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.remove('hidden');
-   if(menuNew)menuNew.textContent='Đăng bài mới';if(menuPosts)menuPosts.textContent='Quản lý bài viết';if(overviewBtn)overviewBtn.textContent='＋ Đăng bài mới';
-   if(postTitle)postTitle.placeholder='Nhập tiêu đề bài viết';
+   if(isProfessionalContactTemplate())document.getElementById('menuServiceLeads')?.classList.remove('hidden');
+   postType.value='news';
+   postType.disabled=true;
+   picker?.classList.add('hidden');
+   notice?.classList.remove('hidden');
+   if(menuNew)menuNew.textContent='Đăng bài mới';
+   if(menuPosts)menuPosts.textContent='Quản lý bài viết';
+   if(isProfessionalContactTemplate()){
+     document.querySelector('#tab-serviceleads h1')?.replaceChildren(document.createTextNode('Yêu cầu liên hệ'));
+     document.querySelector('#tab-serviceleads .admin-subtext')?.replaceChildren(document.createTextNode('Quản lý thông tin khách gửi từ khối Liên hệ trên website.'));
+   }
+   if(overviewBtn)overviewBtn.textContent='＋ Đăng bài mới';
+   if(postTitle)postTitle.placeholder='Ví dụ: Những xu hướng công nghệ đáng chú ý hôm nay';
+   document.querySelector('#tab-overview .admin-page-head p')?.replaceChildren(document.createTextNode('Quản lý bài viết, chuyên mục và theo dõi hiệu quả website tin tức.'));
+   document.querySelector('#tab-overview .admin-kpis .kpi:first-child small')?.replaceChildren(document.createTextNode('TỔNG BÀI VIẾT'));
+   document.querySelector('#tab-overview .admin-kpis .kpi:first-child span')?.replaceChildren(document.createTextNode('Bài đã đăng'));
  }else{
-   postType.disabled=false;picker?.classList.remove('hidden');notice?.classList.add('hidden');if(menuNew)menuNew.textContent='Đăng nội dung mới';if(menuPosts)menuPosts.textContent='Quản lý nội dung';
+   postType.disabled=false;
+   picker?.classList.remove('hidden');
+   notice?.classList.add('hidden');
+   if(menuNew)menuNew.textContent='Đăng nội dung mới';
+   if(menuPosts)menuPosts.textContent='Quản lý nội dung';
  }
  updateContentTypeUI();
 }
-
 function showTab(n){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));document.getElementById('tab-'+n).classList.remove('hidden');document.querySelectorAll('.menu-btn').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));if(n==='posts')loadPosts();if(n==='samples')loadSamplePosts();if(n==='stats')loadStats();if(n==='service')loadService();if(n==='serviceleads')loadServiceLeads();if(n==='commerce-products')loadCommerceProducts();if(n==='commerce-orders')loadCommerceOrders();if(n==='commerce-settings')loadCommerceSettings()}
 document.querySelectorAll('.menu-btn').forEach(b=>b.onclick=()=>{const n=b.dataset.tab;if(n==='newpost')resetPostEditor();else if(editingId?.value){editingId.value='';editorContext='create'}showTab(n)});
 let websiteSettingsSnapshot=null,CLIENT_TEMPLATE_SETTINGS={};
@@ -842,7 +842,7 @@ commerceGalleryFiles?.addEventListener('change',async()=>{
  for(const file of files){if(file.size>8*1024*1024){status.textContent=file.name+' vượt quá 8 MB';continue}const fd=new FormData();fd.append('file',file);try{const tk=nrGetAdminToken(),r=await fetch(tenantUrl('/upload'),{method:'POST',body:fd,credentials:'include',headers:tk?{'Authorization':'Bearer '+tk}:{}}),d=await r.json();if(!r.ok)throw new Error(d.error||'Tải ảnh thất bại');commerceGalleryImages.push(d.url)}catch(e){status.textContent=e.message;return}}
  commerceRenderGallery();status.textContent='Đã tải '+files.length+' ảnh.';commerceGalleryFiles.value='';
 });
-document.getElementById('commerceProductForm')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.target,b=Object.fromEntries(new FormData(f).entries()),attrs={};document.querySelectorAll('#commerceDynamicFields [data-attr]').forEach(x=>attrs[x.dataset.attr]=x.type==='checkbox'?x.checked:x.value);b.attributes=attrs;b.is_featured=!!f.querySelector('[name=is_featured]')?.checked;const badgeSel=f.querySelector('[name=badge]');b.badge=badgeSel?badgeSel.value:'';b.variants=comCollectVariants();if(commerceGalleryImages.length){b.image_url=commerceGalleryImages[0];b.gallery=commerceGalleryImages.slice(1)}else b.gallery=String(b.gallery||'').split(',').map(x=>x.trim()).filter(Boolean);b.stock_qty=b.variants.length?b.variants.reduce((a,v)=>a+Number(v.stock_qty||0),0):Number(b.stock_qty||0);try{await api('/commerce/products',{method:'POST',body:JSON.stringify(b)});f.reset();commerceGalleryImages=[];commerceRenderGallery();comRenderDynamicFields();loadCommerceProducts();nrAdminToast('Đã thêm sản phẩm')}catch(err){catchCommerce(err)}});
+document.getElementById('commerceProductForm')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.target,b=Object.fromEntries(new FormData(f).entries()),attrs={};document.querySelectorAll('#commerceDynamicFields [data-attr]').forEach(x=>attrs[x.dataset.attr]=x.type==='checkbox'?x.checked:x.value);b.attributes=attrs;b.is_featured=!!f.querySelector('[name=is_featured]')?.checked;b.variants=comCollectVariants();if(commerceGalleryImages.length){b.image_url=commerceGalleryImages[0];b.gallery=commerceGalleryImages.slice(1)}else b.gallery=String(b.gallery||'').split(',').map(x=>x.trim()).filter(Boolean);b.stock_qty=b.variants.length?b.variants.reduce((a,v)=>a+Number(v.stock_qty||0),0):Number(b.stock_qty||0);try{await api('/commerce/products',{method:'POST',body:JSON.stringify(b)});f.reset();commerceGalleryImages=[];commerceRenderGallery();comRenderDynamicFields();loadCommerceProducts();nrAdminToast('Đã thêm sản phẩm')}catch(err){catchCommerce(err)}});
 async function loadCommerceOrders(){const box=document.getElementById('commerceOrdersPanel');if(!box)return;try{const d=await api('/commerce/orders');box.innerHTML=(d.orders||[]).map(o=>`<div class="commerce-admin-card"><div class="row"><div><b>${nrEsc(o.order_code)} · ${nrEsc(o.customer_name)}</b><br><small>${nrEsc(o.phone)} · ${comAdminMoney(o.total_amount)} · ${new Date(o.created_at).toLocaleString('vi-VN')}</small></div><div><select data-com-order="${o.id}"><option value="new" ${o.order_status==='new'?'selected':''}>Mới</option><option value="confirmed" ${o.order_status==='confirmed'?'selected':''}>Đã xác nhận</option><option value="shipping" ${o.order_status==='shipping'?'selected':''}>Đang giao</option><option value="completed" ${o.order_status==='completed'?'selected':''}>Hoàn thành</option><option value="cancelled" ${o.order_status==='cancelled'?'selected':''}>Đã hủy</option></select><select data-com-pay="${o.id}"><option value="unpaid" ${o.payment_status==='unpaid'?'selected':''}>Chưa thanh toán</option><option value="paid" ${o.payment_status==='paid'?'selected':''}>Đã thanh toán</option></select><button class="smallbtn" onclick="saveCommerceOrder(${o.id})">Lưu</button></div></div><details><summary>Chi tiết đơn</summary><pre>${nrEsc(o.items_json||'[]')}</pre><p>${nrEsc(o.address||'')} ${nrEsc(o.note||'')}</p></details></div>`).join('')||'<div class="empty">Chưa có đơn hàng.</div>'}catch(e){box.innerHTML='<div class="form-errors">'+nrEsc(e.message)+'</div>'}}
 async function saveCommerceOrder(id){await api('/commerce/orders',{method:'PUT',body:JSON.stringify({id,order_status:document.querySelector(`[data-com-order="${id}"]`)?.value,payment_status:document.querySelector(`[data-com-pay="${id}"]`)?.value})});nrAdminToast('Đã cập nhật đơn hàng');loadCommerceOrders()}
 async function loadCommerceSettings(){const f=document.getElementById('commerceSettingsForm');if(!f)return;try{const d=await api('/commerce/settings'),x=d.settings||{};for(const k of ['cod_enabled','bank_enabled','store_pickup_enabled','online_enabled'])f.elements[k].checked=!!Number(x[k]);for(const k of ['bank_name','bank_account','bank_holder','bank_qr_url','shipping_flat_fee','free_shipping_from'])f.elements[k].value=x[k]||''}catch(e){document.getElementById('commerceSettingsMsg').textContent=e.message}}

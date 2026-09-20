@@ -896,26 +896,6 @@ function templateCategoryContract(structure,editorProfile={},contentType='generi
  return ep;
 }
 
-// UNIVERSAL DYNAMIC ADMIN CONTRACT — derive Admin modules from template data, never template IDs.
-function deriveAdminCapabilities(structure={},editorProfile={}){
- const sp=structure&&typeof structure==='object'?structure:{};
- const ep=editorProfile&&typeof editorProfile==='object'?editorProfile:{};
- const sections=Array.isArray(sp.sections)?sp.sections:[];
- const type=String(ep.content_type||sp.content_type||'generic').toLowerCase();
- const declared=sp.admin_modules&&typeof sp.admin_modules==='object'?sp.admin_modules:{};
- // Capability source of truth: explicit admin_modules first; legacy contracts second.
- // Generic section names (e.g. a section titled products/contact) NEVER grant privileged Admin modules.
- const commerceContract=!!sp.commerce_contract||type==='commerce';
- const commerce=declared.commerce&&typeof declared.commerce==='object'?declared.commerce:{};
- const products=commerce.products===true||(commerce.products!==false&&commerceContract);
- const orders=commerce.orders===true||(commerce.orders!==false&&commerceContract);
- const paymentShipping=commerce.payment_shipping===true||(commerce.payment_shipping!==false&&commerceContract);
- const leads=declared.leads===true||(declared.leads!==false&&!!sp.lead_contract);
- const content=declared.content===true||(declared.content!==false&&type!=='commerce');
- const samples=content&&(declared.samples!==false);
- return {contract:'admin-capabilities-v3',content,samples,statistics:true,website_settings:true,service_info:true,support:true,password:true,content_type:type,news:type==='news',service:type==='service'&&content,game:type==='game',product:type==='product',leads,commerce:{enabled:products||orders||paymentShipping,products,orders,payment_shipping:paymentShipping},categories:Array.isArray(ep.categories)?ep.categories:[],settings_schema:Array.isArray(sp.settings_schema)?sp.settings_schema:[]};
-}
-
 function validateStructureProfile(p,{active=0}={}){
  const errors=[],warnings=[];const sections=Array.isArray(p?.sections)?p.sections:[];
  if(!sections.length)errors.push('Template chưa có section nào trong structure_profile.');
@@ -3823,7 +3803,6 @@ if(route==='me'){
  categoryStructure=ensureUniversalHeroSettingsSchema(categoryStructure,site.template_key||tc?.template_key||'');
  content_profile=templateCategoryContract(categoryStructure,content_profile,profileType);
  content_profile.settings_schema=Array.isArray(categoryStructure?.settings_schema)?categoryStructure.settings_schema:[];
- content_profile.admin_capabilities=deriveAdminCapabilities(categoryStructure,content_profile);
  try{site.template_settings=JSON.parse(String(site.template_settings_json||'{}'))}catch(e){site.template_settings={}}
  return json({user:{id:user.id,email:user.email,role:user.role},site,content_profile,stats:await stats(env,site.id),sample_pack:samplePack})
 }
