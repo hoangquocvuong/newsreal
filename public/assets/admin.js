@@ -274,9 +274,19 @@ function configureAdminForTemplate(){
    postType.value='service';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
    const serviceKey=professionalAdminKey();
    if(menuNew)menuNew.textContent='Đăng bài mới';if(menuPosts)menuPosts.textContent=serviceKey==='dich-vu-5'?'Bài viết / Cẩm nang':serviceKey==='dich-vu-6'?'Quản lý gói & bài viết':'Quản lý dịch vụ';
-   if(serviceKey==='dich-vu-5'){['menuCommerceProducts','menuCommerceOrders','menuCommerceSettings','menuServiceLeads'].forEach(id=>document.getElementById(id)?.classList.remove('hidden'))}
-   else if(serviceKey==='dich-vu-6'){document.getElementById('menuServiceLeads')?.classList.remove('hidden')}
-   if(overviewBtn)overviewBtn.textContent='＋ Đăng bài mới';
+   if(serviceKey==='dich-vu-5'){
+     // Commerce has its own workflow. Do not inherit the generic service/blog navigation.
+     ['menuNewPost','menuPosts'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
+     ['menuCommerceProducts','menuCommerceOrders','menuCommerceSettings','menuServiceLeads'].forEach(id=>document.getElementById(id)?.classList.remove('hidden'));
+     if(overviewBtn){overviewBtn.textContent='＋ Thêm sản phẩm';overviewBtn.onclick=()=>showTab('commerce-products')}
+     document.querySelector('#tab-overview .admin-page-head p')?.replaceChildren(document.createTextNode('Quản lý sản phẩm, đơn hàng, thanh toán và vận hành cửa hàng của bạn.'));
+     document.querySelector('#tab-overview .admin-kpis .kpi:first-child small')?.replaceChildren(document.createTextNode('TỔNG SẢN PHẨM'));
+     document.querySelector('#tab-overview .admin-kpis .kpi:first-child span')?.replaceChildren(document.createTextNode('Sản phẩm đang quản lý'));
+   }else{
+     ['menuNewPost','menuPosts'].forEach(id=>document.getElementById(id)?.classList.remove('hidden'));
+     if(serviceKey==='dich-vu-6')document.getElementById('menuServiceLeads')?.classList.remove('hidden');
+     if(overviewBtn){overviewBtn.textContent='＋ Đăng bài mới';overviewBtn.onclick=()=>showTab('newpost')}
+   }
    if(postTitle)postTitle.placeholder=serviceKey==='dich-vu-5'?'Ví dụ: ASUS Vivobook 14 Core i5 16GB 512GB':serviceKey==='dich-vu-6'?'Ví dụ: Gói 2 đầu lân khai trương':'Ví dụ: Gói Internet Home 500';
  }else if(news){
    if(isProfessionalContactTemplate())document.getElementById('menuServiceLeads')?.classList.remove('hidden');
