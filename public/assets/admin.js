@@ -60,7 +60,7 @@ imageFiles.addEventListener('change',async()=>{
   imageFiles.value='';
 });
 
-if(trialParam){document.body.classList.add('admin-trial-mode');if(window.viewSiteLink){viewSiteLink.href='#';viewSiteLink.style.display='none'}}else if(window.viewSiteLink&&tenantParam)viewSiteLink.href='/?tenant='+encodeURIComponent(tenantParam);function tenantUrl(path){if(!tenantParam)return '/api'+path;return '/api'+path+(path.includes('?')?'&':'?')+'tenant='+encodeURIComponent(tenantParam)}
+if(trialParam){document.body.classList.add('admin-trial-mode');if(window.viewSiteLink){viewSiteLink.href='#';viewSiteLink.style.display='none'}}else if(window.viewSiteLink&&tenantParam)viewSiteLink.href='/?tenant='+encodeURIComponent(tenantParam);function tenantUrl(path){const q=new URLSearchParams();if(tenantParam)q.set('tenant',tenantParam);if(trialParam)q.set('nr_trial',trialParam);const tpl=adminTemplateOverride();if(tpl)q.set('template',tpl);const qs=q.toString();return '/api'+path+(qs?(path.includes('?')?'&':'?')+qs:'')}
 async function api(path,opts={}){const token=nrGetAdminToken();const headers={'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{}),...(opts.headers||{})};const r=await fetch(tenantUrl(path),{credentials:'include',...opts,headers});const t=await r.text();let d={};try{d=JSON.parse(t)}catch{}if(!r.ok){const e=new Error(d.error||t);e.status=r.status;e.data=d;throw e}return d}
 
 let CLIENT_TEMPLATE_KEY='',CLIENT_PRESET='',CLIENT_CATEGORY='',CLIENT_PROFILE=null;
@@ -222,7 +222,7 @@ function collectProfileFields(){
 }
 function parseExtraJson(v){try{return typeof v==='object'&&v?v:JSON.parse(v||'{}')}catch{return {}}}
 
-function adminTemplateOverride(){return new URLSearchParams(location.search).get('template')||''}
+function adminTemplateOverride(){const requested=new URLSearchParams(location.search).get('template')||'';return CLIENT_TEMPLATE_KEY||requested} // API/site identity wins over URL; prevents cross-template Admin UI
 function isProductTemplate(){const override=adminTemplateOverride();if(override)return /^san-pham-\d+$/i.test(override);return CLIENT_CATEGORY==='san-pham'||CLIENT_PROFILE?.content_type==='product'||CLIENT_PROFILE?.id==='product-affiliate'||String(CLIENT_PRESET||'').startsWith('product_')}
 function isServiceTemplate(){const override=adminTemplateOverride();if(override)return /^dich-vu-\d+$/i.test(override);return CLIENT_CATEGORY==='dich-vu'||CLIENT_PROFILE?.content_type==='service'||CLIENT_PROFILE?.id==='service'||String(CLIENT_PRESET||'').startsWith('service_')}
 function isNewsTemplate(){
@@ -239,7 +239,9 @@ function configureAdminForTemplate(){
  const product=isProductTemplate(),game=!product&&isGameTemplate(),news=!product&&!game&&isNewsTemplate(),service=!product&&!game&&isServiceTemplate();
  document.body.classList.toggle('admin-template-news',news);
  document.body.classList.toggle('admin-template-game',game);
- document.getElementById('menuServiceLeads')?.classList.add('hidden');
+ // Start from a clean capability set on every boot. Template-specific menus must
+ // never leak from another template/profile. Commerce belongs only to dich-vu-5.
+ ['menuServiceLeads','menuCommerceProducts','menuCommerceOrders','menuCommerceSettings'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
  const picker=document.getElementById('contentTypePicker');
  const notice=document.getElementById('newsTemplateNotice');
  const menuNew=document.getElementById('menuNewPostText');
@@ -270,8 +272,12 @@ function configureAdminForTemplate(){
  }else if(service){
    document.getElementById('menuServiceLeads')?.classList.remove('hidden');
    postType.value='service';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
-   if(menuNew)menuNew.textContent='Đăng bài mới';if(menuPosts)menuPosts.textContent=professionalAdminKey()==='dich-vu-5'?'Bài viết / Cẩm nang':'Quản lý dịch vụ';if(professionalAdminKey()==='dich-vu-5'){['menuCommerceProducts','menuCommerceOrders','menuCommerceSettings','menuServiceLeads'].forEach(id=>document.getElementById(id)?.classList.remove('hidden'))}if(overviewBtn)overviewBtn.textContent='＋ Đăng bài mới';
-   if(postTitle)postTitle.placeholder=professionalAdminKey()==='dich-vu-5'?'Ví dụ: ASUS Vivobook 14 Core i5 16GB 512GB':'Ví dụ: Gói Internet Home 500';
+   const serviceKey=professionalAdminKey();
+   if(menuNew)menuNew.textContent='Đăng bài mới';if(menuPosts)menuPosts.textContent=serviceKey==='dich-vu-5'?'Bài viết / Cẩm nang':serviceKey==='dich-vu-6'?'Quản lý gói & bài viết':'Quản lý dịch vụ';
+   if(serviceKey==='dich-vu-5'){['menuCommerceProducts','menuCommerceOrders','menuCommerceSettings','menuServiceLeads'].forEach(id=>document.getElementById(id)?.classList.remove('hidden'))}
+   else if(serviceKey==='dich-vu-6'){document.getElementById('menuServiceLeads')?.classList.remove('hidden')}
+   if(overviewBtn)overviewBtn.textContent='＋ Đăng bài mới';
+   if(postTitle)postTitle.placeholder=serviceKey==='dich-vu-5'?'Ví dụ: ASUS Vivobook 14 Core i5 16GB 512GB':serviceKey==='dich-vu-6'?'Ví dụ: Gói 2 đầu lân khai trương':'Ví dụ: Gói Internet Home 500';
  }else if(news){
    if(isProfessionalContactTemplate())document.getElementById('menuServiceLeads')?.classList.remove('hidden');
    postType.value='news';

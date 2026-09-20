@@ -82,6 +82,8 @@ function nrGameStatsPublic(row){
 }
 
 async function siteFor(env,req){
+  const url=new URL(req.url);
+  const trialToken=String(url.searchParams.get('nr_trial')||'').trim();
   const h=host(req).replace(/^www\./,'').toLowerCase();
   const baseSql=`SELECT s.*,
     coalesce(ps.contact_email,'') contact_email,
@@ -96,7 +98,16 @@ async function siteFor(env,req){
     FROM sites s
     LEFT JOIN site_public_settings ps ON ps.site_id=s.id
     LEFT JOIN customer_profiles cp ON cp.site_id=s.id`;
-  let s=await env.DB.prepare(baseSql+` WHERE lower(s.domain)=? AND s.status='active'`).bind(h).first();
+  // Trial token is the canonical tenant identity for Trial/Admin requests.
+  // Never let a stale ?tenant= value or an old browser session switch a Trial Admin
+  // to another website (for example FPT -> Lion Dance).
+  let s=null;
+  if(trialToken){
+    s=await env.DB.prepare(baseSql+` JOIN website_trials wt ON wt.site_id=s.id WHERE wt.trial_token=? AND s.status='active' LIMIT 1`).bind(trialToken).first();
+    if(!s)return null;
+  }else{
+    s=await env.DB.prepare(baseSql+` WHERE lower(s.domain)=? AND s.status='active'`).bind(h).first();
+  }
   if(!s&&(h==='localhost'||h.endsWith('.pages.dev')))s=await env.DB.prepare(baseSql+` WHERE s.status='active' ORDER BY s.id LIMIT 1`).first();
   if(s){
     // Sites created before V9.3.5 also get useful defaults automatically.
