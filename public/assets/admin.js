@@ -249,15 +249,7 @@ function applyAdminCapabilities(){
  if(host){
    const modules=[];
    if(cap.leads)modules.push({id:'menuServiceLeads',tab:'serviceleads',icon:'☎',label:'Khách cần tư vấn'});
-   if(commerce.products){
-     // Commerce must never expose the generic article workflow. Do this here,
-     // directly from capabilities, so trial/template identity cannot leak legacy menus.
-     const legacyNew=document.getElementById('menuNewPost'),legacyPosts=document.getElementById('menuPosts');
-     [legacyNew,legacyPosts].forEach(el=>{if(el){el.classList.add('hidden');el.style.setProperty('display','none','important');el.setAttribute('aria-hidden','true')}});
-     document.getElementById('tab-newpost')?.classList.add('hidden');
-     document.getElementById('tab-posts')?.classList.add('hidden');
-     modules.push({id:'menuCommerceProducts',tab:'commerce-products',icon:'▣',label:'Sản phẩm'});
-   }
+   if(commerce.products)modules.push({id:'menuCommerceProducts',tab:'commerce-products',icon:'▣',label:'Đăng sản phẩm'});
    if(commerce.orders)modules.push({id:'menuCommerceOrders',tab:'commerce-orders',icon:'🛒',label:'Đơn hàng'});
    if(commerce.payment_shipping)modules.push({id:'menuCommerceSettings',tab:'commerce-settings',icon:'₫',label:'Thanh toán & vận chuyển'});
    host.innerHTML=modules.map(m=>`<button id="${m.id}" class="menu-btn" data-tab="${m.tab}"><span>${m.icon}</span>${m.label}</button>`).join('');
@@ -271,7 +263,7 @@ function applyAdminCapabilities(){
 function configureAdminForTemplate(){
  const cap=adminCapabilities();
  const commerce=cap.commerce||{};
- const product=!!cap.product||!!commerce.enabled||!!commerce.products||CLIENT_PRESET==='universal_commerce_5'||CLIENT_TEMPLATE_KEY==='dich-vu-5'||document.getElementById('menuCommerceProducts'),game=!product&&!!cap.game,news=!product&&!game&&!!cap.news,service=!product&&!game&&!!cap.service;
+ const product=!!cap.product||!!commerce.enabled||!!commerce.products||CLIENT_PRESET==='universal_commerce_5'||CLIENT_TEMPLATE_KEY==='dich-vu-5',game=!product&&!!cap.game,news=!product&&!game&&!!cap.news,service=!product&&!game&&!!cap.service;
  document.body.classList.toggle('admin-template-news',news);
  document.body.classList.toggle('admin-template-game',game);
  applyAdminCapabilities();
