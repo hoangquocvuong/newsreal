@@ -896,6 +896,18 @@ function templateCategoryContract(structure,editorProfile={},contentType='generi
  return ep;
 }
 
+// UNIVERSAL DYNAMIC ADMIN CONTRACT — derive Admin modules from template data, never template IDs.
+function deriveAdminCapabilities(structure={},editorProfile={}){
+ const sp=structure&&typeof structure==='object'?structure:{};
+ const ep=editorProfile&&typeof editorProfile==='object'?editorProfile:{};
+ const sections=Array.isArray(sp.sections)?sp.sections:[];
+ const type=String(ep.content_type||sp.content_type||'generic').toLowerCase();
+ const hasSection=(...names)=>sections.some(sec=>names.includes(String(sec?.key||sec?.type||'').toLowerCase()));
+ const commerce=!!sp.commerce_contract||type==='commerce'||hasSection('products','catalog','shop','store');
+ const leads=!!sp.lead_contract||hasSection('contact','lead','leads','inquiry','quote');
+ return {contract:'admin-capabilities-v1',content:true,samples:true,statistics:true,website_settings:true,service_info:true,support:true,password:true,content_type:type,news:type==='news',service:type==='service'||type==='commerce',game:type==='game',product:type==='product',leads,commerce:{enabled:commerce,products:commerce,orders:commerce,payment_shipping:commerce},categories:Array.isArray(ep.categories)?ep.categories:[],settings_schema:Array.isArray(sp.settings_schema)?sp.settings_schema:[]};
+}
+
 function validateStructureProfile(p,{active=0}={}){
  const errors=[],warnings=[];const sections=Array.isArray(p?.sections)?p.sections:[];
  if(!sections.length)errors.push('Template chưa có section nào trong structure_profile.');
@@ -3803,6 +3815,7 @@ if(route==='me'){
  categoryStructure=ensureUniversalHeroSettingsSchema(categoryStructure,site.template_key||tc?.template_key||'');
  content_profile=templateCategoryContract(categoryStructure,content_profile,profileType);
  content_profile.settings_schema=Array.isArray(categoryStructure?.settings_schema)?categoryStructure.settings_schema:[];
+ content_profile.admin_capabilities=deriveAdminCapabilities(categoryStructure,content_profile);
  try{site.template_settings=JSON.parse(String(site.template_settings_json||'{}'))}catch(e){site.template_settings={}}
  return json({user:{id:user.id,email:user.email,role:user.role},site,content_profile,stats:await stats(env,site.id),sample_pack:samplePack})
 }
