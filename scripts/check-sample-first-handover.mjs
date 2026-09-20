@@ -6,7 +6,7 @@ const master=fs.readFileSync('public/assets/master.js','utf8');
 const must=(ok,msg)=>{if(!ok){console.error('FAIL',msg);process.exit(1)}console.log('OK',msg)};
 must(api.includes('installDefaultTemplateSamples(env,siteId,{source:\'trial-create\'})'),'trial installs template sample package');
 must(api.includes("source:promoteSiteId?'trial-promote':'site-create'"),'official customer handover installs/keeps sample package');
-must(api.includes("installDefaultTemplateSamples(env,site.id,{source:'trial-backfill'})"),'old trials backfill samples once');
+must(api.includes("source:__siteTrial?'trial-backfill':'live-handover-backfill'"),'old trials and handed-over live sites backfill samples once');
 must(api.includes('const hideSamples=false;'),'trial/public site API no longer hides sample posts');
 must(api.includes('ORDER BY coalesce(is_sample,0) ASC,id DESC LIMIT 100'),'real customer posts are ordered before editable sample posts on homepage');
 must(!api.includes('TRIAL EMPTY DATA CONTRACT'),'old empty-trial contract removed');

@@ -3,7 +3,7 @@ const api=fs.readFileSync('functions/api/[[path]].js','utf8');
 const worker=fs.readFileSync('functions/[[path]].js','utf8');
 const site=fs.readFileSync('public/assets/site.js','utf8');
 const checks=[
- ['sample repair version 6',api.includes('const currentVersion=6')&&api.includes('sample_pack_version=6')],
+ ['sample repair version 7',api.includes('const currentVersion=7')&&api.includes('sample_pack_version=7')],
  ['trial template key repairs site identity',api.includes('SELECT coalesce(template_key,\'\') template_key FROM website_trials WHERE site_id=?')&&api.includes('effectiveTemplateKey')],
  ['professional blueprint uses resolved catalog key',api.includes('const resolvedKey=String(t?.template_key||key||\'\').trim()')&&api.includes('professionalDemoData(resolvedKey)')],
  ['empty professional blueprint is not marked installed',api.includes("reason:'empty-blueprint'")],

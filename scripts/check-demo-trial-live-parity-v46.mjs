@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+const api=fs.readFileSync('functions/api/[[path]].js','utf8');
+const must=(ok,msg)=>{if(!ok)throw new Error(msg)};
+must(api.includes('const currentVersion=7;'),'sample pack V7 contract missing');
+must(api.includes("source:__siteTrial?'trial-backfill':'live-handover-backfill'"),'live handover backfill missing');
+must(api.includes('site_sample_tombstones'),'sample deletion tombstones missing');
+must(api.includes('if(tombstone){skipped++;continue}'),'deleted sample can be resurrected');
+must(api.includes('repair technical sample identity without overwriting customer edits'),'sample edit preservation contract missing');
+must(api.includes('ORDER BY coalesce(is_sample,0) ASC,id DESC LIMIT 100'),'customer-first public ordering missing');
+must(api.includes("templateDemo&&!templateSimulation"),'demo blueprint branch missing');
+must(api.includes('buildTemplatePreviewBlueprint(env,previewTemplate,site)'),'demo must use canonical blueprint');
+console.log('Demo Trial Live Parity V46: PASS');

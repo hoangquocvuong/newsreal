@@ -1436,15 +1436,15 @@ async function installDefaultTemplateSamples(env,siteId,opts={}){
     try{await env.DB.prepare(`UPDATE sites SET template_key=? WHERE id=?`).bind(effectiveTemplateKey,siteId).run();site.template_key=effectiveTemplateKey}catch(e){}
   }
   const state=await env.DB.prepare(`SELECT sample_pack_installed_at,sample_pack_template_key,sample_pack_version FROM site_template_state WHERE site_id=? LIMIT 1`).bind(siteId).first();
-  const currentVersion=6;
+  const currentVersion=7;
   if(state?.sample_pack_installed_at&&Number(state.sample_pack_version||0)>=currentVersion&&!opts.force){
     return {installed:false,already:true,template_key:state.sample_pack_template_key||effectiveTemplateKey||site.template_key,version:currentVersion};
   }
   const result=await seedDemoForSite(env,siteId,{source:opts.source||'default-handover',template_key:effectiveTemplateKey});
   if(!Number(result?.total||0))return {installed:false,reason:'empty-blueprint',template_key:effectiveTemplateKey||site.template_key||'',version:currentVersion};
   await env.DB.prepare(`INSERT INTO site_template_state(site_id,sample_pack_installed_at,sample_pack_template_key,sample_pack_version,updated_at)
-    VALUES(?,CURRENT_TIMESTAMP,?,5,CURRENT_TIMESTAMP)
-    ON CONFLICT(site_id) DO UPDATE SET sample_pack_installed_at=CURRENT_TIMESTAMP,sample_pack_template_key=excluded.sample_pack_template_key,sample_pack_version=6,updated_at=CURRENT_TIMESTAMP`)
+    VALUES(?,CURRENT_TIMESTAMP,?,7,CURRENT_TIMESTAMP)
+    ON CONFLICT(site_id) DO UPDATE SET sample_pack_installed_at=CURRENT_TIMESTAMP,sample_pack_template_key=excluded.sample_pack_template_key,sample_pack_version=7,updated_at=CURRENT_TIMESTAMP`)
     .bind(siteId,String(effectiveTemplateKey||site.template_key||'')).run();
   return {installed:true,version:currentVersion,...result};
 }
@@ -3600,7 +3600,7 @@ if(__siteTrial){
 if(route==='site'&&request.method==='GET'){
  // Backfill trials created under the old empty-site rule exactly once. The state
  // marker survives later customer deletions, so deleted samples stay deleted.
- if(__siteTrial){try{await installDefaultTemplateSamples(env,site.id,{source:'trial-backfill'})}catch(e){console.log('trial sample backfill:',e?.message||e)}}
+ try{await installDefaultTemplateSamples(env,site.id,{source:__siteTrial?'trial-backfill':'live-handover-backfill'})}catch(e){console.log('sample parity backfill:',e?.message||e)}
  const hideSamples=false;
  const templateSimulation=false; // legacy skeleton/client simulation retired in V20.9.27.22
  const templateDemo=request.headers.get('X-NR-Template-Demo')==='1';
