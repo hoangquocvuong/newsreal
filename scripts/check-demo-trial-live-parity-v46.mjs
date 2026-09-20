@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 const api=fs.readFileSync('functions/api/[[path]].js','utf8');
 const must=(ok,msg)=>{if(!ok)throw new Error(msg)};
-must(api.includes('const currentVersion=7;'),'sample pack V7 contract missing');
+must(api.includes('const currentVersion=8;'),'sample pack V7 contract missing');
 must(api.includes("source:__siteTrial?'trial-backfill':'live-handover-backfill'"),'live handover backfill missing');
 must(api.includes('site_sample_tombstones'),'sample deletion tombstones missing');
 must(api.includes('if(tombstone){skipped++;continue}'),'deleted sample can be resurrected');

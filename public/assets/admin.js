@@ -220,10 +220,33 @@ function telecomCategoryFields(category=''){
  if(c.includes('combo'))return [price,{key:'service_speed_down',label:'Tốc độ Download',type:'text',placeholder:'300 Mbps'},{key:'service_speed_up',label:'Tốc độ Upload',type:'text',placeholder:'300 Mbps'},{key:'service_wifi',label:'Modem / Wi-Fi',type:'text',placeholder:'Wi-Fi 6 / Mesh'},{key:'service_tv',label:'Truyền hình / nội dung',type:'text',placeholder:'TV360 / MyTV / FPT Play'},{key:'service_camera',label:'Camera',type:'text',placeholder:'Camera AI / số lượng thiết bị'},{key:'service_cloud',label:'Cloud / lưu trữ',type:'text',placeholder:'Cloud 7 ngày...'},{key:'service_term',label:'Thời hạn / cam kết',type:'text',placeholder:'12 tháng'},{key:'service_install',label:'Phí hòa mạng / lắp đặt',type:'text',placeholder:'Miễn phí / theo khu vực'},promo,area,cta];
  return [price,{key:'service_speed_down',label:'Tốc độ Download',type:'text',placeholder:'300 Mbps'},{key:'service_speed_up',label:'Tốc độ Upload',type:'text',placeholder:'300 Mbps'},{key:'service_wifi',label:'Modem / Wi-Fi / Thiết bị',type:'text',placeholder:'Wi-Fi 6 / Mesh'},{key:'service_devices',label:'Số thiết bị phù hợp',type:'text',placeholder:'15–25 thiết bị'},{key:'service_term',label:'Thời hạn / cam kết',type:'text',placeholder:'12 tháng'},{key:'service_install',label:'Phí hòa mạng / lắp đặt',type:'text',placeholder:'Miễn phí / theo khu vực'},promo,area,cta];
 }
+function isLionAdminTemplate(){return professionalAdminKey()==='dich-vu-6'}
+function lionCategoryFields(category=''){
+ const c=String(category||'').trim().toLowerCase();
+ // Editorial categories intentionally stay simple: no price/package fields.
+ if(c==='tin hoạt động'||c==='kiến thức & phong tục')return [];
+ if(c==='sự kiện đã thực hiện')return [
+   {key:'event_date',label:'Ngày tổ chức',type:'date'},
+   {key:'event_location',label:'Địa điểm',type:'text',placeholder:'Ví dụ: Hải Phòng'},
+   {key:'event_video',label:'Video sự kiện',type:'url',placeholder:'YouTube / Facebook / TikTok (tùy chọn)'}
+ ];
+ const price={key:'service_price',label:'Giá gói / Giá tham khảo',type:'text',placeholder:'Ví dụ: Từ 3.500.000đ'};
+ const common=[
+   {key:'performers_count',label:'Số người tham gia',type:'text',placeholder:'7–9 người'},
+   {key:'performance_duration',label:'Thời lượng',type:'text',placeholder:'20–30 phút'},
+   {key:'fireworks',label:'Pháo sáng',type:'text',placeholder:'Có / Không / Tùy chọn'},
+   {key:'confetti',label:'Pháo kim tuyến',type:'text',placeholder:'Có / Không / Số lượt'},
+   {key:'service_area',label:'Khu vực phục vụ',type:'text',placeholder:'Hải Phòng / Hà Nội / Toàn quốc'},
+   {key:'service_cta',label:'Nhãn nút liên hệ',type:'text',placeholder:'Liên hệ báo giá'}
+ ];
+ if(c==='múa rồng')return [price,{key:'lion_count',label:'Quy mô / số đoạn rồng',type:'text',placeholder:'Ví dụ: Rồng 9 người / 12 người'},{key:'drum_count',label:'Trống & bộ gõ',type:'text',placeholder:'Trống cái + chập chõa'},...common];
+ if(c==='trống hội')return [price,{key:'drum_count',label:'Trống & bộ gõ',type:'text',placeholder:'Ví dụ: 1 trống cái + 4 trống hội'},{key:'performance_duration',label:'Thời lượng',type:'text',placeholder:'15–30 phút'},{key:'performers_count',label:'Số người tham gia',type:'text',placeholder:'5–12 người'},{key:'service_area',label:'Khu vực phục vụ',type:'text',placeholder:'Hải Phòng / Hà Nội / Toàn quốc'},{key:'service_cta',label:'Nhãn nút liên hệ',type:'text',placeholder:'Liên hệ báo giá'}];
+ return [price,{key:'lion_count',label:'Số đầu lân / Rồng',type:'text',placeholder:'Ví dụ: 2 đầu lân'},{key:'drum_count',label:'Trống & bộ gõ',type:'text',placeholder:'1 trống cái + chập chõa'},...common.slice(0,4),{key:'couplets',label:'Câu đối / liễn chúc mừng',type:'text',placeholder:'01 bộ theo kịch bản'},...common.slice(4)];
+}
 function isTelecomAdminTemplate(){return ['dich-vu-1','dich-vu-2','dich-vu-3'].includes(professionalAdminKey())}
 function renderProfileFields(values={}){
  const host=document.getElementById('profileFieldsHost');if(!host)return;
- const profile=resolvedContentProfile(),fields=profile.content_type==='game'?gameAdminFields(values):(isTelecomAdminTemplate()?telecomCategoryFields(postCategory?.value||''):(Array.isArray(profile.custom_fields)?profile.custom_fields:[]));
+ const profile=resolvedContentProfile(),fields=profile.content_type==='game'?gameAdminFields(values):(isTelecomAdminTemplate()?telecomCategoryFields(postCategory?.value||''):(isLionAdminTemplate()?lionCategoryFields(postCategory?.value||''):(Array.isArray(profile.custom_fields)?profile.custom_fields:[])));
  if(!fields.length){host.innerHTML='';host.classList.add('hidden');return}
  host.classList.remove('hidden');
  host.innerHTML='<div class="form-section-title">Thông tin theo mẫu giao diện</div><div class="profile-fields-grid">'+fields.map(f=>{
@@ -772,7 +795,7 @@ function updateContentTypeUI(){
   imageSectionTitle.textContent=isProduct?'Hình ảnh sản phẩm':isGame?'Hình ảnh base':isService?'Hình ảnh dịch vụ':isNews?'Hình ảnh bài viết':'Hình ảnh bất động sản';
   fillCategoryOptions(postCategory.value);
 }
-postType.addEventListener('change',updateContentTypeUI);transaction.addEventListener('change',()=>fillCategoryOptions(postCategory.value));postCategory.addEventListener('change',()=>{if(isGameTemplate()||postType.value==='game')renderProfileFields({});else if(isTelecomAdminTemplate()){const current=collectProfileFields();renderProfileFields(current)}});
+postType.addEventListener('change',updateContentTypeUI);transaction.addEventListener('change',()=>fillCategoryOptions(postCategory.value));postCategory.addEventListener('change',()=>{if(isGameTemplate()||postType.value==='game')renderProfileFields({});else if(isTelecomAdminTemplate()||isLionAdminTemplate()){const current=collectProfileFields();renderProfileFields(current)}});
 
 
 postForm.addEventListener('submit',async e=>{e.preventDefault();if(!validatePost())return;const normalizedContent=normalizeArticleHtml(richHtml());if(postContent)postContent.value=normalizedContent;if(nrTinyEditor)nrTinyEditor.setContent(normalizedContent);else if(richEditor)richEditor.innerHTML=normalizedContent;submitPostBtn.disabled=true;submitPostBtn.textContent='Đang xử lý...';const isProduct=postType.value==='product',isNews=postType.value==='news',isService=postType.value==='service',isGame=postType.value==='game',isSimple=isProduct||isNews||isService||isGame;const b={type:postType.value,transaction:isSimple?'':transaction.value,property_type:isSimple?'':propertyType.value,title:postTitle.value,price:isSimple?'':postPrice.value,area:isSimple?'':postArea.value,unit_price:isSimple?'':unitPrice.value,listing_code:listingCode.value,bedrooms:isSimple?null:(+bedrooms.value||null),bathrooms:isSimple?null:(+bathrooms.value||null),floors:isSimple?null:(+floors.value||null),frontage:isSimple?'':frontage.value,direction:isSimple?'':direction.value,legal:isSimple?'':legal.value,furniture:isSimple?'':furniture.value,province:isSimple?'':province.value,district:isSimple?'':district.value,ward:isSimple?'':ward.value,address:isSimple?'':postAddress.value,image:postImage.value,gallery:gallery.value,contact_name:isSimple?'':contactName.value,phone:isSimple?'':postPhone.value,category:postCategory.value,content:postContent.value,extra_json:JSON.stringify(collectProfileFields()),featured:featured.checked?1:0,verified:verified.checked?1:0,status:postStatus.value};const id=editingId.value;try{
