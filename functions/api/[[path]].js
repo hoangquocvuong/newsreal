@@ -3942,6 +3942,21 @@ if(!user)return json({error:'Chưa đăng nhập'},401);
 if(route==='seed-demo'){return json({error:'Dữ liệu mẫu chỉ có thể được khởi tạo từ Quản trị tổng'},403)}
 
 if(route==='posts'){if(request.method==='GET'){const {results}=await env.DB.prepare(`SELECT * FROM posts WHERE site_id=? ORDER BY id DESC`).bind(site.id).all();return json({posts:results},200,user?{'Cache-Control':'no-store'}:publicCache(30,120))}
+// V47 — DELETE must run before POST/PUT body validation. Previously a DELETE
+// request was rejected as "Thiếu Tiêu đề/Mô tả" before it could delete the row
+// or write the sample tombstone, so sample posts appeared impossible to delete.
+if(request.method==='DELETE'){
+ const id=+u.searchParams.get('id');
+ if(!id)return json({error:'Thiếu mã nội dung'},400);
+ const deleting=await env.DB.prepare(`SELECT id,coalesce(is_sample,0) is_sample,coalesce(sample_key,'') sample_key FROM posts WHERE id=? AND site_id=? LIMIT 1`).bind(id,site.id).first();
+ if(!deleting)return json({error:'Nội dung không tồn tại'},404);
+ if(Number(deleting.is_sample)===1&&String(deleting.sample_key||'').trim()){
+  await ensureSampleTombstones(env);
+  await env.DB.prepare(`INSERT INTO site_sample_tombstones(site_id,sample_key,deleted_at) VALUES(?,?,CURRENT_TIMESTAMP) ON CONFLICT(site_id,sample_key) DO UPDATE SET deleted_at=CURRENT_TIMESTAMP`).bind(site.id,String(deleting.sample_key).trim()).run();
+ }
+ await env.DB.prepare(`DELETE FROM posts WHERE id=? AND site_id=?`).bind(id,site.id).run();
+ return json({ok:true,deleted_id:id,sample_tombstoned:Number(deleting.is_sample)===1});
+}
 const b=await body(request);
 const missing=[];
 if(!String(b.title||'').trim())missing.push('Tiêu đề');
@@ -3966,7 +3981,7 @@ if(request.method==='POST'&&!String(b.listing_code||'').trim()){
 const vals=[b.type||'property',b.title||'',b.category||'',b.image||'',b.price||'',b.area||'',b.address||'',b.phone||'',b.content||'',b.status||'published',b.transaction||'',b.property_type||'',b.unit_price||'',b.bedrooms||null,b.bathrooms||null,b.floors||null,b.direction||'',b.legal||'',b.furniture||'',b.province||'',b.district||'',b.ward||'',b.gallery||'',b.contact_name||'',b.featured?1:0,b.verified?1:0,b.listing_code||'',b.frontage||'',String(b.extra_json||'{}')];
 if(request.method==='POST'){const r=await env.DB.prepare(`INSERT INTO posts(site_id,type,title,category,image,price,area,address,phone,content,status,author_id,"transaction",property_type,unit_price,bedrooms,bathrooms,floors,direction,legal,furniture,province,district,ward,gallery,contact_name,featured,verified,listing_code,frontage,extra_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(site.id,...vals.slice(0,10),user.id,...vals.slice(10)).run();if(__siteTrial){await env.DB.prepare(`UPDATE website_trials SET post_create_count=post_create_count+1,last_seen_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(__siteTrial.id).run();await trialEvent(env,__siteTrial,'post_created',{post_id:Number(r.meta.last_row_id)})}return json({ok:true,id:r.meta.last_row_id})}
 if(request.method==='PUT'){const id=+u.searchParams.get('id');await env.DB.prepare(`UPDATE posts SET type=?,title=?,category=?,image=?,price=?,area=?,address=?,phone=?,content=?,status=?,"transaction"=?,property_type=?,unit_price=?,bedrooms=?,bathrooms=?,floors=?,direction=?,legal=?,furniture=?,province=?,district=?,ward=?,gallery=?,contact_name=?,featured=?,verified=?,listing_code=?,frontage=?,extra_json=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND site_id=?`).bind(...vals,id,site.id).run();return json({ok:true})}
-if(request.method==='DELETE'){const id=+u.searchParams.get('id');const deleting=await env.DB.prepare(`SELECT coalesce(is_sample,0) is_sample,coalesce(sample_key,'') sample_key FROM posts WHERE id=? AND site_id=? LIMIT 1`).bind(id,site.id).first();if(Number(deleting?.is_sample)===1&&String(deleting?.sample_key||'').trim()){await ensureSampleTombstones(env);await env.DB.prepare(`INSERT INTO site_sample_tombstones(site_id,sample_key,deleted_at) VALUES(?,?,CURRENT_TIMESTAMP) ON CONFLICT(site_id,sample_key) DO UPDATE SET deleted_at=CURRENT_TIMESTAMP`).bind(site.id,String(deleting.sample_key).trim()).run()}await env.DB.prepare(`DELETE FROM posts WHERE id=? AND site_id=?`).bind(id,site.id).run();return json({ok:true})}}
+}
 if(route==='settings'&&request.method==='PUT'){
  const b=await body(request);
  const publicEmail=String(b.email||'').trim().toLowerCase();
