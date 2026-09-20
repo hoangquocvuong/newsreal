@@ -1,28 +1,9 @@
-/* NEWSREAL PRODUCTION 2026-09-17 · SECURITY + TENANT SAFETY BASELINE */
 /* V20.9.27.57 CROSS-TENANT CRUD SAFETY */
 import {professionalDemoData} from '../_shared/pro-sample-data.js';
 
 function json(data,status=200,headers={}){return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8',...headers}})}
 function cookies(req){return Object.fromEntries((req.headers.get('Cookie')||'').split(';').map(x=>x.trim()).filter(Boolean).map(x=>{const i=x.indexOf('=');return [x.slice(0,i),decodeURIComponent(x.slice(i+1))]}))}
-async function sha256(s){const b=new TextEncoder().encode(String(s||'')),h=await crypto.subtle.digest('SHA-256',b);return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-function b64(bytes){let x='';for(const b of bytes)x+=String.fromCharCode(b);return btoa(x)}
-function unb64(v){const x=atob(String(v||''));return Uint8Array.from(x,c=>c.charCodeAt(0))}
-async function passwordHash(password){
-  const iterations=210000,salt=crypto.getRandomValues(new Uint8Array(16)),enc=new TextEncoder();
-  const key=await crypto.subtle.importKey('raw',enc.encode(String(password||'')),'PBKDF2',false,['deriveBits']);
-  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations},key,256);
-  return `pbkdf2$${iterations}$${b64(salt)}$${b64(new Uint8Array(bits))}`;
-}
-async function passwordVerify(password,stored){
-  stored=String(stored||'');
-  if(stored.startsWith('pbkdf2$')){
-    try{const [,it,salt64,want64]=stored.split('$'),iterations=Number(it);if(!iterations||iterations<100000)return false;const salt=unb64(salt64),want=unb64(want64),enc=new TextEncoder();const key=await crypto.subtle.importKey('raw',enc.encode(String(password||'')),'PBKDF2',false,['deriveBits']);const got=new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations},key,want.length*8));if(got.length!==want.length)return false;let diff=0;for(let i=0;i<got.length;i++)diff|=got[i]^want[i];return diff===0}catch{return false}
-  }
-  // Backward compatibility only: successful legacy SHA-256 logins are upgraded immediately.
-  return stored.length===64 && (await sha256(password))===stored;
-}
-function legacyPasswordHash(stored){return /^[a-f0-9]{64}$/i.test(String(stored||''))}
-
+async function sha256(s){const b=new TextEncoder().encode(s),h=await crypto.subtle.digest('SHA-256',b);return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 function nrSlug(v=''){return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,180)}
 async function ensurePublisherTables(env){
   try{await env.DB.prepare(`ALTER TABLE posts ADD COLUMN extra_json TEXT NOT NULL DEFAULT '{}'`).run()}catch(e){}
@@ -146,19 +127,6 @@ async function userFor(env,req,site){
   if(!t||!site)return null;
   return env.DB.prepare(`SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=? AND s.site_id=? AND s.expires_at>datetime('now')`).bind(t,site.id).first();
 }
-async function authRateAllowed(env,req,scope,limit,windowSeconds){
-  try{
-    const ip=String(req.headers.get('CF-Connecting-IP')||'unknown').slice(0,80),key=await sha256(`${scope}:${ip}`);
-    const row=await env.DB.prepare(`SELECT attempts,reset_at FROM auth_rate_limits WHERE rate_key=? LIMIT 1`).bind(key).first();
-    const now=Date.now(),reset=row?.reset_at?Date.parse(row.reset_at+'Z'):0;
-    if(row&&reset>now&&Number(row.attempts||0)>=limit)return false;
-    if(!row||reset<=now)await env.DB.prepare(`INSERT INTO auth_rate_limits(rate_key,attempts,reset_at,updated_at) VALUES(?,1,datetime('now','+'||?||' seconds'),CURRENT_TIMESTAMP) ON CONFLICT(rate_key) DO UPDATE SET attempts=1,reset_at=datetime('now','+'||?||' seconds'),updated_at=CURRENT_TIMESTAMP`).bind(key,windowSeconds,windowSeconds).run();
-    else await env.DB.prepare(`UPDATE auth_rate_limits SET attempts=attempts+1,updated_at=CURRENT_TIMESTAMP WHERE rate_key=?`).bind(key).run();
-    return true;
-  }catch(e){console.log('auth rate limit:',e?.message||e);return true}
-}
-async function authRateClear(env,req,scope){try{const ip=String(req.headers.get('CF-Connecting-IP')||'unknown').slice(0,80),key=await sha256(`${scope}:${ip}`);await env.DB.prepare(`DELETE FROM auth_rate_limits WHERE rate_key=?`).bind(key).run()}catch(e){}}
-
 async function ensurePerformanceIndexes(env){
  try{await env.DB.batch([
   env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_sites_domain_status ON sites(domain,status)`),
@@ -405,8 +373,8 @@ function paymentWebhookAuthorized(env,request){
   if(!secret)return false;
   const auth=String(request.headers.get('Authorization')||'').trim();
   const x=String(request.headers.get('X-Webhook-Secret')||request.headers.get('X-API-Key')||'').trim();
-  // Production: secrets are accepted only in headers; never in URLs/query strings (logs/referrers leak URLs).
-  return x===secret||auth===`Bearer ${secret}`||auth===`Apikey ${secret}`||auth===`ApiKey ${secret}`;
+  let q='';try{q=String(new URL(request.url).searchParams.get('token')||'').trim()}catch(e){}
+  return q===secret||x===secret||auth===secret||auth===`Bearer ${secret}`||auth===`Apikey ${secret}`||auth===`ApiKey ${secret}`;
 }
 async function notifyInitialPayment(env,{lead,orderCode,amount}){
   const customer=String(lead.email||'').trim().toLowerCase();
@@ -3514,7 +3482,6 @@ if(route==='activation'&&request.method==='GET'){
 if(route==='activation'&&request.method==='POST'){
   const b=await body(request),raw=String(b.token||''),newPassword=String(b.password||''),loginEmail=String(b.email||'').trim().toLowerCase(),desiredSiteName=String(b.site_name||'').trim();
   if(!raw)return json({error:'Thiếu mã kích hoạt'},400);
-  if(!await authRateAllowed(env,request,'activation',10,60*60))return json({error:'Quá nhiều yêu cầu kích hoạt. Vui lòng thử lại sau.'},429,{'Retry-After':'3600'});
   if(!loginEmail||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginEmail))return json({error:'Email đăng nhập không hợp lệ'},400);
   if(newPassword.length<8)return json({error:'Mật khẩu quản trị phải có ít nhất 8 ký tự'},400);
   const hash=await sha256(raw);
@@ -3531,12 +3498,12 @@ if(route==='activation'&&request.method==='POST'){
   if(!usr)return json({error:'Website chưa có tài khoản quản trị'},409);
 
   // One activation contract for production + trial: customer confirms login email and creates their own password.
-  const magicRaw=activationToken(),magicHash=await sha256(magicRaw),passwordDigest=await passwordHash(newPassword);
+  const magicRaw=activationToken(),magicHash=await sha256(magicRaw),passwordHash=await sha256(newPassword);
   // V20.4.1 — activation creates the authenticated Admin session immediately.
   // Handover remains as a compatibility/recovery path, not a required second login.
   const activationSession=tok();
   const ops=[
-    env.DB.prepare(`UPDATE users SET email=?,password_hash=? WHERE id=?`).bind(loginEmail,passwordDigest,usr.id),
+    env.DB.prepare(`UPDATE users SET email=?,password_hash=? WHERE id=?`).bind(loginEmail,passwordHash,usr.id),
     env.DB.prepare(`DELETE FROM sessions WHERE site_id=?`).bind(at.site_id),
     env.DB.prepare(`INSERT INTO sessions(site_id,user_id,token,expires_at) VALUES(?,?,?,datetime('now','+30 days'))`).bind(at.site_id,usr.id,activationSession),
     env.DB.prepare(`UPDATE customer_profiles SET email=?,activated_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE site_id=?`).bind(loginEmail,at.site_id),
@@ -3582,8 +3549,7 @@ if(route==='handover-login'&&request.method==='POST'){
 // Uploaded post images are public content and their persisted URL is /api/image?key=...
 // Trial/demo pages run on a shared host, so requiring siteFor() here made those URLs break.
 if(route==='image'&&request.method==='GET'){
- const key=String(u.searchParams.get('key')||'');if(!key)return json({error:'Thiếu key ảnh'},400);
- if(!site||!key.startsWith(`sites/${site.id}/`))return json({error:'Ảnh không thuộc website hiện tại'},403);
+ const key=u.searchParams.get('key');if(!key)return json({error:'Thiếu key ảnh'},400);
  const obj=await env.IMAGES?.get(key);if(!obj)return json({error:'Không tìm thấy ảnh'},404);
  const h=new Headers();obj.writeHttpMetadata(h);h.set('Cache-Control','public, max-age=31536000, immutable');h.set('CDN-Cache-Control','public, max-age=31536000, immutable');h.set('ETag',obj.httpEtag);
  return new Response(obj.body,{headers:h});
@@ -3773,7 +3739,6 @@ if(route==='forgot-password'&&request.method==='POST'){
   // Always return the same public message to avoid revealing whether an email exists.
   const generic={ok:true,message:'Nếu email này thuộc tài khoản quản trị, NEWSREAL đã gửi liên kết đặt lại mật khẩu. Vui lòng kiểm tra Hộp thư đến và Spam.'};
   if(!email||!site)return json(generic);
-  if(!await authRateAllowed(env,request,`forgot:${site.id}:${email}`,5,60*60))return json(generic);
   const usr=await env.DB.prepare(`SELECT id,email FROM users WHERE site_id=? AND lower(email)=? AND role='admin' ORDER BY id LIMIT 1`).bind(site.id,email).first();
   if(!usr)return json(generic);
   const origin=`${u.protocol}//${u.host}`;
@@ -3792,7 +3757,7 @@ if(route==='reset-password'&&request.method==='POST'){
     LIMIT 1`).bind(hash).first();
   if(!rt)return json({error:'Liên kết đã hết hạn, đã được sử dụng hoặc không hợp lệ'},410);
   if(!site||Number(rt.site_id)!==Number(site.id))return json({error:'Liên kết này không thuộc website hiện tại'},403);
-  const newHash=await passwordHash(password);
+  const newHash=await sha256(password);
   await env.DB.batch([
     env.DB.prepare(`UPDATE users SET password_hash=? WHERE id=? AND site_id=?`).bind(newHash,rt.user_id,rt.site_id),
     env.DB.prepare(`UPDATE password_reset_tokens SET used_at=datetime('now') WHERE id=?`).bind(rt.id),
@@ -3804,19 +3769,8 @@ if(route==='reset-password'&&request.method==='POST'){
   const adminUrl=trialReset?`/admin?tenant=${encodeURIComponent(resetSite?.domain||'')}&nr_trial=${encodeURIComponent(trialReset.trial_token)}&template=${encodeURIComponent(trialReset.template_key)}`:`https://${resetSite?.domain||u.host}/admin`;
   return json({ok:true,message:'Đặt lại mật khẩu thành công. Bạn có thể đăng nhập bằng mật khẩu mới.',admin_url:adminUrl},200,{'Set-Cookie':'nr_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax'});
 }
-if(route==='login'&&request.method==='POST'){
- const b=await body(request),email=String(b.email||'').trim().toLowerCase(),password=String(b.password||'');
- if(!site)return json({error:'Website không tồn tại'},404);
- if(!await authRateAllowed(env,request,`login:${site.id}:${email}`,10,15*60))return json({error:'Đăng nhập quá nhiều lần. Vui lòng thử lại sau.'},429,{'Retry-After':'900'});
- const usr=await env.DB.prepare(`SELECT * FROM users WHERE site_id=? AND lower(email)=? LIMIT 1`).bind(site.id,email).first();
- if(!usr||!await passwordVerify(password,usr.password_hash))return json({error:'Sai email hoặc mật khẩu'},401);
- if(legacyPasswordHash(usr.password_hash)){try{await env.DB.prepare(`UPDATE users SET password_hash=? WHERE id=? AND site_id=?`).bind(await passwordHash(password),usr.id,site.id).run()}catch(e){console.log('password hash upgrade:',e?.message||e)}}
- await authRateClear(env,request,`login:${site.id}:${email}`);
- if(__siteTrial){await env.DB.prepare(`UPDATE website_trials SET admin_login_count=admin_login_count+1,last_seen_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(__siteTrial.id).run();await trialEvent(env,__siteTrial,'admin_login',{})}
- const t=tok();await env.DB.prepare(`INSERT INTO sessions(site_id,user_id,token,expires_at) VALUES(?,?,?,datetime('now','+7 days'))`).bind(site.id,usr.id,t).run();
- return json({ok:true,token:t},200,{'Set-Cookie':`nr_session=${encodeURIComponent(t)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`})
-}
-if(route==='logout'&&request.method==='POST'){const a=request.headers.get('Authorization')||'',t=(a.startsWith('Bearer ')?a.slice(7).trim():'')||cookies(request).nr_session;if(t&&site)await env.DB.prepare(`DELETE FROM sessions WHERE token=? AND site_id=?`).bind(t,site.id).run();return json({ok:true},200,{'Set-Cookie':'nr_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax'})}
+if(route==='login'&&request.method==='POST'){const b=await body(request),h=await sha256(b.password||'');const usr=await env.DB.prepare(`SELECT * FROM users WHERE site_id=? AND lower(email)=? AND password_hash=?`).bind(site.id,(b.email||'').toLowerCase(),h).first();if(!usr)return json({error:'Sai email hoặc mật khẩu'},401);if(__siteTrial){await env.DB.prepare(`UPDATE website_trials SET admin_login_count=admin_login_count+1,last_seen_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(__siteTrial.id).run();await trialEvent(env,__siteTrial,'admin_login',{})}const t=tok();await env.DB.prepare(`INSERT INTO sessions(site_id,user_id,token,expires_at) VALUES(?,?,?,datetime('now','+7 days'))`).bind(site.id,usr.id,t).run();return json({ok:true,token:t},200,{'Set-Cookie':`nr_session=${encodeURIComponent(t)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`})}
+if(route==='logout'&&request.method==='POST'){const a=request.headers.get('Authorization')||'',t=(a.startsWith('Bearer ')?a.slice(7).trim():'')||cookies(request).nr_session;if(t)await env.DB.prepare(`DELETE FROM sessions WHERE token=?`).bind(t).run();return json({ok:true},200,{'Set-Cookie':'nr_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax'})}
 const user=await userFor(env,request,site);
 if(route==='upload'&&request.method==='POST'){
  if(!user)return json({error:'Chưa đăng nhập'},401);
@@ -4032,7 +3986,7 @@ if(route==='settings'&&request.method==='PUT'){
  await env.DB.prepare(`UPDATE sites SET email=? WHERE id=?`).bind(publicEmail,site.id).run();
  return json({ok:true,email:publicEmail,template_settings:clean,seo_title:seoTitle,seo_description:seoDescription,seo_og_image:seoOgImage,seo_index:seoIndex})
 }
-if(route==='password'&&request.method==='PUT'){const b=await body(request);if(!await passwordVerify(b.old_password||'',user.password_hash))return json({error:'Mật khẩu hiện tại không đúng'},400);if((b.new_password||'').length<8)return json({error:'Mật khẩu mới phải có ít nhất 8 ký tự'},400);await env.DB.prepare(`UPDATE users SET password_hash=? WHERE id=? AND site_id=?`).bind(await passwordHash(b.new_password),user.id,site.id).run();await env.DB.prepare(`DELETE FROM sessions WHERE site_id=? AND user_id=? AND token<>?`).bind(site.id,user.id,(request.headers.get('Authorization')||'').startsWith('Bearer ')?(request.headers.get('Authorization')||'').slice(7).trim():(cookies(request).nr_session||'')).run();return json({ok:true})}
+if(route==='password'&&request.method==='PUT'){const b=await body(request),old=await sha256(b.old_password||'');if(old!==user.password_hash)return json({error:'Mật khẩu hiện tại không đúng'},400);if((b.new_password||'').length<8)return json({error:'Mật khẩu mới phải có ít nhất 8 ký tự'},400);await env.DB.prepare(`UPDATE users SET password_hash=? WHERE id=?`).bind(await sha256(b.new_password),user.id).run();return json({ok:true})}
 if(route==='stats'){
  const [postAgg,pvAgg,topRows]=await env.DB.batch([
    env.DB.prepare(`SELECT coalesce(sum(views),0) all_views FROM posts WHERE site_id=? AND status='published'`).bind(site.id),
