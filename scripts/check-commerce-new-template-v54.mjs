@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+const api=fs.readFileSync('functions/api/[[path]].js','utf8');
+const admin=fs.readFileSync('public/assets/admin.js','utf8');
+const html=fs.readFileSync('public/admin.html','utf8');
+const site=fs.readFileSync('public/assets/site.js','utf8');
+const must=(ok,msg)=>{if(!ok)throw new Error(msg)};
+for(const x of ['Công nghệ','Điện thoại','Thời trang','Mỹ phẩm','Gia dụng','Nội thất','Phụ kiện','Thể thao','Khác']) must(api.includes(x),'missing standard category '+x);
+must(api.includes('SAMPLE-')&&api.includes('Laptop Air Pro 14'),'missing deterministic commerce sample pack');
+must(html.includes('commerceSuccess'),'missing product success panel');
+must(admin.includes('Đã thêm sản phẩm thành công')&&admin.includes('commerceViewList'),'missing clear post-create workflow');
+must(site.includes('comEnsureV16Css')&&site.includes("isPreview?'NOVA SHOP'"),'missing unified V16 storefront');
+must(site.includes('COM_PAGE_SIZE=8')||site.includes('COM_PAGE_SIZE = 8'),'pagination must remain 8 products/page');
+console.log('Commerce New Template V54: PASS');

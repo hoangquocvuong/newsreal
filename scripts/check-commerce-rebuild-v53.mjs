@@ -13,7 +13,7 @@ const checks=[
  ['mobile two columns',site.includes('grid-template-columns:repeat(2,minmax(0,1fr))')],
  ['checkout mobile scroll',site.includes('padding-bottom:max(80px,env(safe-area-inset-bottom))')],
  ['voucher input removed',!site.includes('placeholder="Mã giảm giá / voucher"')],
- ['admin quick product form',html.includes('commerce-quick-card')&&html.includes('Sản phẩm chung')],
+ ['admin quick product form',html.includes('commerce-quick-card')&&(html.includes('Sản phẩm chung')||html.includes('Chọn danh mục...'))],
  ['advanced schema collapsed',html.includes('<details class="commerce-admin-card commerce-advanced">')],
  ['admin category timeout fallback',admin.includes("new Error('timeout')")&&admin.includes('Form đăng nhanh vẫn hoạt động bình thường')],
  ['admin submit busy feedback',admin.includes('Đang đăng sản phẩm...')]
