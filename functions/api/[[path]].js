@@ -103,8 +103,20 @@ async function siteFor(env,req){
   // to another website (for example FPT -> Lion Dance).
   let s=null;
   if(trialToken){
-    s=await env.DB.prepare(baseSql+` JOIN website_trials wt ON wt.site_id=s.id WHERE wt.trial_token=? AND s.status='active' LIMIT 1`).bind(trialToken).first();
+    // A trial can reuse a site row whose template_key/preset was changed by another
+    // preview. The trial row is the canonical identity for both storefront and Admin.
+    const trial=await env.DB.prepare(`SELECT wt.site_id,wt.template_key,tc.preset,tc.category template_category
+      FROM website_trials wt
+      LEFT JOIN template_catalog tc ON tc.template_key=wt.template_key
+      WHERE wt.trial_token=? AND wt.status IN ('active','converted') LIMIT 1`).bind(trialToken).first();
+    if(!trial)return null;
+    s=await env.DB.prepare(baseSql+` WHERE s.id=? AND s.status='active' LIMIT 1`).bind(trial.site_id).first();
     if(!s)return null;
+    // Never inherit template identity from sites for a token-scoped Trial request.
+    s.template_key=String(trial.template_key||'');
+    if(trial.preset)s.preset=String(trial.preset);
+    s.template_category=String(trial.template_category||'');
+    s.is_trial=1;
   }else{
     s=await env.DB.prepare(baseSql+` WHERE lower(s.domain)=? AND s.status='active'`).bind(h).first();
   }
@@ -3788,10 +3800,6 @@ if(route==='image'&&request.method==='GET'){
 }
 if(route==='me'){
  if(!user)return json({error:'Chưa đăng nhập'},401);
- // Trial identity is canonical. A trial site can retain an older sites.template_key,
- // so Admin must use website_trials.template_key instead of inheriting stale UI capabilities.
- if(__siteTrial?.template_key)site.template_key=String(__siteTrial.template_key);
-
  // V20.9.27.23 — Admin must see the sample library immediately. Do not wait for
  // the customer to click "Xem website" before installing/backfilling samples.
  let samplePack=null;
@@ -3799,7 +3807,7 @@ if(route==='me'){
  let tc=null;
  try{tc=await env.DB.prepare(`SELECT template_key,category,editor_profile,structure_profile FROM template_catalog WHERE template_key=? OR (template_key='' AND preset=?) ORDER BY CASE WHEN template_key=? THEN 0 ELSE 1 END LIMIT 1`).bind(site.template_key||'',site.preset||'',site.template_key||'').first()}catch(e){}
  if(!tc)try{tc=await env.DB.prepare(`SELECT template_key,category,editor_profile,structure_profile FROM template_catalog WHERE preset=? ORDER BY sort_order,template_key LIMIT 1`).bind(site.preset||'').first()}catch(e){}
- site.template_category=tc?.category||'';
+ site.template_category=site.template_category||tc?.category||'';
  let content_profile={};try{content_profile=tc?.editor_profile?JSON.parse(tc.editor_profile):{}}catch(e){content_profile={}}
  const profileType=String(content_profile?.content_type||(tc?.category==='tin-tuc'?'news':tc?.category==='bat-dong-san'?'property':'generic'));
  let categoryStructure={};try{categoryStructure=tc?.structure_profile?JSON.parse(tc.structure_profile):defaultTemplateStructure(site.template_key||tc?.template_key||'')}catch(e){categoryStructure=defaultTemplateStructure(site.template_key||tc?.template_key||'')}

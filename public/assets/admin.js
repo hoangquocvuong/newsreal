@@ -223,7 +223,6 @@ function collectProfileFields(){
 function parseExtraJson(v){try{return typeof v==='object'&&v?v:JSON.parse(v||'{}')}catch{return {}}}
 
 function adminTemplateOverride(){const requested=new URLSearchParams(location.search).get('template')||'';return CLIENT_TEMPLATE_KEY||requested} // API/site identity wins over URL; prevents cross-template Admin UI
-function isCommerceTemplate(){const o=adminTemplateOverride();return o==='dich-vu-5'||CLIENT_TEMPLATE_KEY==='dich-vu-5'||CLIENT_PRESET==='universal_commerce_5'||CLIENT_CATEGORY==='ban-hang'}
 function isProductTemplate(){const override=adminTemplateOverride();if(override)return /^san-pham-\d+$/i.test(override);return CLIENT_CATEGORY==='san-pham'||CLIENT_PROFILE?.content_type==='product'||CLIENT_PROFILE?.id==='product-affiliate'||String(CLIENT_PRESET||'').startsWith('product_')}
 function isServiceTemplate(){const override=adminTemplateOverride();if(override)return /^dich-vu-\d+$/i.test(override);return CLIENT_CATEGORY==='dich-vu'||CLIENT_PROFILE?.content_type==='service'||CLIENT_PROFILE?.id==='service'||String(CLIENT_PRESET||'').startsWith('service_')}
 function isNewsTemplate(){
@@ -237,7 +236,7 @@ function isGameTemplate(){
  return CLIENT_TEMPLATE_KEY==='game-1'||CLIENT_CATEGORY==='game'||CLIENT_PROFILE?.content_type==='game'||CLIENT_PROFILE?.id==='game-base'||String(CLIENT_PRESET||'').startsWith('game_');
 }
 function configureAdminForTemplate(){
- const commerce=isCommerceTemplate(),product=!commerce&&isProductTemplate(),game=!commerce&&!product&&isGameTemplate(),news=!commerce&&!product&&!game&&isNewsTemplate(),service=!commerce&&!product&&!game&&isServiceTemplate();
+ const product=isProductTemplate(),game=!product&&isGameTemplate(),news=!product&&!game&&isNewsTemplate(),service=!product&&!game&&isServiceTemplate();
  document.body.classList.toggle('admin-template-news',news);
  document.body.classList.toggle('admin-template-game',game);
  // Start from a clean capability set on every boot. Template-specific menus must
@@ -253,25 +252,7 @@ function configureAdminForTemplate(){
  if(editorLabel)editorLabel.textContent=profile.contentLabel||(news?'Nội dung bài viết':'Mô tả chi tiết');
  if(editorHelp)editorHelp.textContent=profile.contentHelp||'Soạn và định dạng nội dung.';
  renderProfileFields();
- if(commerce){
-   postType.value='product';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
-   ['menuNewPost','menuPosts'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
-   ['menuCommerceProducts','menuCommerceOrders','menuCommerceSettings','menuServiceLeads'].forEach(id=>document.getElementById(id)?.classList.remove('hidden'));
-   if(overviewBtn){overviewBtn.textContent='＋ Thêm sản phẩm';overviewBtn.onclick=()=>showTab('commerce-products')}
-   if(postTitle)postTitle.placeholder='Ví dụ: ASUS Vivobook 14 Core i5 16GB 512GB';
-   document.querySelector('#tab-overview .admin-page-head p')?.replaceChildren(document.createTextNode('Quản lý sản phẩm, đơn hàng, thanh toán và vận hành cửa hàng của bạn.'));
-   document.querySelector('#tab-overview .admin-kpis .kpi:first-child small')?.replaceChildren(document.createTextNode('TỔNG SẢN PHẨM'));
-   document.querySelector('#tab-overview .admin-kpis .kpi:first-child span')?.replaceChildren(document.createTextNode('Sản phẩm đang quản lý'));
- }else if(commerce){
-   // Commerce is a first-class Admin capability, not a generic service/blog.
-   postType.value='service';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
-   ['menuNewPost','menuPosts'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
-   ['menuCommerceProducts','menuCommerceOrders','menuCommerceSettings','menuServiceLeads'].forEach(id=>document.getElementById(id)?.classList.remove('hidden'));
-   if(overviewBtn){overviewBtn.textContent='＋ Thêm sản phẩm';overviewBtn.onclick=()=>showTab('commerce-products')}
-   document.querySelector('#tab-overview .admin-page-head p')?.replaceChildren(document.createTextNode('Quản lý sản phẩm, đơn hàng, thanh toán và vận hành cửa hàng của bạn.'));
-   document.querySelector('#tab-overview .admin-kpis .kpi:first-child small')?.replaceChildren(document.createTextNode('TỔNG SẢN PHẨM'));
-   document.querySelector('#tab-overview .admin-kpis .kpi:first-child span')?.replaceChildren(document.createTextNode('Sản phẩm đang quản lý'));
- }else if(product){
+ if(product){
    postType.value='product';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
    if(menuNew)menuNew.textContent='Thêm sản phẩm';if(menuPosts)menuPosts.textContent='Quản lý sản phẩm';if(overviewBtn)overviewBtn.textContent='＋ Thêm sản phẩm';
    if(postTitle)postTitle.placeholder='Ví dụ: Chuột không dây Logitech G304';
