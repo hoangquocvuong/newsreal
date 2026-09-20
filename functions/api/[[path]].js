@@ -3788,6 +3788,10 @@ if(route==='image'&&request.method==='GET'){
 }
 if(route==='me'){
  if(!user)return json({error:'Chưa đăng nhập'},401);
+ // Trial identity is canonical. A trial site can retain an older sites.template_key,
+ // so Admin must use website_trials.template_key instead of inheriting stale UI capabilities.
+ if(__siteTrial?.template_key)site.template_key=String(__siteTrial.template_key);
+
  // V20.9.27.23 — Admin must see the sample library immediately. Do not wait for
  // the customer to click "Xem website" before installing/backfilling samples.
  let samplePack=null;

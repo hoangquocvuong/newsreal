@@ -262,6 +262,15 @@ function configureAdminForTemplate(){
    document.querySelector('#tab-overview .admin-page-head p')?.replaceChildren(document.createTextNode('Quản lý sản phẩm, đơn hàng, thanh toán và vận hành cửa hàng của bạn.'));
    document.querySelector('#tab-overview .admin-kpis .kpi:first-child small')?.replaceChildren(document.createTextNode('TỔNG SẢN PHẨM'));
    document.querySelector('#tab-overview .admin-kpis .kpi:first-child span')?.replaceChildren(document.createTextNode('Sản phẩm đang quản lý'));
+ }else if(commerce){
+   // Commerce is a first-class Admin capability, not a generic service/blog.
+   postType.value='service';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
+   ['menuNewPost','menuPosts'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
+   ['menuCommerceProducts','menuCommerceOrders','menuCommerceSettings','menuServiceLeads'].forEach(id=>document.getElementById(id)?.classList.remove('hidden'));
+   if(overviewBtn){overviewBtn.textContent='＋ Thêm sản phẩm';overviewBtn.onclick=()=>showTab('commerce-products')}
+   document.querySelector('#tab-overview .admin-page-head p')?.replaceChildren(document.createTextNode('Quản lý sản phẩm, đơn hàng, thanh toán và vận hành cửa hàng của bạn.'));
+   document.querySelector('#tab-overview .admin-kpis .kpi:first-child small')?.replaceChildren(document.createTextNode('TỔNG SẢN PHẨM'));
+   document.querySelector('#tab-overview .admin-kpis .kpi:first-child span')?.replaceChildren(document.createTextNode('Sản phẩm đang quản lý'));
  }else if(product){
    postType.value='product';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
    if(menuNew)menuNew.textContent='Thêm sản phẩm';if(menuPosts)menuPosts.textContent='Quản lý sản phẩm';if(overviewBtn)overviewBtn.textContent='＋ Thêm sản phẩm';
