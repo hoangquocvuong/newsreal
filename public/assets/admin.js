@@ -118,6 +118,11 @@ const BUILTIN_CONTENT_PROFILES={
   ]
  }
 };
+const TELECOM_ADMIN_PROFILES={
+ 'dich-vu-1':{id:'service',label:'Gói dịch vụ FPT',content_type:'service',categories:['Internet FPT','Truyền hình FPT','Camera FPT','Combo FPT'],contentLabel:'Mô tả gói / nội dung chi tiết',contentHelp:'Nội dung này dùng cho thẻ gói trên trang chủ và trang chi tiết. Nhập ngắn gọn lợi ích, thiết bị, điều kiện và ưu đãi.',custom_fields:[{key:'service_price',label:'Giá cước / tháng',type:'text',required:true,placeholder:'Ví dụ: 180.000đ/tháng'},{key:'service_speed',label:'Tốc độ Internet',type:'text',placeholder:'Ví dụ: 300 Mbps'},{key:'service_device',label:'Thiết bị tặng kèm',type:'text',placeholder:'Modem WiFi 6'},{key:'service_term',label:'Thời hạn / cam kết',type:'text',placeholder:'Ví dụ: 12 tháng'},{key:'service_promo',label:'Ưu đãi',type:'textarea',placeholder:'Nội dung khuyến mãi đang áp dụng'},{key:'service_area',label:'Khu vực áp dụng',type:'text',placeholder:'Hải Phòng / Toàn quốc'},{key:'service_cta',label:'Nhãn nút CTA',type:'text',placeholder:'Đăng ký ngay'}]},
+ 'dich-vu-2':{id:'service',label:'Gói dịch vụ VNPT',content_type:'service',categories:['Internet VNPT','Truyền hình MyTV','Camera VNPT','Combo VNPT'],contentLabel:'Mô tả gói / nội dung chi tiết',contentHelp:'Nội dung dùng chung cho card trên trang chủ và trang chi tiết dịch vụ.',custom_fields:[{key:'service_price',label:'Giá cước / tháng',type:'text',required:true},{key:'service_speed',label:'Tốc độ Internet',type:'text'},{key:'service_device',label:'Thiết bị tặng kèm',type:'text'},{key:'service_term',label:'Thời hạn / cam kết',type:'text'},{key:'service_promo',label:'Ưu đãi',type:'textarea'},{key:'service_area',label:'Khu vực áp dụng',type:'text'},{key:'service_cta',label:'Nhãn nút CTA',type:'text'}]},
+ 'dich-vu-3':{id:'service',label:'Gói dịch vụ Viettel',content_type:'service',categories:['Combo Viettel','Internet Viettel','Truyền hình TV360','Camera Viettel'],contentLabel:'Mô tả gói / nội dung chi tiết',contentHelp:'Nội dung dùng chung cho card trên trang chủ và trang chi tiết dịch vụ.',custom_fields:[{key:'service_price',label:'Giá cước / tháng',type:'text',required:true},{key:'service_speed',label:'Tốc độ Internet',type:'text'},{key:'service_device',label:'Thiết bị tặng kèm',type:'text'},{key:'service_term',label:'Thời hạn / cam kết',type:'text'},{key:'service_promo',label:'Ưu đãi',type:'textarea'},{key:'service_area',label:'Khu vực áp dụng',type:'text'},{key:'service_cta',label:'Nhãn nút CTA',type:'text'}]}
+};
 const BUILTIN_PROFESSIONAL_PROFILES={
  'blog-ca-nhan-1':{id:'news',label:'Bài viết blog cá nhân',content_type:'news',categories:['Thương hiệu cá nhân','Freelance','Năng suất','Sách & công cụ','Lối sống sáng tạo','Góc nhìn'],contentLabel:'Nội dung bài viết',contentHelp:'Chọn đúng chuyên mục để bài tự hiển thị vào đúng khối trên trang chủ.',custom_fields:[{key:'author_name',label:'Tên tác giả',type:'text'},{key:'reading_time',label:'Thời gian đọc',type:'text',placeholder:'6 phút'}]},
  'blog-ca-nhan-2':{id:'news',label:'Bài viết người sáng tạo',content_type:'news',categories:['Kinh doanh nội dung','Video & sản xuất','Chiến lược nội dung','Câu chuyện dự án','Công cụ','Kiếm tiền nội dung'],contentLabel:'Nội dung bài viết',contentHelp:'Chọn đúng chuyên mục để bài tự hiển thị vào đúng khối trên trang chủ.',custom_fields:[{key:'author_name',label:'Tên tác giả',type:'text'},{key:'reading_time',label:'Thời gian đọc',type:'text'}]},
@@ -126,13 +131,13 @@ const BUILTIN_PROFESSIONAL_PROFILES={
  'dich-vu-5':{id:'service',label:'Cẩm nang cửa hàng',content_type:'service',categories:['Cẩm nang mua sắm','Khuyến mãi','Hướng dẫn sử dụng','Tin cửa hàng'],contentLabel:'Bài viết / cẩm nang',contentHelp:'Chọn đúng chuyên mục để nội dung hiển thị đúng khu vực trên trang chủ.',custom_fields:[{key:'service_price',label:'Giá bán / giá tham khảo',type:'text'},{key:'service_area',label:'Cấu hình / phiên bản',type:'text'},{key:'service_cta',label:'Nhãn nút tư vấn',type:'text'}]},
  'dich-vu-6':{id:'service',label:'Dịch vụ Lân Sư Rồng',content_type:'service',categories:['Gói múa lân','Múa rồng','Trống hội','Sự kiện đã thực hiện','Tin hoạt động','Kiến thức & phong tục'],contentLabel:'Nội dung gói dịch vụ / bài viết',contentHelp:'Gói dịch vụ nên nhập rõ giá, số lân, trống, nhân sự và các hiệu ứng đi kèm. Có thể tải nhiều ảnh; ảnh đầu là ảnh đại diện, các ảnh sau dùng cho slideshow/album.',custom_fields:[{key:'service_price',label:'Giá gói / Giá tham khảo',type:'text',placeholder:'Ví dụ: Từ 3.500.000đ'},{key:'lion_count',label:'Số đầu lân / Rồng',type:'text',placeholder:'Ví dụ: 2 đầu lân'},{key:'drum_count',label:'Trống & bộ gõ',type:'text',placeholder:'1 trống cái + chập chõa'},{key:'performers_count',label:'Số người tham gia',type:'text',placeholder:'7–9 người'},{key:'performance_duration',label:'Thời lượng',type:'text',placeholder:'20–30 phút'},{key:'fireworks',label:'Pháo sáng',type:'text',placeholder:'Có / Không / Tùy chọn'},{key:'confetti',label:'Pháo kim tuyến',type:'text',placeholder:'Có / Không / Số lượt'},{key:'couplets',label:'Câu đối / liễn chúc mừng',type:'text',placeholder:'01 bộ theo kịch bản'},{key:'service_area',label:'Khu vực phục vụ',type:'text',placeholder:'Hải Phòng / Hà Nội / Toàn quốc'},{key:'service_cta',label:'Nhãn nút liên hệ',type:'text',placeholder:'Liên hệ báo giá'}]}
 };
-function professionalAdminKey(){const o=adminTemplateOverride();if(BUILTIN_PROFESSIONAL_PROFILES[o])return o;if(BUILTIN_PROFESSIONAL_PROFILES[CLIENT_TEMPLATE_KEY])return CLIENT_TEMPLATE_KEY;const byPreset={personal_blog_1:'blog-ca-nhan-1',personal_blog_2:'blog-ca-nhan-2',corporate_modern_1:'doanh-nghiep-1',corporate_industry_2:'doanh-nghiep-2',universal_commerce_5:'dich-vu-5',service_lion_dance_6:'dich-vu-6'};return byPreset[CLIENT_PRESET]||''}
+function professionalAdminKey(){const o=adminTemplateOverride();if(TELECOM_ADMIN_PROFILES[o]||BUILTIN_PROFESSIONAL_PROFILES[o])return o;if(TELECOM_ADMIN_PROFILES[CLIENT_TEMPLATE_KEY]||BUILTIN_PROFESSIONAL_PROFILES[CLIENT_TEMPLATE_KEY])return CLIENT_TEMPLATE_KEY;const byPreset={personal_blog_1:'blog-ca-nhan-1',personal_blog_2:'blog-ca-nhan-2',corporate_modern_1:'doanh-nghiep-1',corporate_industry_2:'doanh-nghiep-2',universal_commerce_5:'dich-vu-5',service_lion_dance_6:'dich-vu-6'};return byPreset[CLIENT_PRESET]||''}
 function isProfessionalContactTemplate(){return !!professionalAdminKey()}
 function resolvedContentProfile(){
  const override=adminTemplateOverride();
  let base;
  const proKey=professionalAdminKey();
- if(proKey)base=BUILTIN_PROFESSIONAL_PROFILES[proKey];
+ if(proKey)base=TELECOM_ADMIN_PROFILES[proKey]||BUILTIN_PROFESSIONAL_PROFILES[proKey];
  else if(/^san-pham-\d+$/i.test(override))base=BUILTIN_CONTENT_PROFILES.product;
  else if(/^tin-tuc-\d+$/i.test(override))base=BUILTIN_CONTENT_PROFILES.news;
  else if(/^game-\d+$/i.test(override))base=BUILTIN_CONTENT_PROFILES.game;
@@ -278,6 +283,17 @@ function renderAdminSidebar(){
 function assertAdminCapability(tab){
  const cap=adminCapabilityProfile();return cap.modules.some(k=>ADMIN_MENU_SPECS[k]?.tab===tab);
 }
+function applyAdaptiveEditorContract(){
+ const profile=resolvedContentProfile(),key=adminTemplateOverride(),kind=profile.content_type||'property';
+ const title=document.getElementById('editorTitle'),help=document.getElementById('editorHelp'),imgTitle=document.getElementById('imageSectionTitle');
+ const cat=document.getElementById('postCategory'),catLabel=cat?.closest('label');
+ const featuredLabel=document.getElementById('featured')?.closest('label'),verifiedLabel=document.getElementById('verified')?.closest('label');
+ const submit=document.getElementById('submitPostBtn');
+ const names={service:['Đăng gói / dịch vụ mới','Điền đúng thông tin đang được giao diện trang chủ sử dụng. Chuyên mục quyết định gói xuất hiện ở khu vực nào.','Hình ảnh gói / dịch vụ','Hiển thị nổi bật trên trang chủ','Thông tin đã kiểm tra','Đăng nội dung'],news:['Đăng bài viết mới','Nội dung sau khi đăng dùng cùng dữ liệu cho trang chủ và trang chi tiết.','Ảnh bài viết','Bài nổi bật','Bài đã xác minh','Đăng bài'],game:['Đăng base mới','Nhập đúng taxonomy và Copy Base Link để base xuất hiện trong đúng bộ lọc ngoài website.','Ảnh base','Base nổi bật','Đã kiểm tra','Đăng base'],product:['Đăng sản phẩm mới','Thông tin nhập tại đây được dùng trực tiếp cho card và trang chi tiết sản phẩm.','Ảnh sản phẩm','Sản phẩm nổi bật','Đã kiểm tra','Đăng sản phẩm'],property:['Đăng tin bất động sản','Điền thông tin chi tiết để tin đăng hiển thị đầy đủ trên website.','Hình ảnh bất động sản','Tin nổi bật','Tin đã xác minh','Đăng tin']};
+ const n=names[kind]||names.property;if(title)title.textContent=n[0];if(help)help.textContent=n[1];if(imgTitle)imgTitle.textContent=n[2];if(featuredLabel)featuredLabel.lastChild.textContent=' '+n[3];if(verifiedLabel)verifiedLabel.lastChild.textContent=' '+n[4];if(submit&&!editingId?.value)submit.textContent=n[5];
+ if(catLabel){const text=[...catLabel.childNodes].find(x=>x.nodeType===3&&String(x.textContent).trim());if(text)text.textContent=kind==='service'?'Nhóm hiển thị / Danh mục ':kind==='game'?'Nhóm Base ':'Chuyên mục ';const h=catLabel.querySelector('.field-help');if(h)h.textContent=kind==='service'?'Chọn đúng nhóm: nội dung sẽ tự xuất hiện ở đúng khu vực tương ứng trên trang chủ.':'Chuyên mục dùng chung với nhóm/bộ lọc ngoài website.'}
+ document.body.dataset.editorContract=key||kind;
+}
 function configureAdminForTemplate(){
  const commerce=isCommerceTemplate(),product=!commerce&&isProductTemplate(),game=!commerce&&!product&&isGameTemplate(),news=!commerce&&!product&&!game&&isNewsTemplate(),service=!commerce&&!product&&!game&&isServiceTemplate();
  document.body.classList.toggle('admin-template-news',news);
@@ -295,6 +311,7 @@ function configureAdminForTemplate(){
  if(editorLabel)editorLabel.textContent=profile.contentLabel||(news?'Nội dung bài viết':'Mô tả chi tiết');
  if(editorHelp)editorHelp.textContent=profile.contentHelp||'Soạn và định dạng nội dung.';
  renderProfileFields();
+ applyAdaptiveEditorContract();
  if(commerce){
    postType.value='product';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
    ['menuNewPost','menuPosts'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
@@ -334,7 +351,7 @@ function configureAdminForTemplate(){
    document.getElementById('menuServiceLeads')?.classList.remove('hidden');
    postType.value='service';postType.disabled=true;picker?.classList.add('hidden');notice?.classList.add('hidden');
    const serviceKey=professionalAdminKey();
-   if(menuNew)menuNew.textContent='Đăng bài mới';if(menuPosts)menuPosts.textContent=serviceKey==='dich-vu-5'?'Bài viết / Cẩm nang':serviceKey==='dich-vu-6'?'Quản lý gói & bài viết':'Quản lý dịch vụ';
+   if(menuNew)menuNew.textContent=/^dich-vu-[1236]$/.test(serviceKey)?'Đăng gói mới':'Đăng bài mới';if(menuPosts)menuPosts.textContent=serviceKey==='dich-vu-5'?'Bài viết / Cẩm nang':/^dich-vu-[1236]$/.test(serviceKey)?'Quản lý gói & bài viết':'Quản lý dịch vụ';
    if(serviceKey==='dich-vu-5'){
      // Commerce has its own workflow. Do not inherit the generic service/blog navigation.
      ['menuNewPost','menuPosts'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
@@ -346,7 +363,7 @@ function configureAdminForTemplate(){
    }else{
      ['menuNewPost','menuPosts'].forEach(id=>document.getElementById(id)?.classList.remove('hidden'));
      if(serviceKey==='dich-vu-6')document.getElementById('menuServiceLeads')?.classList.remove('hidden');
-     if(overviewBtn){overviewBtn.textContent='＋ Đăng bài mới';overviewBtn.onclick=()=>showTab('newpost')}
+     if(overviewBtn){overviewBtn.textContent=/^dich-vu-[1236]$/.test(serviceKey)?'＋ Đăng gói mới':'＋ Đăng bài mới';overviewBtn.onclick=()=>showTab('newpost')}
    }
    if(postTitle)postTitle.placeholder=serviceKey==='dich-vu-5'?'Ví dụ: ASUS Vivobook 14 Core i5 16GB 512GB':serviceKey==='dich-vu-6'?'Ví dụ: Gói 2 đầu lân khai trương':'Ví dụ: Gói Internet Home 500';
  }else if(news){
