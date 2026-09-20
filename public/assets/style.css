@@ -160,7 +160,7 @@ body.admin-template-game #menuServiceLeads{display:none!important}.success,.erro
 .admin-sidebar{padding:14px!important;position:sticky;top:18px;border:1px solid #dce4ee!important;box-shadow:0 6px 18px rgba(15,23,42,.04)}
 .sidebar-title{padding:8px 10px 16px;border-bottom:1px solid #e5eaf1;margin-bottom:8px}.sidebar-title b,.sidebar-title small{display:block}.sidebar-title b{font-size:14px}.sidebar-title small{font-size:10px;color:#94a3b8;margin-top:4px}
 .admin-sidebar .menu-btn{display:flex!important;align-items:center;gap:10px;width:100%;padding:11px 10px!important;border:0!important;background:transparent;text-align:left;font-weight:700;color:#475569;cursor:pointer}
-.admin-sidebar .menu-btn span{width:22px;text-align:center;color:#64748b}.admin-sidebar .menu-btn:hover{background:#f4f7fb;color:#0f172a}
+.admin-sidebar .menu-btn span:first-child{flex:0 0 22px;width:22px;text-align:center;color:#64748b}.admin-sidebar .menu-btn span:last-child{flex:1 1 auto;width:auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.admin-sidebar .menu-btn:hover{background:#f4f7fb;color:#0f172a}
 .admin-sidebar .menu-btn.active{background:#eaf1ff!important;color:#1762e8!important}.admin-sidebar .menu-btn.active span{color:#1762e8}
 .menu-divider{height:1px;background:#e5eaf1;margin:8px 0}
 .admin-content{padding:28px 30px!important;border:1px solid #dce4ee!important;box-shadow:0 8px 22px rgba(15,23,42,.04);min-height:560px}
@@ -4039,3 +4039,6 @@ input,select,textarea,button{max-width:100%;box-sizing:border-box}
 
 /* V20.9.27.54 · Template SEO Landing Contract */
 .template-detail-faq{max-width:1100px;margin:28px auto 64px;padding:0 20px}.template-detail-faq h2{margin:0 0 14px}.template-detail-faq details{border:1px solid #e5e7eb;border-radius:14px;padding:14px 16px;margin:10px 0;background:#fff}.template-detail-faq summary{font-weight:800;cursor:pointer}.template-detail-faq details p{margin:10px 0 0;line-height:1.7}.template-detail-related{margin-top:20px}.template-detail-related a{font-weight:800}
+
+/* Admin UX V3 — compact capability menu */
+@media(min-width:851px){.admin-grid{grid-template-columns:minmax(220px,250px) minmax(0,1fr)!important}.admin-sidebar .menu-btn{min-height:42px;line-height:1.2}.admin-sidebar .sidebar-title{white-space:nowrap}}
