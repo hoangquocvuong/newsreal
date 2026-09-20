@@ -858,7 +858,7 @@ export async function onRequest(context){
  // legacy demo tenant / D1 / BDS fallback can run. Query strings such as
  // ?nr_client=1&nr_samples=0 must never alter the selected renderer.
  const hardProDemo=proDemoKeyFromPath(rawPath);
- if(marketHost&&hardProDemo&&!u.searchParams.get('nr_trial')){
+ if(marketHost&&hardProDemo&&hardProDemo!=='dich-vu-5'&&!u.searchParams.get('nr_trial')){
    const html=injectProClientSimulation(proDemoHtml(hardProDemo,rawPath),u);
    if(html)return new Response(html,{status:200,headers:{'Content-Type':'text/html; charset=UTF-8','Cache-Control':'no-store, no-cache, must-revalidate, max-age=0','CDN-Cache-Control':'no-store','Cloudflare-CDN-Cache-Control':'no-store','X-HVT-Demo-Build':'20.9.27.6','X-HVT-Demo-Renderer':hardProDemo}});
  }

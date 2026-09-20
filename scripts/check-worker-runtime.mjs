@@ -5,7 +5,6 @@ const routes = [
   ['/demo/blog-ca-nhan/mau-2/','blog-ca-nhan-2','Kinh doanh nội dung'],
   ['/demo/doanh-nghiep/mau-1/','doanh-nghiep-1','Bản tin doanh nghiệp'],
   ['/demo/doanh-nghiep/mau-2/','doanh-nghiep-2','Hình ảnh hoạt động doanh nghiệp'],
-  ['/demo/ban-hang/cua-hang-online/','dich-vu-5','ASUS Vivobook 14'],
   ['/demo/dich-vu/mua-lan-su-rong/','dich-vu-6','Gói 2 đầu lân'],
 ];
 for (const [path, renderer, marker] of routes) {
@@ -38,10 +37,11 @@ for (const [path] of routes) {
   }
 }
 console.log('OK  runtime all professional demos mobile-safe contact contract');
-const laptopResponse=await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/ban-hang/cua-hang-online/'),env:{},next:()=>new Response('NEXT')});
-const laptopHtml=await laptopResponse.text();
-for(const marker of ['ASUS Vivobook 14','ASUS Vivobook 14','Smartphone Pro 5G','Áo khoác Urban Essential','Giỏ hàng','Đặt hàng','laptopLeadForm','/api/service-leads']) if(!laptopHtml.includes(marker)) throw new Error('Commerce storefront contract missing: '+marker);
-console.log('OK  runtime universal commerce storefront + tenant lead inbox');
+const commerceResponse=await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/ban-hang/cua-hang-online/'),env:{ASSETS:{fetch:async()=>new Response('<!doctype html><html><head></head><body><main></main><script src=\"/assets/site.js\"></script></body></html>')}},next:()=>new Response('NEXT')});
+const commerceHtml=await commerceResponse.text();
+if(commerceResponse.status!==200 || !commerceHtml.includes('NR_DEMO_THEME') || !commerceHtml.includes('dich-vu-5')) throw new Error('Commerce demo must use unified client renderer shell');
+if(commerceHtml.includes('NOVASHOP') || commerceHtml.includes('Smartphone Pro 5G')) throw new Error('Legacy Commerce server renderer leaked into public demo');
+console.log('OK  runtime Commerce demo uses unified Demo/Trial/Live client renderer');
 const article = await mod.onRequest({request:new Request('https://hoangvuongtech.com/demo/doanh-nghiep/mau-2/bai-viet/nang-luc-doanh-nghiep/'),env:{},next:()=>new Response('NEXT')});
 const articleHtml=await article.text();
 if(article.status!==200 || !articleHtml.includes('Checklist thực hành')) throw new Error('professional article runtime failed');

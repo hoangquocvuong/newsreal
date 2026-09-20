@@ -7,7 +7,7 @@ const checks=[
  ['trial template key repairs site identity',api.includes('SELECT coalesce(template_key,\'\') template_key FROM website_trials WHERE site_id=?')&&api.includes('effectiveTemplateKey')],
  ['professional blueprint uses resolved catalog key',api.includes('const resolvedKey=String(t?.template_key||key||\'\').trim()')&&api.includes('professionalDemoData(resolvedKey)')],
  ['empty professional blueprint is not marked installed',api.includes("reason:'empty-blueprint'")],
- ['hard professional showroom never hijacks trial',worker.includes("if(marketHost&&hardProDemo&&!u.searchParams.get('nr_trial'))")],
+ ['hard professional showroom never hijacks trial',worker.includes("if(marketHost&&hardProDemo&&hardProDemo!=='dich-vu-5'&&!u.searchParams.get('nr_trial'))")],
  ['secondary professional showroom never hijacks trial',worker.includes("if(marketHost&&PRO_DEMO_KEYS.has(demo)&&!u.searchParams.get('nr_trial'))")],
  ['trial posts sorted real before samples even on demo pathname',site.includes("if((!demoTemplateKey||window.NR_TRIAL_TOKEN)&&Array.isArray(SITE_DATA?.posts))")]
 ];
