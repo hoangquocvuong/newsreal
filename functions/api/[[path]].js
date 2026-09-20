@@ -1144,7 +1144,7 @@ async function ensureTemplateCatalog(env){
   }catch(e){}
 
   // V15.2: backfill đúng khung riêng cho 9 template hiện tại.
-  for(const k of ['mau-1','mau-2','mau-3','mau-4','mau-5','tin-tuc-1','tin-tuc-2','tin-tuc-3','tin-tuc-4','dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4','dich-vu-5','blog-ca-nhan-1','blog-ca-nhan-2','doanh-nghiep-1','doanh-nghiep-2','game-1','san-pham-1']){try{const row=await env.DB.prepare(`SELECT structure_profile FROM template_catalog WHERE template_key=?`).bind(k).first();let cur={};try{cur=JSON.parse(String(row?.structure_profile||'{}'))}catch(e){}const def=defaultTemplateStructure(k);const requiredVersion=Math.max(1,Number(def?.version||1));if(!row?.structure_profile||Number(cur?.version||0)<requiredVersion||!Array.isArray(cur?.sections)||!cur.sections.some(x=>Number(x?.slots||0)>0)){await env.DB.prepare(`UPDATE template_catalog SET structure_profile=? WHERE template_key=?`).bind(JSON.stringify(def),k).run()}}catch(e){}}
+  for(const k of ['mau-1','mau-2','mau-3','mau-4','mau-5','tin-tuc-1','tin-tuc-2','tin-tuc-3','tin-tuc-4','dich-vu-1','dich-vu-2','dich-vu-3','dich-vu-4','dich-vu-5','dich-vu-6','blog-ca-nhan-1','blog-ca-nhan-2','doanh-nghiep-1','doanh-nghiep-2','game-1','san-pham-1']){try{const row=await env.DB.prepare(`SELECT structure_profile FROM template_catalog WHERE template_key=?`).bind(k).first();let cur={};try{cur=JSON.parse(String(row?.structure_profile||'{}'))}catch(e){}const def=defaultTemplateStructure(k);const requiredVersion=Math.max(1,Number(def?.version||1));if(!row?.structure_profile||Number(cur?.version||0)<requiredVersion||!Array.isArray(cur?.sections)||!cur.sections.some(x=>Number(x?.slots||0)>0)){await env.DB.prepare(`UPDATE template_catalog SET structure_profile=? WHERE template_key=?`).bind(JSON.stringify(def),k).run()}}catch(e){}}
 
 
 }
@@ -1509,6 +1509,25 @@ async function seedDemoForSite(env,siteId,opts={}){
 // same posts only as an in-memory layout scaffold, then the browser removes
 // article/listing cards after render. This keeps section/category order identical
 // to the populated template without writing anything to a customer site.
+// V20.9.27.48 — Universal content contract registry.
+// Data-only: never resolves or replaces tenant/trial identity.
+function templateContentContract(templateKey,category='',editorType=''){
+  const key=String(templateKey||'').trim(),cat=String(category||'').toLowerCase(),declared=String(editorType||'').toLowerCase();
+  if(/^mau-[1-5]$/.test(key))return {family:'property',persistedType:'property',sampleMode:'editable'};
+  if(/^tin-tuc-/.test(key))return {family:'news',persistedType:'news',sampleMode:'editable'};
+  if(/^blog-ca-nhan-/.test(key))return {family:'blog',persistedType:'news',sampleMode:'editable'};
+  if(/^doanh-nghiep-/.test(key))return {family:'corporate',persistedType:'news',sampleMode:'editable'};
+  if(key==='dich-vu-5'||key==='san-pham-1')return {family:'commerce',persistedType:key==='dich-vu-5'?'service':'product',sampleMode:'editable'};
+  if(key==='dich-vu-6')return {family:'lion',persistedType:'service',sampleMode:'editable'};
+  if(/^dich-vu-/.test(key))return {family:'service',persistedType:'service',sampleMode:'editable'};
+  if(key==='game-1')return {family:'game',persistedType:'game',sampleMode:'editable'};
+  if(declared)return {family:declared,persistedType:declared,sampleMode:'editable'};
+  if(cat==='bat-dong-san')return {family:'property',persistedType:'property',sampleMode:'editable'};
+  if(cat==='tin-tuc')return {family:'news',persistedType:'news',sampleMode:'editable'};
+  if(cat==='ban-hang'||cat==='san-pham')return {family:'commerce',persistedType:'product',sampleMode:'editable'};
+  return {family:'generic',persistedType:'news',sampleMode:'editable'};
+}
+
 async function buildTemplatePreviewBlueprint(env,templateKey,site={}){
   // V20.9.24.2 — read-only showroom preview must never seed/ALTER the catalogue.
   const key=String(templateKey||site?.template_key||'').trim();
@@ -1520,7 +1539,8 @@ async function buildTemplatePreviewBlueprint(env,templateKey,site={}){
   let sp={};try{sp=t?.structure_profile?JSON.parse(t.structure_profile):defaultTemplateStructure(resolvedKey)}catch(e){sp=defaultTemplateStructure(resolvedKey)}
   if(!sp||!Array.isArray(sp.sections))sp=defaultTemplateStructure(resolvedKey)||{sections:[]};
   const category=String(t?.category||'').toLowerCase();
-  const contentType=String(ep?.content_type||(category==='tin-tuc'?'news':category==='bat-dong-san'?'property':category==='san-pham'?'product':'generic')).toLowerCase();
+  const contract=templateContentContract(resolvedKey,category,ep?.content_type);
+  const contentType=String(contract.family||ep?.content_type||(category==='tin-tuc'?'news':category==='bat-dong-san'?'property':'generic')).toLowerCase();
   const limit=Math.max(1,Math.min(30,Number(t?.sample_count||12)));
   let posts=[];
   // V20.9.27.22 — Professional templates install the very same article corpus used
@@ -1532,7 +1552,7 @@ async function buildTemplatePreviewBlueprint(env,templateKey,site={}){
     // whether template_catalog.editor_profile has already been synchronized in D1.
     // This prevents service templates from being seeded as `news` and disappearing
     // from both Admin filters and the customer homepage.
-    const professionalType=['dich-vu-5','dich-vu-6'].includes(resolvedKey)?'service':'news';
+    const professionalType=String(contract.persistedType||'news');
     const toHtml=(a)=>{
       const body=Array.isArray(a.body)?a.body.map(x=>`<h2>${String(x?.[0]||'')}</h2><p>${String(x?.[1]||'')}</p>`).join(''):String(a.excerpt||'');
       const tips=Array.isArray(a.tips)&&a.tips.length?`<h2>Lưu ý</h2><ul>${a.tips.map(x=>`<li>${String(x||'')}</li>`).join('')}</ul>`:'';

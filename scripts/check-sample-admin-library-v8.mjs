@@ -11,7 +11,7 @@ const checks=[
  ['Normal content list excludes sample rows',admin.includes("filter(x=>!isSamplePost(x))")],
  ['Sample list contains only sample rows',admin.includes('filter(isSamplePost)')],
  ['Sample posts remain editable/deletable',admin.includes('loadSamplePosts')&&admin.includes('editPost(${x.id})')&&admin.includes('delPost(${x.id})')],
- ['Trial article pages no longer hide sample articles',api.includes("const hideSamples=request.headers.get('X-NR-Preview-Samples')==='0';")],
+ ['Trial article pages no longer hide sample articles',api.includes("const hideSamples=false;")],
  ['Customer/trial posts sort real before samples globally',site.includes('customer/trial content always outranks editable sample rows')],
  ['Lion renderer defensively sorts real before samples',site.includes("p.type==='service').sort((a,b)=>(Number(a?.is_sample||0)-Number(b?.is_sample||0))")]
 ];
