@@ -1436,15 +1436,15 @@ async function installDefaultTemplateSamples(env,siteId,opts={}){
     try{await env.DB.prepare(`UPDATE sites SET template_key=? WHERE id=?`).bind(effectiveTemplateKey,siteId).run();site.template_key=effectiveTemplateKey}catch(e){}
   }
   const state=await env.DB.prepare(`SELECT sample_pack_installed_at,sample_pack_template_key,sample_pack_version FROM site_template_state WHERE site_id=? LIMIT 1`).bind(siteId).first();
-  const currentVersion=8;
+  const currentVersion=9;
   if(state?.sample_pack_installed_at&&Number(state.sample_pack_version||0)>=currentVersion&&!opts.force){
     return {installed:false,already:true,template_key:state.sample_pack_template_key||effectiveTemplateKey||site.template_key,version:currentVersion};
   }
   const result=await seedDemoForSite(env,siteId,{source:opts.source||'default-handover',template_key:effectiveTemplateKey});
   if(!Number(result?.total||0))return {installed:false,reason:'empty-blueprint',template_key:effectiveTemplateKey||site.template_key||'',version:currentVersion};
   await env.DB.prepare(`INSERT INTO site_template_state(site_id,sample_pack_installed_at,sample_pack_template_key,sample_pack_version,updated_at)
-    VALUES(?,CURRENT_TIMESTAMP,?,7,CURRENT_TIMESTAMP)
-    ON CONFLICT(site_id) DO UPDATE SET sample_pack_installed_at=CURRENT_TIMESTAMP,sample_pack_template_key=excluded.sample_pack_template_key,sample_pack_version=8,updated_at=CURRENT_TIMESTAMP`)
+    VALUES(?,CURRENT_TIMESTAMP,?,9,CURRENT_TIMESTAMP)
+    ON CONFLICT(site_id) DO UPDATE SET sample_pack_installed_at=CURRENT_TIMESTAMP,sample_pack_template_key=excluded.sample_pack_template_key,sample_pack_version=9,updated_at=CURRENT_TIMESTAMP`)
     .bind(siteId,String(effectiveTemplateKey||site.template_key||'')).run();
   return {installed:true,version:currentVersion,...result};
 }
@@ -1705,6 +1705,29 @@ async function buildTemplatePreviewBlueprint(env,templateKey,site={}){
       const [type,title,postCategory,image,price,area,address,phone,transaction,property_type,unit_price,bedrooms,bathrooms,floors,direction,legal,furniture,province,district,ward,contact_name,featured,verified,listing_code,frontage]=x;
       return {id:910000+i,type,title,category:postCategory,image,price:price||'',area:area||'',address:address||'',phone:phone||'',content:propertyContent,status:'published',transaction:transaction||'',property_type:property_type||'',unit_price:unit_price||'',bedrooms:bedrooms||null,bathrooms:bathrooms||null,floors:floors||null,direction:direction||'',legal:legal||'',furniture:furniture||'',province:province||'',district:district||'',ward:ward||'',contact_name:contact_name||'',featured:featured?1:0,verified:verified?1:0,listing_code:listing_code||`SAMPLE-PROPERTY-${i+1}`,frontage:frontage||'',views:40+(i*11),is_sample:1,sample_key:`${key||'property'}:${listing_code||i+1}`,__nr_blueprint:1};
     });
+    // V54 — A property template is a mixed-content template: listing sections use
+    // property records, while the market/news section must receive real editable news
+    // records as well. Demo, Trial and Live all consume this same blueprint.
+    // Never leave the news grid to the structural placeholder/skeleton filler.
+    const newsSection=sections.find(sec=>String(sec?.key||'').toLowerCase()==='news'||String(sec?.type||'').toLowerCase()==='news');
+    const newsNeed=Math.max(0,Number(newsSection?.slots||0));
+    const newsTitles=[
+      'Kinh nghiệm kiểm tra pháp lý trước khi mua nhà đất',
+      '5 yếu tố nên xem kỹ khi lựa chọn căn hộ để ở',
+      'Cách xác định ngân sách mua nhà phù hợp với gia đình',
+      'Những lưu ý khi đặt cọc giao dịch bất động sản',
+      'Hạ tầng và tiện ích ảnh hưởng thế nào đến giá trị nhà ở',
+      'Checklist xem nhà thực tế dành cho người mua lần đầu',
+      'Nên chuẩn bị gì trước khi ký hợp đồng thuê nhà',
+      'Cách đọc thông tin diện tích và hướng nhà trên tin đăng',
+      'Kinh nghiệm so sánh các bất động sản trong cùng khu vực'
+    ];
+    const newsCats=['Cẩm nang','Thị trường','Kinh nghiệm'];
+    const newsImages=baseRows.map(x=>String(x[3]||'')).filter(Boolean);
+    for(let i=0;i<newsNeed;i++){
+      const title=newsTitles[i%newsTitles.length]+(i>=newsTitles.length?` · ${i+1}`:'');
+      posts.push({id:919000+i,type:'news',title,category:newsCats[i%newsCats.length],image:newsImages[i%Math.max(1,newsImages.length)]||'',content:`<p>${title}.</p><p>Bài viết mẫu thuộc thư viện nội dung của giao diện bất động sản. Chủ website có thể sửa hoặc xóa trực tiếp trong Trang quản trị.</p>`,status:'published',featured:i===0?1:0,verified:1,listing_code:`SAMPLE-NEWS-${String(i+1).padStart(3,'0')}`,views:90+i*17,is_sample:1,sample_key:`${key||'property'}:news-${i+1}`,extra_json:'{}',gallery:'',__nr_blueprint:1});
+    }
   }else{
     // Future template categories: editor_profile + structure_profile are the contract.
     const sections=Array.isArray(sp?.sections)?sp.sections:[];
