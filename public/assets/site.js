@@ -1421,14 +1421,26 @@ function estateCoreCategoryStrip(key){
  return `<span id="categories" class="nr-route-anchor" aria-hidden="true"></span><div class="estate-core-categories" id="estate-categories">${data.map(([i,l,u])=>`<a href="${estateCoreUrl(u,key,isDemo)}"><span>${i}</span><b>${l}</b></a>`).join('')}</div>`;
 }
 function estateCoreNews(site,key,count=4){
- const items=(SITE_DATA.posts||[]).filter(x=>x.type==='news').slice(0,count);
- return `<span id="news" class="nr-route-anchor" aria-hidden="true"></span><section class="estate-core-news" id="estate-news"><div class="estate-section-head"><div><small>CẨM NANG & THỊ TRƯỜNG</small><h2>Tin tức bất động sản</h2></div><a href="${estateCoreUrl('/#news',key,window.NR_DEMO_THEME===key)}">Xem tất cả →</a></div><div class="estate-news-grid">${items.map(x=>`<a href="${seoPostUrl(x)}"><img src="${esc(getImages(x)[0]||fallbackImage())}"><small>${esc(x.category||'Tin tức')}</small><h3>${esc(x.title)}</h3></a>`).join('')||'<div class="empty">Chưa có tin tức.</div>'}</div></section>`;
+ // V55: the structure profile owns the visible slot count. Render enough REAL news
+ // records for that contract so nrApplyStructureGeometry never has to manufacture
+ // skeleton cards on Demo / Trial / Live homepages.
+ const target=Math.max(1,nrStructureSlots(site,key,'news',count)||nrStructureSlots(site,key,'Tin tức bất động sản',count)||count);
+ const pool=(SITE_DATA.posts||[]).filter(x=>x.type==='news'&&x.status!=='draft');
+ const items=pool.slice(0,target);
+ return `<span id="news" class="nr-route-anchor" aria-hidden="true"></span><section class="estate-core-news" id="estate-news"><div class="estate-section-head"><div><small>CẨM NANG & THỊ TRƯỜNG</small><h2>Tin tức bất động sản</h2></div><a href="${estateCoreUrl('/#news',key,window.NR_DEMO_THEME===key)}">Xem tất cả →</a></div><div class="estate-news-grid">${items.map(x=>`<a data-contract-slot="1" href="${seoPostUrl(x)}"><img src="${esc(getImages(x)[0]||fallbackImage())}"><small>${esc(x.category||'Tin tức')}</small><h3>${esc(x.title)}</h3></a>`).join('')}</div></section>`;
 }
 function estateCoreSection(key,title,eyebrow,items,{limit=8,style='standard',more='/bat-dong-san/',className=''}={}){
  const site=SITE_DATA?.site||{};
  const structuralLimit=nrStructureSlots(site,key,title,limit);
  limit=Math.max(1,structuralLimit||limit);
- const list=(items||[]).filter(Boolean).slice(0,limit);
+ const preferred=(items||[]).filter(Boolean);
+ // V55: a homepage section must never be padded with skeletons merely because a
+ // narrow category has fewer records than its visual slot contract. Fill remaining
+ // positions with other real property records; customer records keep their normal
+ // ordering and sample records are only fallback content.
+ const all=(SITE_DATA?.posts||[]).filter(x=>x&&x.type==='property'&&x.status!=='draft');
+ const seen=new Set(),list=[];
+ for(const x of [...preferred,...all]){const id=String(x.id??x.slug??x.title??'');if(!id||seen.has(id))continue;seen.add(id);list.push(x);if(list.length>=limit)break}
  return `<section class="estate-rich-section ${className}"><div class="wrap">
    <div class="estate-section-head">
      <div><small>${esc(eyebrow)}</small><h2>${esc(title)}</h2></div>
