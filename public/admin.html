@@ -304,9 +304,10 @@ body.admin-bg{overflow-y:auto!important;height:auto!important;min-height:100vh}
       };
       if(!body.image_url)return notice('Hãy tải ít nhất 1 ảnh sản phẩm.',true);
 
-      if(btn){btn.disabled=true;btn.textContent='Đang đăng sản phẩm...'}
+      const editId=Number(f.dataset.editId||0);
+      if(btn){btn.disabled=true;btn.textContent=editId?'Đang cập nhật...':'Đang đăng sản phẩm...'}
       try{
-        const editId=Number(f.dataset.editId||0);if(editId)body.id=editId;
+        if(editId)body.id=editId;
         const d=await jsonApi('/commerce/products',{method:editId?'PUT':'POST',body:JSON.stringify(body)});
         if(d.ok===false)throw new Error(d.error||'Server chưa xác nhận sản phẩm');
         const p=d.product||body, id=p.id||d.id||'';
@@ -317,15 +318,15 @@ body.admin-bg{overflow-y:auto!important;height:auto!important;min-height:100vh}
           const src=new URLSearchParams(location.search), shop=new URL('/demo/ban-hang/cua-hang-online/',location.origin);
           if(src.get('nr_trial'))shop.searchParams.set('nr_trial',src.get('nr_trial'));
           shop.hash='product-'+encodeURIComponent(id);
-          ok.innerHTML=`<div><strong>✓ Đã đăng sản phẩm thành công</strong><span>${esc(p.name||name)} đã được lưu vào <b>${esc(p.category_name||body.category_name)}</b>.</span></div><div class="commerce-success-actions"><a class="btn primary" target="_blank" href="${esc(shop.href)}">Xem sản phẩm ngoài cửa hàng</a><button type="button" id="v38AddAnother">Đăng sản phẩm khác</button></div>`;
+          ok.innerHTML=`<div><strong>${editId?'✓ Cập nhật sản phẩm thành công':'✓ Đã đăng sản phẩm thành công'}</strong><span>${esc(p.name||name)} ${editId?'đã được cập nhật':'đã được lưu vào <b>'+esc(p.category_name||body.category_name)+'</b>'}.</span></div><div class="commerce-success-actions"><a class="btn primary" target="_blank" href="${esc(shop.href)}">Xem sản phẩm ngoài cửa hàng</a><button type="button" id="v38AddAnother">Đăng sản phẩm khác</button></div>`;
         }
         const card=f.closest('.commerce-quick-card');if(card)card.style.display='none';
         if(typeof window.loadCommerceProducts==='function'){try{await window.loadCommerceProducts()}catch{}}
         $('#commerceProductsPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
         $('#v38AddAnother')?.addEventListener('click',()=>{window.commerceV43ResetProductForm?.({resetForm:true});if(card)card.style.display='';ok?.classList.add('hidden');f.querySelector('[name=name]')?.focus()});
-        notice('✓ Đã đăng sản phẩm thành công');
-      }catch(err){notice('Đăng sản phẩm thất bại: '+(err.message||err),true)}
-      finally{if(btn){btn.disabled=false;btn.textContent='Đăng sản phẩm'}}
+        notice(editId?'✓ Cập nhật sản phẩm thành công':'✓ Đã đăng sản phẩm thành công');
+      }catch(err){notice((editId?'Cập nhật':'Đăng sản phẩm')+' thất bại: '+(err.message||err),true)}
+      finally{if(btn){btn.disabled=false;btn.textContent=editId?'Lưu thay đổi':'Đăng sản phẩm'}}
     })();
     return false;
   };
@@ -352,7 +353,8 @@ body.admin-bg{overflow-y:auto!important;height:auto!important;min-height:100vh}
      const d=await api('/commerce/products'), rows=Array.isArray(d.products)?d.products:[];
      if(!rows.length){box.innerHTML='<div class="empty">Chưa có sản phẩm. Sản phẩm vừa đăng sẽ xuất hiện tại đây.</div>';return}
      box.className='commerce-products-v39';
-     box.innerHTML=rows.map(p=>`<div class="commerce-product-v39" data-product-id="${Number(p.id)||0}"><img src="${esc(p.image_url||'/assets/placeholder.webp')}" alt=""><div><h4>${esc(p.name||'Sản phẩm')}</h4><p>${esc(p.category_name||'Chưa có danh mục')} · <b>${money(p.price)}</b></p><p>Còn ${Number(p.stock_qty||0)} sản phẩm</p></div><div class="actions"><button type="button" class="smallbtn" data-edit="${Number(p.id)||0}">Sửa</button><button type="button" class="smallbtn danger" data-del="${Number(p.id)||0}">Xóa</button></div></div>`).join('');
+     box.innerHTML=rows.map(p=>`<div class="commerce-product-v39" data-product-id="${Number(p.id)||0}"><img src="${esc(p.image_url||'/assets/placeholder.webp')}" alt=""><div><h4>${esc(p.name||'Sản phẩm')}</h4><p>${esc(p.category_name||'Chưa có danh mục')} · <b>${money(p.price)}</b></p><p>Còn ${Number(p.stock_qty||0)} sản phẩm</p></div><div class="actions"><button type="button" class="smallbtn" data-view="${Number(p.id)||0}">Xem</button><button type="button" class="smallbtn" data-edit="${Number(p.id)||0}">Sửa</button><button type="button" class="smallbtn danger" data-del="${Number(p.id)||0}">Xóa</button></div></div>`).join('');
+     box.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{const q=new URLSearchParams(location.search),u=new URL('/demo/ban-hang/cua-hang-online/',location.origin);for(const k of ['nr_trial','tenant'])if(q.get(k))u.searchParams.set(k,q.get(k));u.hash='product-'+encodeURIComponent(b.dataset.view);window.open(u.href,'_blank','noopener')});
      box.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editProduct(Number(b.dataset.edit),rows));
      box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>deleteProduct(Number(b.dataset.del)));
    }catch(e){box.innerHTML='<div class="form-errors">Không tải được sản phẩm: '+esc(e.message)+'</div>'}
