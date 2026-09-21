@@ -1,0 +1,4 @@
+import fs from 'node:fs';
+const a=fs.readFileSync('public/assets/admin.js','utf8'),p=fs.readFileSync('functions/api/[[path]].js','utf8'),h=fs.readFileSync('public/admin.html','utf8');
+const checks=[['rename UI',a.includes('commerceRenameCategory')],['delete UI',a.includes('commerceRemoveCategory')],['reorder UI',a.includes('commerceMoveCategory')],['product count',p.includes('product_count')],['safe nonempty delete',p.includes('CATEGORY_NOT_EMPTY')],['transfer before delete',p.includes('UPDATE commerce_products SET category_id=')],['GET persists defaults',p.includes("request.method==='GET'){try{await commerceEnsureAdminCategories()")],['cache v31',h.includes('admin.js?v=20260921-v31')]];
+let ok=true;for(const [n,v] of checks){console.log((v?'PASS ':'FAIL ')+n);if(!v)ok=false}if(!ok)process.exit(1);console.log('Commerce Category Manager V31: PASS');
