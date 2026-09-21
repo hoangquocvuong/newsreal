@@ -446,7 +446,12 @@ function estateCorePlaceholderCard(style='standard'){
  return `<article class="estate-core-card estate-card-${esc(style)} nr-structure-placeholder nr-property-placeholder" aria-hidden="true"><div class="estate-core-media nr-placeholder-media"></div><div class="estate-core-body nr-placeholder-body"><div class="estate-core-meta"><span>CHƯA CÓ TIN</span><span>Bất động sản</span></div><h3>Vị trí đang chờ nội dung</h3><div class="estate-core-loc">⌖ Chưa cập nhật</div><div class="estate-core-price">—</div></div></article>`;
 }
 function estateCoreFixedRows(items,style='row',slots=6){
- const list=(items||[]).filter(Boolean).slice(0,slots);return list.map(x=>estateCoreCard(x,style)).join('')+Array.from({length:Math.max(0,slots-list.length)},()=>estateCorePlaceholderCard(style)).join('');
+ // V56: compact sale/rent rows follow the same no-skeleton homepage contract.
+ // Prefer the requested group, then fill from other REAL property records.
+ const preferred=(items||[]).filter(Boolean),all=(SITE_DATA?.posts||[]).filter(x=>x&&x.type==='property'&&x.status!=='draft');
+ const seen=new Set(),list=[];
+ for(const x of [...preferred,...all]){const id=String(x.id??x.slug??x.title??'');if(!id||seen.has(id))continue;seen.add(id);list.push(x);if(list.length>=slots)break}
+ return list.map(x=>estateCoreCard(x,style)).join('');
 }
 function renderEstateUrban5(site,props){
  props=estateCoreSafeProps(props);const key='mau-5';estateCoreApplyShell(site,key);estateCoreFooter(site,key);
@@ -1030,7 +1035,15 @@ function nrEnforceSlotHost(host,target,sec,profile){
  if(real.length>target){real.slice(target).forEach(n=>n.remove());real=real.slice(0,target)}
  for(const n of real)n.dataset.contractSlot='1';
  const current=nrSlotChildren(host).length;
- for(let i=current;i<target;i++)host.insertAdjacentHTML('beforeend',nrStructurePlaceholder(sec?.type));
+ // V56: property homepage contracts must never manufacture empty skeletons.
+ // Legacy BDS sections that underfill are completed with existing real slot nodes;
+ // data remains unchanged and archive/detail pages are unaffected.
+ if(String(sec?.type||'').includes('property')&&real.length){
+  let i=current;
+  while(i<target){const src=real[i%real.length];const clone=src.cloneNode(true);clone.dataset.contractSlot='1';clone.dataset.contractFallback='real';host.appendChild(clone);i++}
+ }else{
+  for(let i=current;i<target;i++)host.insertAdjacentHTML('beforeend',nrStructurePlaceholder(sec?.type));
+ }
  const locked=Number(profile?.geometry_locked||0)===1;
  const customHosts=Array.isArray(sec?.slot_hosts)&&sec.slot_hosts.length>0;
  if(locked&&!customHosts&&String(sec?.column_mode||'fixed')!=='computed'&&!host.classList.contains('t2-card-track')){
@@ -1450,10 +1463,31 @@ function estateCoreSection(key,title,eyebrow,items,{limit=8,style='standard',mor
  </div></section>`;
 }
 function estateCoreProjectStrip(key,props){
- const projects=[...new Set((props||[]).map(x=>x.project_name||x.project||x.district||x.province).filter(Boolean))].slice(0,6);
+ // V56: project/area strips previously hard-capped at 6 while some BDS profiles
+ // declare 9 slots. Geometry then appended 3 skeletons. Build the strip to the
+ // actual template contract using locations/projects that exist in REAL posts.
+ const site=SITE_DATA?.site||{};
+ const target=Math.max(1,nrStructureSlots(site,key,'projects',6)||nrStructureSlots(site,key,'Dự án & khu vực nổi bật',6)||6);
+ const values=[];
+ for(const x of (props||[])){
+  for(const v of [x.project_name,x.project,x.district,x.province,x.ward]){
+   const label=String(v||'').trim();if(label&&!values.some(y=>y.toLowerCase()===label.toLowerCase()))values.push(label);
+   if(values.length>=target)break;
+  }
+  if(values.length>=target)break;
+ }
+ // If a profile asks for more area slots than unique location metadata provides,
+ // keep every slot useful by linking to a real listing title rather than a blank card.
+ if(values.length<target){
+  for(const x of (props||[])){
+   const label=String(x.title||'').trim();if(label&&!values.some(y=>y.toLowerCase()===label.toLowerCase()))values.push(label);
+   if(values.length>=target)break;
+  }
+ }
+ const projects=values.slice(0,target);
  return `<section class="estate-project-strip"><div class="wrap">
   <div class="estate-section-head"><div><small>KHÁM PHÁ</small><h2>Dự án & khu vực nổi bật</h2></div></div>
-  <div class="estate-project-grid">${projects.map((p,i)=>`<a href="${estateCoreUrl('/bat-dong-san/?q='+encodeURIComponent(p),key,window.NR_DEMO_THEME===key)}"><span>${String(i+1).padStart(2,'0')}</span><b>${esc(p)}</b><small>Xem tin đăng →</small></a>`).join('')}</div>
+  <div class="estate-project-grid">${projects.map((p,i)=>`<a data-contract-slot="1" href="${estateCoreUrl('/bat-dong-san/?q='+encodeURIComponent(p),key,window.NR_DEMO_THEME===key)}"><span>${String(i+1).padStart(2,'0')}</span><b>${esc(p)}</b><small>Xem tin đăng →</small></a>`).join('')}</div>
  </div></section>`;
 }
 function estateCoreServiceBand(){
