@@ -220,6 +220,22 @@ body.admin-bg{overflow-y:auto!important;height:auto!important;min-height:100vh}
   }
   let images=[];window.addEventListener('commerce-v40-edit-images',e=>{images=Array.isArray(e.detail?.images)?[...e.detail.images]:[];syncImages()});
   const cover=$('#commerceImageUrl'), gallery=$('#commerceGallery'), preview=$('#commerceGalleryPreview'), status=$('#commerceGalleryStatus');
+  // V43: one reset owner for every image state (local array + hidden fields + edit gallery UI).
+  window.commerceV43ResetProductForm=function(opts={}){
+    const f=$('#commerceProductForm');
+    if(f&&opts.resetForm!==false)f.reset();
+    if(f)delete f.dataset.editId;
+    images=[];
+    if(cover)cover.value='';
+    if(gallery)gallery.value='';
+    if(filesInput)filesInput.value='';
+    syncImages();
+    const oldWrap=$('#commerceCurrentImages'),oldGrid=$('#commerceCurrentImagesGrid');
+    if(oldGrid)oldGrid.innerHTML='';
+    if(oldWrap)oldWrap.classList.add('hidden');
+    if(status)status.textContent='Chưa chọn ảnh.';
+    const btn=f?.querySelector('.commerce-publish-btn');if(btn)btn.textContent='Đăng sản phẩm';
+  };
   function syncImages(){
     if(cover) cover.value=images[0]||'';
     if(gallery) gallery.value=images.slice(1).join(', ');
@@ -294,8 +310,7 @@ body.admin-bg{overflow-y:auto!important;height:auto!important;min-height:100vh}
         const d=await jsonApi('/commerce/products',{method:editId?'PUT':'POST',body:JSON.stringify(body)});
         if(d.ok===false)throw new Error(d.error||'Server chưa xác nhận sản phẩm');
         const p=d.product||body, id=p.id||d.id||'';
-        delete f.dataset.editId; f.reset(); images=[];syncImages();
-        if(status)status.textContent='Chưa chọn ảnh.';
+        window.commerceV43ResetProductForm({resetForm:true});
         const ok=$('#commerceSuccess');
         if(ok){
           ok.classList.remove('hidden');
@@ -307,7 +322,7 @@ body.admin-bg{overflow-y:auto!important;height:auto!important;min-height:100vh}
         const card=f.closest('.commerce-quick-card');if(card)card.style.display='none';
         if(typeof window.loadCommerceProducts==='function'){try{await window.loadCommerceProducts()}catch{}}
         $('#commerceProductsPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
-        $('#v38AddAnother')?.addEventListener('click',()=>{if(card)card.style.display='';ok?.classList.add('hidden');f.querySelector('[name=name]')?.focus()});
+        $('#v38AddAnother')?.addEventListener('click',()=>{window.commerceV43ResetProductForm?.({resetForm:true});if(card)card.style.display='';ok?.classList.add('hidden');f.querySelector('[name=name]')?.focus()});
         notice('✓ Đã đăng sản phẩm thành công');
       }catch(err){notice('Đăng sản phẩm thất bại: '+(err.message||err),true)}
       finally{if(btn){btn.disabled=false;btn.textContent='Đăng sản phẩm'}}
@@ -380,8 +395,13 @@ body.admin-bg{overflow-y:auto!important;height:auto!important;min-height:100vh}
  document.addEventListener('click',e=>{
    const b=e.target.closest?.('#v38AddAnother,#v35AddAnother');if(!b)return;
    const f=$('#commerceProductForm');if(!f)return;
-   delete f.dataset.editId; f.reset(); syncOld([]);
-   const status=$('#commerceGalleryStatus');if(status)status.textContent='Chưa chọn ảnh.';
+   // Do not call syncOld() here: it belongs to another closure. Reset through the V43 owner
+   // so the private `images` array cannot repopulate thumbnails after the form is cleared.
+   window.commerceV43ResetProductForm?.({resetForm:true});
+   $('#commerceImageUrl').value='';$('#commerceGallery').value='';
+   const grid=$('#commerceCurrentImagesGrid');if(grid)grid.innerHTML='';
+   $('#commerceCurrentImages')?.classList.add('hidden');
+   $('#commerceGalleryPreview').innerHTML='';
    $('#commerceSuccess')?.classList.add('hidden');
    f.querySelector('[name=name]')?.focus();
    f.scrollIntoView({behavior:'smooth',block:'start'});
