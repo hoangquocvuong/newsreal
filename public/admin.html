@@ -1,7 +1,22 @@
 <!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Quản trị website</title><meta name="robots" content="noindex,nofollow"><script>document.documentElement.classList.add('nr-admin-auth-boot')</script><style>.nr-admin-auth-boot #loginPanel,.nr-admin-auth-boot #dashboard{visibility:hidden!important}.nr-admin-auth-boot body{cursor:progress}</style><link rel="stylesheet" href="/assets/style.css?v=20.1.0">  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="theme-color" content="#ffffff">
-</head><body class="admin-bg">
+<style id="commerce-v39-css">
+html,body.admin-bg{overflow-x:hidden!important}
+body.admin-bg{overflow-y:auto!important;height:auto!important;min-height:100vh}
+.admin-shell,#dashboard,.admin-layout,.admin-main{height:auto!important;max-height:none!important;overflow:visible!important}
+#tab-commerce-products{overflow:visible!important;max-height:none!important}
+.commerce-products-v39{display:grid;gap:12px;margin-top:14px}
+.commerce-product-v39{display:grid;grid-template-columns:72px 1fr auto;gap:14px;align-items:center;padding:12px;border:1px solid #dbe3ef;border-radius:14px;background:#fff}
+.commerce-product-v39 img{width:72px;height:72px;object-fit:cover;border-radius:10px;background:#f3f4f6}
+.commerce-product-v39 h4{margin:0 0 5px;font-size:15px}.commerce-product-v39 p{margin:2px 0;color:#64748b;font-size:13px}
+.commerce-product-v39 .actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.commerce-options-v39 summary{cursor:pointer;padding:4px 0}.commerce-options-v39 small{color:#64748b;font-weight:500}
+.commerce-option-v39{display:grid;grid-template-columns:1fr 2fr auto;gap:8px;margin:10px 0}
+.commerce-option-v39 input{min-width:0}
+.commerce-badge-v39{display:block;margin-top:14px}
+@media(max-width:700px){.commerce-product-v39{grid-template-columns:58px 1fr}.commerce-product-v39 img{width:58px;height:58px}.commerce-product-v39 .actions{grid-column:1/-1;justify-content:flex-start}.commerce-option-v39{grid-template-columns:1fr}.commerce-option-v39 button{justify-self:start}}
+</style></head><body class="admin-bg">
 <div class="admin-shell"><div class="admin-top admin-top-pro"><div><a class="brand" href="/">NEWSREAL</a><span class="admin-badge">TRANG QUẢN TRỊ</span></div><div class="admin-top-actions"><a id="viewSiteLink" class="admin-link" href="/" target="_blank">↗ Xem website</a><button class="admin-link danger-link" onclick="logout()">Đăng xuất</button></div></div>
 <div id="loginPanel" class="panel auth-panel" style="max-width:600px;margin:50px auto">
 <h1>Đăng nhập quản trị</h1>
@@ -106,7 +121,13 @@
 <div class="commerce-simple-row"><div><label>Giá bán *</label><input name="price" inputmode="numeric" placeholder="Ví dụ: 299000"></div><div><label>Giá cũ <small>(không bắt buộc)</small></label><input name="compare_at_price" inputmode="numeric" placeholder="Ví dụ: 399000"></div></div>
 <div class="commerce-photo-box"><label>Ảnh sản phẩm</label><p>Chọn nhiều ảnh cùng lúc. Sau khi tải lên, bấm ⭐ Đặt làm ảnh đại diện ở ảnh bạn muốn dùng ngoài cửa hàng.</p><input id="commerceGalleryFiles" type="file" accept="image/*" multiple><small id="commerceGalleryStatus" class="muted">Chưa chọn ảnh.</small><div id="commerceGalleryPreview" class="upload-preview"></div><input name="image_url" id="commerceImageUrl" type="hidden"><input name="gallery" id="commerceGallery" type="hidden"></div>
 <div><label>Mô tả sản phẩm</label><textarea name="description" rows="5" placeholder="Mô tả ngắn gọn sản phẩm, điểm nổi bật, chất liệu, công dụng..."></textarea></div>
-<details class="commerce-simple-options"><summary><b>Sản phẩm có nhiều lựa chọn?</b> <small>Ví dụ: nhiều màu, kích thước hoặc dung lượng</small></summary><p class="field-help">Không có thì bỏ qua. Có thì thêm từng loại bên dưới, hệ thống tự tạo các lựa chọn bán.</p><div id="commerceDynamicFields"></div><div class="commerce-option-builder"><div id="commerceSimpleOptionRows"></div><button type="button" class="smallbtn" id="commerceAddSimpleOption" onclick="return window.commerceV33AddOption(event)">＋ Thêm màu / kích thước</button></div><div id="commerceVariantMatrix"></div><button type="button" id="commerceGenerateVariants" hidden onclick="return window.commerceV33GenerateVariants(event)">Tạo các lựa chọn bán</button><label>Đánh dấu sản phẩm<select name="badge"><option value="">Không đánh dấu</option><option value="Mới">Mới</option><option value="Bán chạy">Bán chạy</option><option value="Nổi bật">Nổi bật</option><option value="Giảm giá">Giảm giá</option><option value="Sắp hết hàng">Sắp hết hàng</option></select></label></details>
+<details class="commerce-simple-options commerce-options-v39"><summary><b>Phân loại sản phẩm</b> <small>Không bắt buộc · chỉ mở khi sản phẩm có màu/size</small></summary>
+<p class="field-help">Ví dụ: <b>Màu sắc</b> → Đen, Trắng &nbsp; hoặc &nbsp; <b>Kích thước</b> → S, M, L. Mỗi dòng là một nhóm lựa chọn.</p>
+<div id="commerceSimpleOptionRows"></div>
+<button type="button" class="smallbtn" onclick="return window.commerceV39AddOption(event)">＋ Thêm màu sắc / kích thước</button>
+<div id="commerceVariantMatrix"></div>
+<label class="commerce-badge-v39">Nhãn sản phẩm<select name="badge"><option value="">Không gắn nhãn</option><option value="Mới">Mới</option><option value="Bán chạy">Bán chạy</option><option value="Nổi bật">Nổi bật</option><option value="Giảm giá">Giảm giá</option><option value="Sắp hết hàng">Sắp hết hàng</option></select></label>
+</details>
 <input name="sku" id="commerceProductSku" type="hidden"><button class="btn primary commerce-publish-btn" type="button" onclick="return window.commerceV38Publish(event)">Đăng sản phẩm</button>
 </form></div>
 <details class="commerce-admin-card commerce-advanced"><summary><b>Quản lý danh mục & thuộc tính</b><span> Chỉ cần khi muốn tùy chỉnh sâu.</span></summary><form id="commerceCategoryForm" class="commerce-form-grid"><input name="name" required placeholder="Tên danh mục"><input name="description" placeholder="Mô tả danh mục"><div style="grid-column:1/-1"><b>Thuộc tính gợi ý</b><div id="commerceSchemaRows"></div><button class="smallbtn" type="button" id="commerceAddSchemaField">＋ Thêm thuộc tính</button></div><button class="btn primary" type="submit">Lưu danh mục</button></form><div id="commerceCategoriesPanel"></div></details>
@@ -139,7 +160,7 @@
 </form></div>
 <div id="tab-password" class="tab hidden"><span class="eyebrow">BẢO MẬT</span><h1>Đổi mật khẩu</h1><p class="admin-subtext">Nên sử dụng mật khẩu mạnh và không chia sẻ tài khoản quản trị.</p><form id="passwordForm" class="form" onsubmit="return false"><label>Mật khẩu hiện tại<input id="oldPassword" type="password" required></label><label>Mật khẩu mới<input id="newPassword" type="password" minlength="8" required></label><button class="btn">Đổi mật khẩu</button></form></div>
 </section></div></div></div>
-<script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script><script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script><!-- regression cache marker: admin.js?v=20260920-v12 --><script src="/assets/admin.js?v=20260921-v38"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script><script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script><!-- regression cache marker: admin.js?v=20260920-v12 --><script src="/assets/admin.js?v=20260921-v39"></script><script>
 // V34 Commerce persistence + submit guard. Independent from the main Admin initializer.
 (function(){
  const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
@@ -301,4 +322,47 @@
 })();
 </script>
 
-</body></html>
+<script id="commerce-v39-admin-ux">
+(function(){
+ const $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const params=()=>{const a=new URLSearchParams(location.search),q=new URLSearchParams();for(const k of ['tenant','nr_trial','template'])if(a.get(k))q.set(k,a.get(k));return q};
+ const api=async(path,opts={})=>{const q=params().toString(),tk=typeof window.nrGetAdminToken==='function'?window.nrGetAdminToken():'',r=await fetch('/api'+path+(q?(path.includes('?')?'&':'?')+q:''),{credentials:'include',...opts,headers:{'Content-Type':'application/json',...(tk?{Authorization:'Bearer '+tk}:{}),...(opts.headers||{})}}),t=await r.text();let d={};try{d=JSON.parse(t)}catch{}if(!r.ok)throw new Error(d.error||t||'Yêu cầu thất bại');return d};
+ const money=n=>(Number(n||0)).toLocaleString('vi-VN')+'đ';
+ function variantsFromRows(){const groups=[...document.querySelectorAll('#commerceSimpleOptionRows .commerce-option-v39')].map(r=>({name:(r.querySelector('[data-v39-name]')?.value||'').trim(),values:(r.querySelector('[data-v39-values]')?.value||'').split(',').map(x=>x.trim()).filter(Boolean)})).filter(x=>x.name&&x.values.length);let combos=[{}];for(const g of groups){let next=[];for(const c of combos)for(const v of g.values)next.push({...c,[g.name]:v});combos=next.slice(0,100)}return groups.length?combos:[]}
+ function renderVariants(){const box=$('#commerceVariantMatrix');if(!box)return;const combos=variantsFromRows();box.innerHTML=combos.length?'<p class="field-help"><b>'+combos.length+' lựa chọn bán</b> sẽ được tạo tự động: '+combos.map(x=>esc(Object.values(x).join(' / '))).join(', ')+'</p>':'';box.dataset.v39=JSON.stringify(combos)}
+ window.commerceV39AddOption=function(e){e?.preventDefault();const box=$('#commerceSimpleOptionRows');if(!box)return false;const r=document.createElement('div');r.className='commerce-option-v39';r.innerHTML='<input data-v39-name placeholder="Tên: Màu sắc"><input data-v39-values placeholder="Các lựa chọn: Đen, Trắng, Xanh"><button type="button" class="smallbtn danger">Xóa</button>';r.querySelector('button').onclick=()=>{r.remove();renderVariants()};r.querySelectorAll('input').forEach(x=>x.oninput=renderVariants);box.appendChild(r);r.querySelector('input').focus();return false};
+
+ async function refreshProducts(){
+   const box=$('#commerceProductsPanel');if(!box)return;
+   box.innerHTML='<div class="muted">Đang tải sản phẩm...</div>';
+   try{
+     const d=await api('/commerce/products'), rows=Array.isArray(d.products)?d.products:[];
+     if(!rows.length){box.innerHTML='<div class="empty">Chưa có sản phẩm. Sản phẩm vừa đăng sẽ xuất hiện tại đây.</div>';return}
+     box.className='commerce-products-v39';
+     box.innerHTML=rows.map(p=>`<div class="commerce-product-v39" data-product-id="${Number(p.id)||0}"><img src="${esc(p.image_url||'/assets/placeholder.webp')}" alt=""><div><h4>${esc(p.name||'Sản phẩm')}</h4><p>${esc(p.category_name||'Chưa có danh mục')} · <b>${money(p.price)}</b></p><p>Còn ${Number(p.stock_qty||0)} sản phẩm</p></div><div class="actions"><button type="button" class="smallbtn" data-edit="${Number(p.id)||0}">Sửa</button><button type="button" class="smallbtn danger" data-del="${Number(p.id)||0}">Xóa</button></div></div>`).join('');
+     box.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editProduct(Number(b.dataset.edit),rows));
+     box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>deleteProduct(Number(b.dataset.del)));
+   }catch(e){box.innerHTML='<div class="form-errors">Không tải được sản phẩm: '+esc(e.message)+'</div>'}
+ }
+ async function editProduct(id,rows){
+   const p=rows.find(x=>Number(x.id)===id);if(!p)return;const f=$('#commerceProductForm'),card=f?.closest('.commerce-quick-card');if(!f)return;
+   if(card)card.style.display='';f.dataset.editId=String(id);
+   for(const k of ['name','price','compare_at_price','stock_qty','description','badge'])if(f.elements[k])f.elements[k].value=p[k]??'';
+   const sel=$('#commerceProductCategory');if(sel){let o=[...sel.options].find(x=>String(x.value)===String(p.category_id));if(!o&&p.category_name)o=[...sel.options].find(x=>(x.dataset.name||x.textContent).trim()===String(p.category_name).trim());if(o)sel.value=o.value}
+   $('#commerceImageUrl').value=p.image_url||'';$('#commerceGallery').value=Array.isArray(p.gallery)?p.gallery.join(', '):(p.gallery||'');
+   $('.commerce-publish-btn').textContent='Lưu thay đổi';f.scrollIntoView({behavior:'smooth',block:'start'});
+ }
+ async function deleteProduct(id){if(!confirm('Xóa sản phẩm này?'))return;try{await api('/commerce/products?id='+id,{method:'DELETE'});await refreshProducts()}catch(e){alert('Không xóa được: '+e.message)}}
+ window.loadCommerceProducts=refreshProducts;
+ const original=window.commerceV38Publish;
+ window.commerceV38Publish=function(e){
+   // Convert the simple rows to the existing variant-row format just before V38 collects them.
+   const matrix=$('#commerceVariantMatrix'),combos=variantsFromRows();
+   if(matrix){matrix.innerHTML=combos.map(o=>`<div data-variant-row><input type="hidden" data-v="name" value="${esc(Object.values(o).join(' / '))}"><input type="hidden" data-v="options" value="${esc(JSON.stringify(o))}"><input type="hidden" data-v="price" value="0"><input type="hidden" data-v="stock_qty" value="0"><input type="hidden" data-v="sku"><input type="hidden" data-v="image_url"></div>`).join('')}
+   const r=original?.(e);setTimeout(refreshProducts,700);setTimeout(refreshProducts,1800);return r;
+ };
+ // Ensure list appears whenever this tab is opened and on initial admin load.
+ document.addEventListener('click',e=>{if(e.target.closest('[data-tab="commerce-products"]'))setTimeout(refreshProducts,50)});
+ setTimeout(refreshProducts,600);
+})();
+</script></body></html>
