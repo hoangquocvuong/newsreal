@@ -131,6 +131,15 @@ const BUILTIN_PROFESSIONAL_PROFILES={
  'dich-vu-5':{id:'service',label:'Cẩm nang cửa hàng',content_type:'service',categories:['Cẩm nang mua sắm','Khuyến mãi','Hướng dẫn sử dụng','Tin cửa hàng'],contentLabel:'Bài viết / cẩm nang',contentHelp:'Chọn đúng chuyên mục để nội dung hiển thị đúng khu vực trên trang chủ.',custom_fields:[{key:'service_price',label:'Giá bán / giá tham khảo',type:'text'},{key:'service_area',label:'Cấu hình / phiên bản',type:'text'},{key:'service_cta',label:'Nhãn nút tư vấn',type:'text'}]},
  'dich-vu-6':{id:'service',label:'Dịch vụ Lân Sư Rồng',content_type:'service',categories:['Gói múa lân','Múa rồng','Trống hội','Sự kiện đã thực hiện','Tin hoạt động','Kiến thức & phong tục'],contentLabel:'Nội dung gói dịch vụ / bài viết',contentHelp:'Gói dịch vụ nên nhập rõ giá, số lân, trống, nhân sự và các hiệu ứng đi kèm. Có thể tải nhiều ảnh; ảnh đầu là ảnh đại diện, các ảnh sau dùng cho slideshow/album.',custom_fields:[{key:'service_price',label:'Giá gói / Giá tham khảo',type:'text',placeholder:'Ví dụ: Từ 3.500.000đ'},{key:'lion_count',label:'Số đầu lân / Rồng',type:'text',placeholder:'Ví dụ: 2 đầu lân'},{key:'drum_count',label:'Trống & bộ gõ',type:'text',placeholder:'1 trống cái + chập chõa'},{key:'performers_count',label:'Số người tham gia',type:'text',placeholder:'7–9 người'},{key:'performance_duration',label:'Thời lượng',type:'text',placeholder:'20–30 phút'},{key:'fireworks',label:'Pháo sáng',type:'text',placeholder:'Có / Không / Tùy chọn'},{key:'confetti',label:'Pháo kim tuyến',type:'text',placeholder:'Có / Không / Số lượt'},{key:'couplets',label:'Câu đối / liễn chúc mừng',type:'text',placeholder:'01 bộ theo kịch bản'},{key:'service_area',label:'Khu vực phục vụ',type:'text',placeholder:'Hải Phòng / Hà Nội / Toàn quốc'},{key:'service_cta',label:'Nhãn nút liên hệ',type:'text',placeholder:'Liên hệ báo giá'}]}
 };
+// V52: explicit semantic category registry shared by every adaptive editor.
+// Templates can still override these through editor_profile.category_modes from the API.
+const UNIVERSAL_CATEGORY_MODE_REGISTRY={
+ 'dich-vu-1':{'Internet FPT':'commercial','Truyền hình FPT':'commercial','Camera FPT':'commercial','Combo FPT':'commercial'},
+ 'dich-vu-2':{'Internet VNPT':'commercial','Truyền hình MyTV':'commercial','Camera VNPT':'commercial','Combo VNPT':'commercial'},
+ 'dich-vu-3':{'Combo Viettel':'commercial','Internet Viettel':'commercial','Truyền hình TV360':'commercial','Camera Viettel':'commercial'},
+ 'dich-vu-5':{'Cẩm nang mua sắm':'editorial','Khuyến mãi':'editorial','Hướng dẫn sử dụng':'editorial','Tin cửa hàng':'editorial'},
+ 'dich-vu-6':{'Gói múa lân':'commercial','Múa rồng':'commercial','Trống hội':'commercial','Sự kiện đã thực hiện':'event','Tin hoạt động':'editorial','Kiến thức & phong tục':'editorial'}
+};
 function professionalAdminKey(){const o=adminTemplateOverride();if(TELECOM_ADMIN_PROFILES[o]||BUILTIN_PROFESSIONAL_PROFILES[o])return o;if(TELECOM_ADMIN_PROFILES[CLIENT_TEMPLATE_KEY]||BUILTIN_PROFESSIONAL_PROFILES[CLIENT_TEMPLATE_KEY])return CLIENT_TEMPLATE_KEY;const byPreset={personal_blog_1:'blog-ca-nhan-1',personal_blog_2:'blog-ca-nhan-2',corporate_modern_1:'doanh-nghiep-1',corporate_industry_2:'doanh-nghiep-2',universal_commerce_5:'dich-vu-5',service_lion_dance_6:'dich-vu-6'};return byPreset[CLIENT_PRESET]||''}
 function isProfessionalContactTemplate(){return !!professionalAdminKey()}
 function resolvedContentProfile(){
@@ -245,7 +254,7 @@ function lionCategoryFields(category=''){
 }
 function isTelecomAdminTemplate(){return ['dich-vu-1','dich-vu-2','dich-vu-3'].includes(professionalAdminKey())}
 
-// Universal adaptive content contract (V51).
+// Universal adaptive content contract (V52).
 // The editor follows the semantic role of the current category, not a one-off
 // template patch. New templates can provide category_modes in editor_profile;
 // otherwise safe content-type defaults and editorial category names are used.
@@ -253,8 +262,14 @@ const UNIVERSAL_EDITORIAL_CATEGORY_RE=/(^|\s)(tin|tin tức|tin hoạt động|k
 const UNIVERSAL_COMMERCE_FIELD_RE=/(price|cost|fee|sku|stock|sale|promo|discount|speed|device|term|install|cloud|camera|channel|wifi|lion_count|drum_count|performers_count|duration|fireworks|confetti|couplets|service_area|service_cta)/i;
 function universalCategoryMode(category=postCategory?.value||''){
  const profile=resolvedContentProfile(),type=String(profile.content_type||postType?.value||'property'),name=String(category||'').trim();
- const declared=profile.category_modes&&typeof profile.category_modes==='object'?profile.category_modes[name]:'';
+ const declaredModes=profile.category_modes&&typeof profile.category_modes==='object'?profile.category_modes:{};
+ const declaredKey=Object.keys(declaredModes).find(k=>String(k).trim().toLowerCase()===name.toLowerCase());
+ const declared=declaredKey?String(declaredModes[declaredKey]||'').toLowerCase():'';
  if(['editorial','commercial','property','product','game','event'].includes(declared))return declared;
+ const registry=UNIVERSAL_CATEGORY_MODE_REGISTRY[professionalAdminKey()]||{};
+ const registryKey=Object.keys(registry).find(k=>String(k).trim().toLowerCase()===name.toLowerCase());
+ const registered=registryKey?registry[registryKey]:'';
+ if(registered)return registered;
  if(type==='property')return 'property';
  if(type==='product')return 'product';
  if(type==='game')return 'game';
@@ -270,7 +285,9 @@ function universalAdaptiveFields(values={}){
  const profile=resolvedContentProfile(),mode=universalCategoryMode();
  if(profile.content_type==='game')return gameAdminFields(values);
  if(isTelecomAdminTemplate())return mode==='editorial'?[]:telecomCategoryFields(postCategory?.value||'');
- if(isLionAdminTemplate())return lionCategoryFields(postCategory?.value||'');
+ // Mixed service templates obey the same semantic contract: editorial categories
+ // must never inherit package price/spec fields merely because the template also sells services.
+ if(isLionAdminTemplate())return mode==='editorial'?[]:lionCategoryFields(postCategory?.value||'');
  const fields=Array.isArray(profile.custom_fields)?profile.custom_fields:[];
  // News/editorial categories never inherit price/spec/CTA fields from an old or
  // overly broad profile. Non-commercial editorial metadata (author, reading time,
