@@ -131,15 +131,6 @@ const BUILTIN_PROFESSIONAL_PROFILES={
  'dich-vu-5':{id:'service',label:'Cẩm nang cửa hàng',content_type:'service',categories:['Cẩm nang mua sắm','Khuyến mãi','Hướng dẫn sử dụng','Tin cửa hàng'],contentLabel:'Bài viết / cẩm nang',contentHelp:'Chọn đúng chuyên mục để nội dung hiển thị đúng khu vực trên trang chủ.',custom_fields:[{key:'service_price',label:'Giá bán / giá tham khảo',type:'text'},{key:'service_area',label:'Cấu hình / phiên bản',type:'text'},{key:'service_cta',label:'Nhãn nút tư vấn',type:'text'}]},
  'dich-vu-6':{id:'service',label:'Dịch vụ Lân Sư Rồng',content_type:'service',categories:['Gói múa lân','Múa rồng','Trống hội','Sự kiện đã thực hiện','Tin hoạt động','Kiến thức & phong tục'],contentLabel:'Nội dung gói dịch vụ / bài viết',contentHelp:'Gói dịch vụ nên nhập rõ giá, số lân, trống, nhân sự và các hiệu ứng đi kèm. Có thể tải nhiều ảnh; ảnh đầu là ảnh đại diện, các ảnh sau dùng cho slideshow/album.',custom_fields:[{key:'service_price',label:'Giá gói / Giá tham khảo',type:'text',placeholder:'Ví dụ: Từ 3.500.000đ'},{key:'lion_count',label:'Số đầu lân / Rồng',type:'text',placeholder:'Ví dụ: 2 đầu lân'},{key:'drum_count',label:'Trống & bộ gõ',type:'text',placeholder:'1 trống cái + chập chõa'},{key:'performers_count',label:'Số người tham gia',type:'text',placeholder:'7–9 người'},{key:'performance_duration',label:'Thời lượng',type:'text',placeholder:'20–30 phút'},{key:'fireworks',label:'Pháo sáng',type:'text',placeholder:'Có / Không / Tùy chọn'},{key:'confetti',label:'Pháo kim tuyến',type:'text',placeholder:'Có / Không / Số lượt'},{key:'couplets',label:'Câu đối / liễn chúc mừng',type:'text',placeholder:'01 bộ theo kịch bản'},{key:'service_area',label:'Khu vực phục vụ',type:'text',placeholder:'Hải Phòng / Hà Nội / Toàn quốc'},{key:'service_cta',label:'Nhãn nút liên hệ',type:'text',placeholder:'Liên hệ báo giá'}]}
 };
-// V52: explicit semantic category registry shared by every adaptive editor.
-// Templates can still override these through editor_profile.category_modes from the API.
-const UNIVERSAL_CATEGORY_MODE_REGISTRY={
- 'dich-vu-1':{'Internet FPT':'commercial','Truyền hình FPT':'commercial','Camera FPT':'commercial','Combo FPT':'commercial'},
- 'dich-vu-2':{'Internet VNPT':'commercial','Truyền hình MyTV':'commercial','Camera VNPT':'commercial','Combo VNPT':'commercial'},
- 'dich-vu-3':{'Combo Viettel':'commercial','Internet Viettel':'commercial','Truyền hình TV360':'commercial','Camera Viettel':'commercial'},
- 'dich-vu-5':{'Cẩm nang mua sắm':'editorial','Khuyến mãi':'editorial','Hướng dẫn sử dụng':'editorial','Tin cửa hàng':'editorial'},
- 'dich-vu-6':{'Gói múa lân':'commercial','Múa rồng':'commercial','Trống hội':'commercial','Sự kiện đã thực hiện':'event','Tin hoạt động':'editorial','Kiến thức & phong tục':'editorial'}
-};
 function professionalAdminKey(){const o=adminTemplateOverride();if(TELECOM_ADMIN_PROFILES[o]||BUILTIN_PROFESSIONAL_PROFILES[o])return o;if(TELECOM_ADMIN_PROFILES[CLIENT_TEMPLATE_KEY]||BUILTIN_PROFESSIONAL_PROFILES[CLIENT_TEMPLATE_KEY])return CLIENT_TEMPLATE_KEY;const byPreset={personal_blog_1:'blog-ca-nhan-1',personal_blog_2:'blog-ca-nhan-2',corporate_modern_1:'doanh-nghiep-1',corporate_industry_2:'doanh-nghiep-2',universal_commerce_5:'dich-vu-5',service_lion_dance_6:'dich-vu-6'};return byPreset[CLIENT_PRESET]||''}
 function isProfessionalContactTemplate(){return !!professionalAdminKey()}
 function resolvedContentProfile(){
@@ -253,59 +244,9 @@ function lionCategoryFields(category=''){
  return [price,{key:'lion_count',label:'Số đầu lân / Rồng',type:'text',placeholder:'Ví dụ: 2 đầu lân'},{key:'drum_count',label:'Trống & bộ gõ',type:'text',placeholder:'1 trống cái + chập chõa'},...common.slice(0,4),{key:'couplets',label:'Câu đối / liễn chúc mừng',type:'text',placeholder:'01 bộ theo kịch bản'},...common.slice(4)];
 }
 function isTelecomAdminTemplate(){return ['dich-vu-1','dich-vu-2','dich-vu-3'].includes(professionalAdminKey())}
-
-// Universal adaptive content contract (V52).
-// The editor follows the semantic role of the current category, not a one-off
-// template patch. New templates can provide category_modes in editor_profile;
-// otherwise safe content-type defaults and editorial category names are used.
-const UNIVERSAL_EDITORIAL_CATEGORY_RE=/(^|\s)(tin|tin tức|tin hoạt động|kiến thức|cẩm nang|hướng dẫn|góc nhìn|bài viết|blog|pháp luật|đời sống|giáo dục|sức khỏe|văn hóa|giải trí|thể thao|khoa học|du lịch|thế giới)(\s|$)/i;
-const UNIVERSAL_COMMERCE_FIELD_RE=/(price|cost|fee|sku|stock|sale|promo|discount|speed|device|term|install|cloud|camera|channel|wifi|lion_count|drum_count|performers_count|duration|fireworks|confetti|couplets|service_area|service_cta)/i;
-function universalCategoryMode(category=postCategory?.value||''){
- const profile=resolvedContentProfile(),type=String(profile.content_type||postType?.value||'property'),name=String(category||'').trim();
- const declaredModes=profile.category_modes&&typeof profile.category_modes==='object'?profile.category_modes:{};
- const declaredKey=Object.keys(declaredModes).find(k=>String(k).trim().toLowerCase()===name.toLowerCase());
- const declared=declaredKey?String(declaredModes[declaredKey]||'').toLowerCase():'';
- if(['editorial','commercial','property','product','game','event'].includes(declared))return declared;
- const registry=UNIVERSAL_CATEGORY_MODE_REGISTRY[professionalAdminKey()]||{};
- const registryKey=Object.keys(registry).find(k=>String(k).trim().toLowerCase()===name.toLowerCase());
- const registered=registryKey?registry[registryKey]:'';
- if(registered)return registered;
- if(type==='property')return 'property';
- if(type==='product')return 'product';
- if(type==='game')return 'game';
- if(type==='news')return 'editorial';
- // Service templates may intentionally mix sellable services with articles.
- // Editorial names stay article-simple; every other service category remains commercial.
- if(type==='service'&&UNIVERSAL_EDITORIAL_CATEGORY_RE.test(name))return 'editorial';
- if(type==='service'&&/sự kiện đã thực hiện/i.test(name))return 'event';
- if(type==='service')return 'commercial';
- return 'editorial';
-}
-function universalAdaptiveFields(values={}){
- const profile=resolvedContentProfile(),mode=universalCategoryMode();
- if(profile.content_type==='game')return gameAdminFields(values);
- if(isTelecomAdminTemplate())return mode==='editorial'?[]:telecomCategoryFields(postCategory?.value||'');
- // Mixed service templates obey the same semantic contract: editorial categories
- // must never inherit package price/spec fields merely because the template also sells services.
- if(isLionAdminTemplate())return mode==='editorial'?[]:lionCategoryFields(postCategory?.value||'');
- const fields=Array.isArray(profile.custom_fields)?profile.custom_fields:[];
- // News/editorial categories never inherit price/spec/CTA fields from an old or
- // overly broad profile. Non-commercial editorial metadata (author, reading time,
- // event date, etc.) remains available.
- if(mode==='editorial')return fields.filter(f=>!UNIVERSAL_COMMERCE_FIELD_RE.test(String(f?.key||'')));
- return fields;
-}
-function applyUniversalCategoryContract(){
- const mode=universalCategoryMode();document.body.dataset.contentMode=mode;
- const host=document.getElementById('profileFieldsHost');if(host)host.dataset.contentMode=mode;
- const hint=document.getElementById('contentTypeHint');
- if(hint&&mode==='editorial')hint.textContent='Bài viết / tin tức: chỉ nhập tiêu đề, chuyên mục, hình ảnh và nội dung; các trường giá và thông số bán hàng được ẩn tự động.';
- else if(hint&&mode==='commercial')hint.textContent='Dịch vụ / gói bán: hiển thị giá và các thông số cần thiết theo đúng chuyên mục.';
- else if(hint&&mode==='property')hint.textContent='Bất động sản: hiển thị giá, diện tích, vị trí và thông số chi tiết.';
-}
 function renderProfileFields(values={}){
  const host=document.getElementById('profileFieldsHost');if(!host)return;
- const profile=resolvedContentProfile(),fields=universalAdaptiveFields(values);
+ const profile=resolvedContentProfile(),fields=profile.content_type==='game'?gameAdminFields(values):(isTelecomAdminTemplate()?telecomCategoryFields(postCategory?.value||''):(isLionAdminTemplate()?lionCategoryFields(postCategory?.value||''):(Array.isArray(profile.custom_fields)?profile.custom_fields:[])));
  if(!fields.length){host.innerHTML='';host.classList.add('hidden');return}
  host.classList.remove('hidden');
  host.innerHTML='<div class="form-section-title">Thông tin theo mẫu giao diện</div><div class="profile-fields-grid">'+fields.map(f=>{
@@ -323,6 +264,25 @@ function parseExtraJson(v){try{return typeof v==='object'&&v?v:JSON.parse(v||'{}
 
 function adminTemplateOverride(){const requested=new URLSearchParams(location.search).get('template')||'';return CLIENT_TEMPLATE_KEY||requested} // API/site identity wins over URL; prevents cross-template Admin UI
 function isCommerceTemplate(){const o=adminTemplateOverride();return o==='dich-vu-5'||CLIENT_TEMPLATE_KEY==='dich-vu-5'||CLIENT_PRESET==='universal_commerce_5'||CLIENT_CATEGORY==='ban-hang'}
+function isPropertyTemplate(){const o=adminTemplateOverride();if(o)return /^mau-[1-5]$/i.test(o);return CLIENT_CATEGORY==='bat-dong-san'||CLIENT_PROFILE?.content_type==='property'||CLIENT_PROFILE?.id==='property'||String(CLIENT_PRESET||'').startsWith('realestate_')}
+const CONTENT_TYPE_LABELS={property:'Bất động sản',news:'Tin tức',service:'Dịch vụ',game:'Clash of Clans Base',product:'Sản phẩm / Affiliate'};
+function allowedContentTypesForTemplate(){
+ const p=resolvedContentProfile(),declared=Array.isArray(p?.allowed_content_types)?p.allowed_content_types.map(x=>String(x||'').toLowerCase()).filter(Boolean):[];
+ if(declared.length)return [...new Set(declared)];
+ // Property sites may publish listings and editorial news. Other specialized templates
+ // keep one content family; mixed category behavior is handled by category_modes.
+ if(isPropertyTemplate())return ['property','news'];
+ if(isCommerceTemplate()||isProductTemplate())return ['product'];
+ if(isGameTemplate())return ['game'];
+ if(isServiceTemplate())return ['service'];
+ if(isNewsTemplate())return ['news'];
+ return [String(p?.content_type||'property')];
+}
+function applyContentTypeAllowList(){
+ if(!postType)return;const allowed=allowedContentTypesForTemplate(),current=allowed.includes(postType.value)?postType.value:allowed[0];
+ postType.innerHTML=allowed.map(v=>`<option value="${v}">${CONTENT_TYPE_LABELS[v]||v}</option>`).join('');
+ postType.value=current;
+}
 function isProductTemplate(){const override=adminTemplateOverride();if(override)return /^san-pham-\d+$/i.test(override);return CLIENT_CATEGORY==='san-pham'||CLIENT_PROFILE?.content_type==='product'||CLIENT_PROFILE?.id==='product-affiliate'||String(CLIENT_PRESET||'').startsWith('product_')}
 function isServiceTemplate(){const override=adminTemplateOverride();if(override)return /^dich-vu-\d+$/i.test(override);return CLIENT_CATEGORY==='dich-vu'||CLIENT_PROFILE?.content_type==='service'||CLIENT_PROFILE?.id==='service'||String(CLIENT_PRESET||'').startsWith('service_')}
 function isNewsTemplate(){
@@ -401,6 +361,7 @@ function configureAdminForTemplate(){
  const menuPosts=document.getElementById('menuPostsText');
  const overviewBtn=document.querySelector('#tab-overview .admin-page-head .btn.primary');
  const profile=resolvedContentProfile();
+ applyContentTypeAllowList();
  const editorLabel=document.getElementById('contentEditorLabel'),editorHelp=document.getElementById('contentEditorHelp');
  if(editorLabel)editorLabel.textContent=profile.contentLabel||(news?'Nội dung bài viết':'Mô tả chi tiết');
  if(editorHelp)editorHelp.textContent=profile.contentHelp||'Soạn và định dạng nội dung.';
@@ -478,8 +439,9 @@ function configureAdminForTemplate(){
    document.querySelector('#tab-overview .admin-kpis .kpi:first-child small')?.replaceChildren(document.createTextNode('TỔNG BÀI VIẾT'));
    document.querySelector('#tab-overview .admin-kpis .kpi:first-child span')?.replaceChildren(document.createTextNode('Bài đã đăng'));
  }else{
-   postType.disabled=false;
-   picker?.classList.remove('hidden');
+   const allowed=allowedContentTypesForTemplate();
+   postType.disabled=allowed.length<=1;
+   picker?.classList.toggle('hidden',allowed.length<=1);
    notice?.classList.add('hidden');
    if(menuNew)menuNew.textContent='Đăng nội dung mới';
    if(menuPosts)menuPosts.textContent='Quản lý nội dung';
@@ -826,7 +788,10 @@ postStatus.addEventListener('change',updateSubmitLabel);
 
 
 function fillCategoryOptions(keep=''){
-  const current=keep||postCategory.value||'',profile=resolvedContentProfile();
+  const current=keep||postCategory.value||'';
+  // Content type is template-whitelisted. Property sites can switch to editorial News
+  // without inheriting property transaction categories.
+  const profile=postType?.value==='news'&&!isNewsTemplate()?BUILTIN_CONTENT_PROFILES.news:resolvedContentProfile();
   let list=[];
   // Never infer a News category list from categoriesByTransaction. Older/stale
   // property profiles may still carry that object and previously produced an
@@ -853,9 +818,8 @@ function updateContentTypeUI(){
   editorHelp.textContent=isProduct?'Điền thông tin sản phẩm; giá, link mua và thông số sẽ đồng bộ trực tiếp với giao diện catalog.':isGame?'Điền thông tin base; các trường Hall, Level, Purpose, Defense và Copy Link sẽ đồng bộ với giao diện Gaming.':isService?'Điền thông tin gói dịch vụ; các trường riêng của template sẽ hiển thị tự động.':isNews?'Giao diện đã ẩn các trường bất động sản để bạn viết bài đơn giản và dễ nhìn hơn.':'Điền thông tin chi tiết để tin đăng hiển thị đầy đủ trên website.';
   imageSectionTitle.textContent=isProduct?'Hình ảnh sản phẩm':isGame?'Hình ảnh base':isService?'Hình ảnh dịch vụ':isNews?'Hình ảnh bài viết':'Hình ảnh bất động sản';
   fillCategoryOptions(postCategory.value);
-  applyUniversalCategoryContract();
 }
-postType.addEventListener('change',updateContentTypeUI);transaction.addEventListener('change',()=>fillCategoryOptions(postCategory.value));postCategory.addEventListener('change',()=>{const current=collectProfileFields();renderProfileFields(current);applyUniversalCategoryContract()});
+postType.addEventListener('change',()=>{updateContentTypeUI();renderProfileFields({})});transaction.addEventListener('change',()=>fillCategoryOptions(postCategory.value));postCategory.addEventListener('change',()=>{if(isGameTemplate()||postType.value==='game')renderProfileFields({});else if(isTelecomAdminTemplate()||isLionAdminTemplate()){const current=collectProfileFields();renderProfileFields(current)}});
 
 
 postForm.addEventListener('submit',async e=>{e.preventDefault();if(!validatePost())return;const normalizedContent=normalizeArticleHtml(richHtml());if(postContent)postContent.value=normalizedContent;if(nrTinyEditor)nrTinyEditor.setContent(normalizedContent);else if(richEditor)richEditor.innerHTML=normalizedContent;submitPostBtn.disabled=true;submitPostBtn.textContent='Đang xử lý...';const isProduct=postType.value==='product',isNews=postType.value==='news',isService=postType.value==='service',isGame=postType.value==='game',isSimple=isProduct||isNews||isService||isGame;const b={type:postType.value,transaction:isSimple?'':transaction.value,property_type:isSimple?'':propertyType.value,title:postTitle.value,price:isSimple?'':postPrice.value,area:isSimple?'':postArea.value,unit_price:isSimple?'':unitPrice.value,listing_code:listingCode.value,bedrooms:isSimple?null:(+bedrooms.value||null),bathrooms:isSimple?null:(+bathrooms.value||null),floors:isSimple?null:(+floors.value||null),frontage:isSimple?'':frontage.value,direction:isSimple?'':direction.value,legal:isSimple?'':legal.value,furniture:isSimple?'':furniture.value,province:isSimple?'':province.value,district:isSimple?'':district.value,ward:isSimple?'':ward.value,address:isSimple?'':postAddress.value,image:postImage.value,gallery:gallery.value,contact_name:isSimple?'':contactName.value,phone:isSimple?'':postPhone.value,category:postCategory.value,content:postContent.value,extra_json:JSON.stringify(collectProfileFields()),featured:featured.checked?1:0,verified:verified.checked?1:0,status:postStatus.value};const id=editingId.value;try{
