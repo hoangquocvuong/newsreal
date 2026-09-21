@@ -244,9 +244,51 @@ function lionCategoryFields(category=''){
  return [price,{key:'lion_count',label:'Số đầu lân / Rồng',type:'text',placeholder:'Ví dụ: 2 đầu lân'},{key:'drum_count',label:'Trống & bộ gõ',type:'text',placeholder:'1 trống cái + chập chõa'},...common.slice(0,4),{key:'couplets',label:'Câu đối / liễn chúc mừng',type:'text',placeholder:'01 bộ theo kịch bản'},...common.slice(4)];
 }
 function isTelecomAdminTemplate(){return ['dich-vu-1','dich-vu-2','dich-vu-3'].includes(professionalAdminKey())}
+
+// Universal adaptive content contract (V51).
+// The editor follows the semantic role of the current category, not a one-off
+// template patch. New templates can provide category_modes in editor_profile;
+// otherwise safe content-type defaults and editorial category names are used.
+const UNIVERSAL_EDITORIAL_CATEGORY_RE=/(^|\s)(tin|tin tức|tin hoạt động|kiến thức|cẩm nang|hướng dẫn|góc nhìn|bài viết|blog|pháp luật|đời sống|giáo dục|sức khỏe|văn hóa|giải trí|thể thao|khoa học|du lịch|thế giới)(\s|$)/i;
+const UNIVERSAL_COMMERCE_FIELD_RE=/(price|cost|fee|sku|stock|sale|promo|discount|speed|device|term|install|cloud|camera|channel|wifi|lion_count|drum_count|performers_count|duration|fireworks|confetti|couplets|service_area|service_cta)/i;
+function universalCategoryMode(category=postCategory?.value||''){
+ const profile=resolvedContentProfile(),type=String(profile.content_type||postType?.value||'property'),name=String(category||'').trim();
+ const declared=profile.category_modes&&typeof profile.category_modes==='object'?profile.category_modes[name]:'';
+ if(['editorial','commercial','property','product','game','event'].includes(declared))return declared;
+ if(type==='property')return 'property';
+ if(type==='product')return 'product';
+ if(type==='game')return 'game';
+ if(type==='news')return 'editorial';
+ // Service templates may intentionally mix sellable services with articles.
+ // Editorial names stay article-simple; every other service category remains commercial.
+ if(type==='service'&&UNIVERSAL_EDITORIAL_CATEGORY_RE.test(name))return 'editorial';
+ if(type==='service'&&/sự kiện đã thực hiện/i.test(name))return 'event';
+ if(type==='service')return 'commercial';
+ return 'editorial';
+}
+function universalAdaptiveFields(values={}){
+ const profile=resolvedContentProfile(),mode=universalCategoryMode();
+ if(profile.content_type==='game')return gameAdminFields(values);
+ if(isTelecomAdminTemplate())return mode==='editorial'?[]:telecomCategoryFields(postCategory?.value||'');
+ if(isLionAdminTemplate())return lionCategoryFields(postCategory?.value||'');
+ const fields=Array.isArray(profile.custom_fields)?profile.custom_fields:[];
+ // News/editorial categories never inherit price/spec/CTA fields from an old or
+ // overly broad profile. Non-commercial editorial metadata (author, reading time,
+ // event date, etc.) remains available.
+ if(mode==='editorial')return fields.filter(f=>!UNIVERSAL_COMMERCE_FIELD_RE.test(String(f?.key||'')));
+ return fields;
+}
+function applyUniversalCategoryContract(){
+ const mode=universalCategoryMode();document.body.dataset.contentMode=mode;
+ const host=document.getElementById('profileFieldsHost');if(host)host.dataset.contentMode=mode;
+ const hint=document.getElementById('contentTypeHint');
+ if(hint&&mode==='editorial')hint.textContent='Bài viết / tin tức: chỉ nhập tiêu đề, chuyên mục, hình ảnh và nội dung; các trường giá và thông số bán hàng được ẩn tự động.';
+ else if(hint&&mode==='commercial')hint.textContent='Dịch vụ / gói bán: hiển thị giá và các thông số cần thiết theo đúng chuyên mục.';
+ else if(hint&&mode==='property')hint.textContent='Bất động sản: hiển thị giá, diện tích, vị trí và thông số chi tiết.';
+}
 function renderProfileFields(values={}){
  const host=document.getElementById('profileFieldsHost');if(!host)return;
- const profile=resolvedContentProfile(),fields=profile.content_type==='game'?gameAdminFields(values):(isTelecomAdminTemplate()?telecomCategoryFields(postCategory?.value||''):(isLionAdminTemplate()?lionCategoryFields(postCategory?.value||''):(Array.isArray(profile.custom_fields)?profile.custom_fields:[])));
+ const profile=resolvedContentProfile(),fields=universalAdaptiveFields(values);
  if(!fields.length){host.innerHTML='';host.classList.add('hidden');return}
  host.classList.remove('hidden');
  host.innerHTML='<div class="form-section-title">Thông tin theo mẫu giao diện</div><div class="profile-fields-grid">'+fields.map(f=>{
@@ -794,8 +836,9 @@ function updateContentTypeUI(){
   editorHelp.textContent=isProduct?'Điền thông tin sản phẩm; giá, link mua và thông số sẽ đồng bộ trực tiếp với giao diện catalog.':isGame?'Điền thông tin base; các trường Hall, Level, Purpose, Defense và Copy Link sẽ đồng bộ với giao diện Gaming.':isService?'Điền thông tin gói dịch vụ; các trường riêng của template sẽ hiển thị tự động.':isNews?'Giao diện đã ẩn các trường bất động sản để bạn viết bài đơn giản và dễ nhìn hơn.':'Điền thông tin chi tiết để tin đăng hiển thị đầy đủ trên website.';
   imageSectionTitle.textContent=isProduct?'Hình ảnh sản phẩm':isGame?'Hình ảnh base':isService?'Hình ảnh dịch vụ':isNews?'Hình ảnh bài viết':'Hình ảnh bất động sản';
   fillCategoryOptions(postCategory.value);
+  applyUniversalCategoryContract();
 }
-postType.addEventListener('change',updateContentTypeUI);transaction.addEventListener('change',()=>fillCategoryOptions(postCategory.value));postCategory.addEventListener('change',()=>{if(isGameTemplate()||postType.value==='game')renderProfileFields({});else if(isTelecomAdminTemplate()||isLionAdminTemplate()){const current=collectProfileFields();renderProfileFields(current)}});
+postType.addEventListener('change',updateContentTypeUI);transaction.addEventListener('change',()=>fillCategoryOptions(postCategory.value));postCategory.addEventListener('change',()=>{const current=collectProfileFields();renderProfileFields(current);applyUniversalCategoryContract()});
 
 
 postForm.addEventListener('submit',async e=>{e.preventDefault();if(!validatePost())return;const normalizedContent=normalizeArticleHtml(richHtml());if(postContent)postContent.value=normalizedContent;if(nrTinyEditor)nrTinyEditor.setContent(normalizedContent);else if(richEditor)richEditor.innerHTML=normalizedContent;submitPostBtn.disabled=true;submitPostBtn.textContent='Đang xử lý...';const isProduct=postType.value==='product',isNews=postType.value==='news',isService=postType.value==='service',isGame=postType.value==='game',isSimple=isProduct||isNews||isService||isGame;const b={type:postType.value,transaction:isSimple?'':transaction.value,property_type:isSimple?'':propertyType.value,title:postTitle.value,price:isSimple?'':postPrice.value,area:isSimple?'':postArea.value,unit_price:isSimple?'':unitPrice.value,listing_code:listingCode.value,bedrooms:isSimple?null:(+bedrooms.value||null),bathrooms:isSimple?null:(+bathrooms.value||null),floors:isSimple?null:(+floors.value||null),frontage:isSimple?'':frontage.value,direction:isSimple?'':direction.value,legal:isSimple?'':legal.value,furniture:isSimple?'':furniture.value,province:isSimple?'':province.value,district:isSimple?'':district.value,ward:isSimple?'':ward.value,address:isSimple?'':postAddress.value,image:postImage.value,gallery:gallery.value,contact_name:isSimple?'':contactName.value,phone:isSimple?'':postPhone.value,category:postCategory.value,content:postContent.value,extra_json:JSON.stringify(collectProfileFields()),featured:featured.checked?1:0,verified:verified.checked?1:0,status:postStatus.value};const id=editingId.value;try{
